@@ -212,7 +212,7 @@ Approved public variables are documented in [`.env.example`](../.env.example):
 
 `VITE_*` values are compiled into browser assets and are visible to every user. Therefore:
 
-- never use `CDSE_CLIENT_ID`, `CDSE_CLIENT_SECRET`, bearer/admin tokens, database URLs or signed provider URLs in frontend code or `VITE_*` variables;
+- never use `EARTH_ENGINE_PROJECT`, Earth Engine credentials, bearer/admin tokens, database URLs or signed provider URLs in frontend code or `VITE_*` variables;
 - never call Copernicus, USGS or another secret-bearing provider directly from the browser;
 - do not log entire provenance/provider responses if they could contain transient URLs;
 - do not accept an arbitrary URL, local path, HTML snippet, expression or command from a response or query string;

@@ -115,7 +115,7 @@ Every provider adapter must supply the following normalized information:
 
 An `assetResolver` URL is untrusted input. The acquisition process validates and downloads it into quarantine; Rasterio/GDAL receive only an approved local path. Driver restriction, resource limits, process isolation, and publication rules are mandatory in [pipeline hardening](pipeline-hardening.md).
 
-CDSE is the primary authoritative Sentinel discovery endpoint. Earth Search is operationally convenient for anonymous Sentinel-2 COG access but explicitly has no service-level guarantee. Planetary Computer is a fallback whose asset URLs may require temporary signing. USGS Landsat is a sensor/provider fallback. Google Earth Engine is not a required dependency.
+Google Earth Engine `COPERNICUS/S2_SR_HARMONIZED` is the primary offline Sentinel-2 processing source. Direct CDSE STAC is retained as a fallback discovery path; Earth Search and Planetary Computer remain recovery options only after a compatibility check. USGS Landsat remains a separately versioned P1 sensor path. Earth Engine credentials are worker-only and never part of the released demo.
 
 The Bhuvan portal must not be treated as generally open for derivative processing or bulk redistribution. Only a specifically identified dataset with verified permission may enter the pipeline.
 

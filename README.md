@@ -19,8 +19,8 @@ Browser/client (planned analytical dashboard; Orbital is the visual reference)
   ├─ DemoTransport → local manifest + JSON/GeoJSON/image assets
   └─ ApiTransport  → FastAPI /api/v1 contract
                           ├─ implemented immutable mock-result repository
-                          └─ future provider-neutral geoprocessing pipeline
-                               → CDSE STAC / approved fallbacks
+                          └─ future offline geoprocessing pipeline
+                               → Google Earth Engine / CDSE fallback
 ```
 
 The judged path is precomputed-first and runs over local HTTP without internet. Live or semi-live processing is an enhancement and must preserve the same response schemas. The optional user-provided 3D showcase is never required for analytics.

@@ -15,7 +15,7 @@ The project has fixed the primary optical comparison periods to 2019-10-15 throu
 
 Official district geometry is intended to come from the Survey of India Administrative Boundary Database. Survey of India provides district-level administrative vector products, but the exact chosen file and redistribution terms have not yet been acquired or reviewed. ([SOI-ABDB](../research/source-register.md#soi-abdb), [SOI-CATALOG](../research/source-register.md#soi-catalog))
 
-Sentinel-2 Level-2A and Landsat Collection 2 Level-2 products are generally discoverable through direct official STAC/data services, so the pilot does not require Google Earth Engine. District-specific clear-scene counts and common-valid coverage have not been queried. ([CDSE-STAC](../research/source-register.md#cdse-stac), [LANDSAT-STAC](../research/source-register.md#landsat-stac))
+Sentinel-2 Level-2A is now discovered and processed through the offline Google Earth Engine worker, with direct official STAC/data services retained as fallback. Landsat Collection 2 Level-2 remains a direct-source P1 path. District-specific per-pixel common-valid coverage still has not been queried because the approved district polygon is blocked. ([GEE-S2-SR](../research/source-register.md#gee-s2-sr), [CDSE-STAC](../research/source-register.md#cdse-stac), [LANDSAT-STAC](../research/source-register.md#landsat-stac))
 
 ## Decision drivers
 
@@ -128,7 +128,7 @@ If both districts fail, stop the public change claim and deliver an architecture
 - One district keeps acquisition, processing, validation, and explanation tractable.
 - All P0 indicators share the same Sentinel-2 observations and common-valid governance.
 - The backup can use the same pipeline configuration rather than a separate implementation.
-- No Earth Engine account, service credential, or runtime availability is required.
+- The offline processing worker requires authorized Earth Engine project access; the released demo does not.
 
 ### Negative and risks
 
@@ -154,7 +154,7 @@ Rejected because scene metadata does not establish AOI-level clear coverage. The
 
 ### Use Dynamic World to avoid direct built-up methodology
 
-Rejected as a core path because SPARC has no Google Earth Engine dependency and Dynamic World temporal products still require local validation. ([DW-2022](../research/source-register.md#dw-2022), [DW-CATALOG](../research/source-register.md#dw-catalog))
+Rejected as a core path because Dynamic World temporal products still require local validation and its built label is not an impervious-fraction measurement. It may remain optional corroboration in the offline Earth Engine worker. ([DW-2022](../research/source-register.md#dw-2022), [DW-CATALOG](../research/source-register.md#dw-catalog))
 
 ## Follow-up evidence required
 

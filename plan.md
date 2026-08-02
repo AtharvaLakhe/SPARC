@@ -75,9 +75,9 @@ Quality is categorical and evidence-based. A high grade requires independent val
 
 ## Data-source and Reuse Strategy
 
-1. Discover official Sentinel-2 L2A products through the Copernicus Data Space STAC endpoint.
-2. Use a provider adapter so Earth Search or Planetary Computer can supply the same logical bands when CDSE acquisition fails; retain underlying Copernicus attribution and provider limitations.
-3. Keep Google Earth Engine and Dynamic World off the critical path.
+1. Discover and process Sentinel-2 L2A surface reflectance through Google Earth Engine using `COPERNICUS/S2_SR_HARMONIZED`.
+2. Keep the direct Copernicus Data Space STAC path as a documented fallback for metadata discovery and future export recovery; retain underlying Copernicus attribution and provider limitations.
+3. Keep Dynamic World off the critical path.
 4. Evaluate the official Survey of India ABDB for the district/subdistrict geometry, and record the exact acquired-product access and redistribution terms before bundling it. If those terms or geometry fail the gate, use only another source whose authority, version, license, codes, and redistribution rights have been verified.
 5. Use JRC Global Surface Water, ESA WorldCover, GHSL, and approved local records for context/corroboration, not automatic ground truth.
 6. Reuse GDAL, Rasterio, GeoPandas, Shapely, NumPy, pystac-client, and narrowly scoped scikit-image. Do not rebuild projection, raster IO, geometry, STAC, or Otsu functionality.
@@ -99,7 +99,7 @@ Quality is categorical and evidence-based. A high grade requires independent val
 
 ```text
 selection → POST /api/v1/comparisons → validation → deterministic result lookup
-→ 200 cache hit OR 202 queued job → provider adapter/STAC → processing
+→ 200 cache hit OR 202 queued job → Google Earth Engine worker → processing
 → immutable result + provenance → shared API response → browser rendering
 ```
 
@@ -164,6 +164,7 @@ Research/license gates
   - Expected output: Metadata-only catalog inventory for Nagpur/backup, boundary version/license record, and attribution text
   - Acceptance condition: Both regions have documented identifiers, candidate scenes/windows, boundary source, redistribution basis, and fallback
   - Fallback: Use the next approved catalog/boundary source or retain only licensed precomputed artifacts
+  - Progress 2026-08-02: CDSE metadata availability and required assets passed for both pilots; SOI 2025 technical metadata verified; geometry redistribution and polygon QA remain blocked/pending. See `docs/research/pilot-source-gate.md`.
 
 - [ ] **D0-S-002 — Freeze P0 scope, terminology, and methodology**
   - Owner: Shared

@@ -21,7 +21,7 @@ The recommended scope is:
 
 Sentinel-2 band resolutions and Level-2A product semantics come from the mission product specification. Landsat's Level-2 guide documents the thermal product's native support, distributed grid, scale, and QA. ([S2-PSD](source-register.md#s2-psd), [LANDSAT-L2-GUIDE](source-register.md#landsat-l2-guide))
 
-Dynamic World is useful optional context but must not be required: SPARC has explicitly rejected a Google Earth Engine runtime dependency. JRC Global Surface Water, ESA WorldCover, and GHSL are dated corroboration or validation-stratification products, not ground truth. Their own documentation records product-specific validation and comparability limitations. ([DW-2022](source-register.md#dw-2022), [GSW-2024](source-register.md#gsw-2024), [WORLDCOVER-PUM](source-register.md#worldcover-pum), [GHSL-2023](source-register.md#ghsl-2023))
+Dynamic World is useful optional context but must not be required by the indicator or released demo. It may be queried only through the offline Earth Engine worker. JRC Global Surface Water, ESA WorldCover, and GHSL are dated corroboration or validation-stratification products, not ground truth. Their own documentation records product-specific validation and comparability limitations. ([DW-2022](source-register.md#dw-2022), [GSW-2024](source-register.md#gsw-2024), [WORLDCOVER-PUM](source-register.md#worldcover-pum), [GHSL-2023](source-register.md#ghsl-2023))
 
 ## Research question
 
@@ -67,7 +67,7 @@ These are project decisions. They support like-for-like seasonal comparison but 
 
 **DECISION:** use the current Copernicus Data Space STAC endpoint for Sentinel discovery and USGS STAC/EarthExplorer for Landsat. CDSE documents `https://stac.dataspace.copernicus.eu/v1/` as the current endpoint after deprecation of the legacy endpoint in November 2025. USGS documents Collection 2 COG/STAC and EarthExplorer access. ([CDSE-STAC](source-register.md#cdse-stac), [LANDSAT-STAC](source-register.md#landsat-stac))
 
-No application path may require Earth Engine authentication. Provider credentials, if needed for acquisition, remain server-side and must not appear in client code, logs, manifests, or Git.
+No browser, API request, or released-demo path may require Earth Engine authentication. The offline worker alone may use the local Earth Engine credential; it must not appear in client code, logs, manifests, Git, or release artifacts.
 
 ## Scientific method decisions
 

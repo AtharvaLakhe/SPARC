@@ -10,6 +10,24 @@ The register does not imply that SPARC has downloaded, tested, or redistributed 
 
 ## Copernicus Sentinel sources
 
+<a id="gee-access"></a>
+### GEE-ACCESS
+
+- **Title:** *Earth Engine access*
+- **Author/owner:** Google Earth Engine
+- **URL:** https://developers.google.com/earth-engine/guides/access
+- **Accessed:** 2026-08-02
+- **Used for:** Cloud-project registration, API enablement, authentication and server-side access requirements.
+
+<a id="gee-s2-sr"></a>
+### GEE-S2-SR
+
+- **Title:** *Harmonized Sentinel-2 MSI: MultiSpectral Instrument, Level-2A (SR)*
+- **Author/owner:** European Union/ESA/Copernicus; catalogued by Google Earth Engine
+- **URL:** https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S2_SR_HARMONIZED
+- **Accessed:** 2026-08-02
+- **Used for:** primary offline image collection `COPERNICUS/S2_SR_HARMONIZED`, its L2A surface-reflectance scaling, harmonization behavior, SCL availability and Copernicus terms.
+
 <a id="s2-psd"></a>
 ### S2-PSD
 
@@ -214,7 +232,7 @@ The register does not imply that SPARC has downloaded, tested, or redistributed 
 - **URL:** https://developers.google.com/earth-engine/datasets/catalog/GOOGLE_DYNAMICWORLD_V1
 - **Accessed:** 2026-08-02
 - **Used for:** class names, probability bands, temporal availability, algorithm-version metadata, CC BY 4.0 license, and required attribution.
-- **Scope note:** optional comparison source only. SPARC has no Google Earth Engine runtime dependency.
+- **Scope note:** optional comparison source only; it may be queried by the offline Earth Engine worker but is not required by the released demo.
 
 <a id="worldcover-pum"></a>
 ### WORLDCOVER-PUM
@@ -372,6 +390,26 @@ The register does not imply that SPARC has downloaded, tested, or redistributed 
 - **Accessed:** 2026-08-02
 - **Used for:** shapefile format, district-level coverage, product identity, and access conditions.
 
+<a id="soi-abdb-metadata"></a>
+### SOI-ABDB-METADATA
+
+- **Title:** *Administrative Boundary Database ISO 19115-1 metadata package*
+- **Author/owner:** Survey of India, Office of the Surveyor General of India
+- **Dataset edition:** 2025; district/subdistrict metadata published 2026-05-06
+- **URL:** https://surveyofindia.gov.in/documents/Metadata_ABDB.zip
+- **Accessed:** 2026-08-02
+- **Used for:** dataset identifiers, edition, harmonization period, scale, stated accuracy, reference system, ownership, copyright constraints, and distribution format. The metadata does not grant public redistribution permission for the geometry.
+
+<a id="ogd-admin-boundaries"></a>
+### OGD-ADMIN-BOUNDARIES
+
+- **Title:** *Admin Boundaries*
+- **Author/owner:** National Water Informatics Centre, Department of Water Resources, River Development & Ganga Rejuvenation; published through OGD Platform India
+- **Published/updated:** 2022-09-28
+- **URL:** https://www.data.gov.in/catalog/admin-boundaries
+- **Accessed:** 2026-08-02
+- **Used for:** government fallback discovery only. The page describes state, district and block boundaries, but its catalog API and ZIP download were disabled at inspection time; no artifact version, fields, checksum, geometry or resource-specific applicability of the Government Open Data License could be verified. It is not an approved processing input yet.
+
 ## Open-source license sources
 
 These are candidate-library license records, not approved dependencies. Each exact selected version, native binary, driver, codec, transformation grid, and transitive dependency still requires a release audit.
@@ -392,4 +430,4 @@ These are candidate-library license records, not approved dependencies. Each exa
 - Secondary tutorials, blog posts, unsourced threshold lists, and vendor marketing pages are not evidence for indicator correctness.
 - Search-engine snippets are not cited as evidence; only the linked source is registered.
 - No source establishes a universal NDVI, MNDWI, NDBI, IBI, Dynamic World probability, Sentinel-1 dB, cloud-distance, or LST-hotspot threshold. Any such value in SPARC is explicitly a **heuristic** or must be locally calibrated.
-- No district-specific image inventory was downloaded during planning. Clear-scene counts, actual common-valid coverage, threshold stability, and product availability for Nagpur remain **unconfirmed until the discovery dry run**.
+- A metadata-only product inventory was generated on 2026-08-02 and is recorded in the [pilot source gate](pilot-source-gate.md). Scene cloud metadata does not establish clear district coverage; actual common-valid coverage and threshold stability remain unconfirmed until approved geometry and imagery are processed.

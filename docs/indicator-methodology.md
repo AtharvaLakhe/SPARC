@@ -30,7 +30,7 @@ The surface-temperature distinction is a documented physical distinction, not wo
 
 ### Shared processing rules
 
-1. **DECISION — direct data path:** do not depend on Google Earth Engine. Discover Sentinel products through the current Copernicus Data Space STAC endpoint and Landsat through USGS STAC/EarthExplorer. ([CDSE-STAC](research/source-register.md#cdse-stac), [LANDSAT-STAC](research/source-register.md#landsat-stac))
+1. **DECISION — primary data path:** use Google Earth Engine `COPERNICUS/S2_SR_HARMONIZED` for offline Sentinel-2 L2A discovery and processing. Direct CDSE STAC remains the fallback. Earth Engine access is worker-only; the released demo requires no provider connection. ([GEE-S2-SR](research/source-register.md#gee-s2-sr), [CDSE-STAC](research/source-register.md#cdse-stac))
 2. **DECISION — same season:** use the fixed periods above. Do not replace missing dates with another season without issuing a new methodology version.
 3. **RECOMMENDATION — product level:** use Sentinel-2 Level-2A surface reflectance, not Level-1C top-of-atmosphere reflectance. The Level-2A structure and bands are defined by the current product specification. ([S2-PSD](research/source-register.md#s2-psd))
 4. **FACT — direct reflectance decoding:** for Level-2A pixels with `DN != 0`, decode surface reflectance per band as:
@@ -178,7 +178,7 @@ Move to multi-year same-season baselines, phenology-aware trajectories, and sepa
 
 ### Primary method: constrained NDBI
 
-**DECISION:** use a direct Sentinel-2 spectral proxy because SPARC must not depend on Google Earth Engine. Begin with the Normalized Difference Built-up Index:
+**DECISION:** use a Sentinel-2 spectral proxy implemented in the offline Earth Engine worker. Begin with the Normalized Difference Built-up Index:
 
 \[
 NDBI=(\rho_{SWIR1}-\rho_{NIR})/(\rho_{SWIR1}+\rho_{NIR})
@@ -221,7 +221,7 @@ IBI=\frac{NDBI-(SAVI+MNDWI)/2}{NDBI+(SAVI+MNDWI)/2}
 
 Use GHSL 2018 10 m built surface and WorldCover 2021 built-up class as dated context only. GHSL's 100 m multitemporal series uses five-year epochs and includes interpolated/extrapolated years; 2025/2030 must not be described as direct observations. ([GHSL-2023](research/source-register.md#ghsl-2023), [WORLDCOVER-PUM](research/source-register.md#worldcover-pum))
 
-Dynamic World built probability is optional validation/context only because its canonical distribution is tied to Google infrastructure and SPARC has no Earth Engine dependency. Its built label is a land-cover class, not impervious fraction. ([DW-2022](research/source-register.md#dw-2022), [DW-CATALOG](research/source-register.md#dw-catalog))
+Dynamic World built probability is optional validation/context only. It may be queried by the same offline Earth Engine worker but must not be required for the core indicator. Its built label is a land-cover class, not impervious fraction. ([DW-2022](research/source-register.md#dw-2022), [DW-CATALOG](research/source-register.md#dw-catalog))
 
 ### Production upgrade
 

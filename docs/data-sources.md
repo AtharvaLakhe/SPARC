@@ -1,8 +1,8 @@
 # SPARC data sources and acquisition policy
 
-**Status:** source-selection plan; no source data has been downloaded  
+**Status:** source-selection plan plus completed metadata-only pilot discovery; no imagery has been downloaded
 **Evidence cut-off:** 2026-08-02  
-**Runtime constraint:** no Google Earth Engine dependency
+**Primary processing platform:** Google Earth Engine; the released demo remains provider-independent
 
 ## Decisions
 
@@ -10,17 +10,17 @@
 - **DECISION:** P0 Sentinel-2 periods are 2019-10-15 through 2019-12-15 and 2024-10-15 through 2024-12-15, inclusive.
 - **CANDIDATE:** Bengaluru Urban backup periods are 2019-01-15 through 2019-03-15 and the same dates in 2024; they remain unfrozen until the discovery and common-valid-area gates pass.
 - **DECISION:** P1 Landsat heat periods are March 1 through May 15 of 2019 and 2024.
-- **DECISION:** primary P0 data are direct Copernicus Sentinel-2 Level-2A products discovered through Copernicus Data Space Ecosystem STAC.
+- **DECISION:** primary P0 data are Earth Engine `COPERNICUS/S2_SR_HARMONIZED` Sentinel-2 Level-2A surface-reflectance images, with direct CDSE STAC retained as a fallback discovery path.
 - **DECISION:** primary P1 heat data are USGS Landsat 8/9 Collection 2 Tier 1 Level-2 Surface Temperature products.
 - **DECISION:** Dynamic World is optional comparison material, never a production or demo runtime dependency.
-- **ASSUMPTION:** enough clear common coverage exists for Nagpur in the fixed periods. This cannot be confirmed from the current codebase or planning documents because no catalog query or image acquisition has been run.
+- **FACT:** the 2026-08-02 metadata-only discovery found candidate Sentinel-2 L2A products with all required assets in every fixed pilot window. Exact polygon overlap, common-valid coverage and scientific suitability remain unconfirmed until boundary and per-pixel QA gates pass. See the [pilot source gate](research/pilot-source-gate.md).
 
 ## Source matrix
 
 | Priority | Source | SPARC use | Direct access path | Runtime role |
 |---|---|---|---|---|
 | Required | Survey of India Administrative Boundary Database | District AOI | Survey of India ABDB/download portal | pre-acquired, versioned boundary |
-| Required | Copernicus Sentinel-2 Level-2A | MNDWI, NDVI, NDBI and optional AWEI/EVI | CDSE STAC plus official asset/download service | pre-acquired/cache; server-side processing |
+| Required | Earth Engine `COPERNICUS/S2_SR_HARMONIZED` Sentinel-2 Level-2A | MNDWI, NDVI, NDBI and optional AWEI/EVI | Earth Engine worker; direct CDSE STAC fallback | server-side/offline processing; exported immutable demo assets |
 | Required for P1 | USGS Landsat 8/9 Collection 2 Level-2 ST | LST and surface UHI | USGS STAC/AWS or EarthExplorer | pre-acquired/cache; server-side processing |
 | Conditional | Copernicus Sentinel-1 IW GRD | cloudy-period water corroboration/fallback | CDSE STAC/download | offline fallback only for P0 |
 | Optional | JRC Global Surface Water v1.5 | historical water plausibility | official JRC tile download | validation/context |
@@ -208,7 +208,7 @@ Use GHS-BUILT-S 2018 10 m as dated context and the 100 m multitemporal product f
 
 Dynamic World is licensed CC BY 4.0 and provides per-Sentinel-2 probabilities and top-1 labels, but the canonical catalog is Google-hosted. ([DW-CATALOG](research/source-register.md#dw-catalog))
 
-**DECISION:** no server path, demo path, test, or build may require Earth Engine authentication. If a pre-exported Dynamic World subset is used for optional comparison, preserve item/date/algorithm metadata and required attribution; the application must function when the layer is absent.
+**DECISION:** Earth Engine authentication is permitted only in the offline/server processing worker. No browser, demo runtime, API request handler, test fixture, manifest, or release bundle may require Earth Engine credentials. If a pre-exported Dynamic World subset is used for optional comparison, preserve item/date/algorithm metadata and required attribution; the application must function when the layer is absent.
 
 ## 6. Acquisition manifest
 

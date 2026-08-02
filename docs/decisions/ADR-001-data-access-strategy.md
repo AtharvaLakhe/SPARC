@@ -1,6 +1,6 @@
 # ADR-001: Multi-provider, STAC-based data access with precomputed demo assets
 
-- **Status:** Accepted
+- **Status:** Superseded for primary Sentinel-2 processing by [ADR-009](ADR-009-earth-engine-processing.md); retained as the direct-CDSE fallback design
 - **Date:** 2026-08-02
 - **Decision owners:** Codex workstream, reviewed by Shared
 - **Applies to:** Imagery discovery, source access, provenance and demo resilience

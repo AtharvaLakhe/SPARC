@@ -108,10 +108,9 @@ The names in `.env.example` are proposed configuration; no current application r
 | `SPARC_DATA_MODE` | FastAPI/server | No | Server behavior selection |
 | `SPARC_DEMO_DATA_ROOT` | FastAPI/server | No, but path-sensitive | Resolve against an approved root; do not return it to clients |
 | `SPARC_ALLOWED_ORIGINS` | FastAPI/server | No | Explicit origins; no wildcard when credentials are used |
-| `CDSE_CLIENT_ID` | Server/worker | Yes | Inject through secret management; never browser/static output |
-| `CDSE_CLIENT_SECRET` | Server/worker | Yes | Inject through secret management; redact logs and errors |
+| `EARTH_ENGINE_PROJECT` | Offline worker | No, but deployment-specific | Google Cloud project ID used only by the Earth Engine worker; never browser/static output |
 
-Local demo mode needs no provider credential. Any real secret found in a tracked file or release artifact must be revoked and rotated, even if the file is later removed. `VITE_*` values are public by design and can never carry secrets.
+Local demo mode needs no provider credential. Earth Engine authentication is stored in the worker user's local Earth Engine configuration, not in `.env` or the repository. Any real secret found in a tracked file or release artifact must be revoked and rotated, even if the file is later removed. `VITE_*` values are public by design and can never carry secrets.
 
 ## 6. Build and packaging procedure
 

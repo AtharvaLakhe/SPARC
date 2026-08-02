@@ -248,7 +248,7 @@ If any consumer or pack cannot migrate in the window, reject or defer the change
 ## 12. Security integration gate
 
 - Browser bundles, source maps, mocks, manifests, screenshots, logs and responses contain no API key, bearer token, password, database URL, provider credential or temporary signed URL.
-- `VITE_*` values contain public configuration only. `CDSE_CLIENT_ID` and `CDSE_CLIENT_SECRET` remain server-side and unused in demo mode.
+- `VITE_*` values contain public configuration only. `EARTH_ENGINE_PROJECT` is worker-only and unused in demo mode; Earth Engine credentials must never be placed in environment files, browser code, or release artifacts.
 - FastAPI CORS uses exact approved origins; the local server binds to loopback by default.
 - IDs and request fields cannot become local paths, commands, expressions, arbitrary geometries or arbitrary outbound URLs.
 - Layer and demo paths are relative, allowlisted and traversal-safe; media type, size and checksum are verified.

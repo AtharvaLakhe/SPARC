@@ -64,7 +64,7 @@ The planned browser is a React/TypeScript/Vite client. It may consume the same s
 - Nagpur is the primary pilot and Bengaluru Urban is the backup.
 - P0 uses precomputed real results once implementation begins; the current contract examples remain explicitly synthetic.
 - Internet access, provider credentials, and WebGL may be unavailable during the demonstration.
-- Google Earth Engine is not a required dependency.
+- Google Earth Engine is the primary offline-processing dependency. Its authenticated project and credentials are server/worker-only; the released demo remains independent of it.
 - User-provided Earth and satellite models are unavailable for inspection and cannot be assumed compatible with any runtime.
 - Boundary and dataset redistribution require a verified dataset-specific license and attribution record.
 - Scientific results describe observed association, not causation.

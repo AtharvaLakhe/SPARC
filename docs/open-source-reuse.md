@@ -7,7 +7,7 @@
 
 - **DECISION:** SPARC will not copy implementation code from research papers, notebooks, tutorials, or unreviewed repositories.
 - **DECISION:** index and area algorithms will be independently implemented from the cited equations and product specifications.
-- **DECISION:** Google Earth Engine is not a dependency. Dynamic World is optional precomputed comparison material only.
+- **DECISION:** Google Earth Engine is the worker-only primary platform for Sentinel-2 processing. Dynamic World remains optional comparison material only.
 - **DECISION:** software license, linked native library license, transformation-grid license, dataset license, and imagery/reference license are separate obligations and must be audited separately.
 - **DECISION:** no candidate in this document is approved merely by being listed. Approval occurs only after an exact version/build is pinned, its transitive artifacts are inventoried, and required notices are generated.
 
@@ -208,6 +208,6 @@ Validation references
 - Committing imagery because it is publicly viewable.
 - Removing attribution from clipped, reprojected, classified, or composited products.
 - Treating public domain as permission to omit scientific provenance.
-- Adding a Google Earth Engine service-account key or making Dynamic World required.
+- Adding a Google Earth Engine service-account key to the repository or making Dynamic World required.
 - Copying paper/notebook code without verifying its license and origin.
 - Redistributing a Survey of India boundary before reviewing the exact product terms.
