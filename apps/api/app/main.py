@@ -13,7 +13,7 @@ from uuid import uuid4
 from fastapi import FastAPI, Path, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import JSONResponse, RedirectResponse, Response
 from pydantic import ValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
@@ -141,6 +141,11 @@ def _require_available_periods(
             "RESULT_NOT_AVAILABLE",
             "No precomputed result exists for the requested region and period pair.",
         )
+
+
+@app.get("/", include_in_schema=False)
+def get_root() -> Response:
+    return RedirectResponse("/docs")
 
 
 @app.get("/api/v1/health", tags=["Health"])

@@ -10,18 +10,30 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { PLACES, findPlaces, nearestPlace } from './places.js';
 import { latLonToVec3 as latLonXYZ, vec3ToLatLon, parseQuery, fmtLat, fmtLon } from './geo.js';
+import { ATMOSPHERE_GLSL, NOISE_GLSL, SRGB_GLSL } from './shaders.js';
+import { pickTier } from './quality.js';
 
 const EARTH_R = 1;
 const CLOUD_R = EARTH_R * 1.006;
-const ATMO_R = EARTH_R * 1.055;
+// Must stay equal to R_TOP in shaders.js — the shell mesh and the integrator's
+// idea of where the atmosphere ends have to be the same surface, or the halo
+// either clips inside the mesh or stops short of its edge.
+const ATMO_R = EARTH_R * 1.035;
 const ORBIT_R = EARTH_R * 1.46;
 const ORBIT_TILT = THREE.MathUtils.degToRad(28);
 const AXIAL_TILT = THREE.MathUtils.degToRad(23.4);
 const SAT_SPAN = 0.26;            // largest dimension, same ratio as the blender scene
 const SPIN = 0.0135;              // earth radians/second
+const ORBIT_RATE = 0.062;         // satellite radians/second — ~101 s per revolution
+/* Solar irradiance for the scattering integral. This is not a free dial: the
+   surface term is `albedo * 1.15 * cos(theta)`, i.e. E/PI with E = 1.15*PI, so
+   the atmosphere has to be handed the same E or the two are in different units
+   and the haze either vanishes or floods the disc. Change one, change both. */
+const SUN_INTENSITY = 1.15 * Math.PI;
 // angled toward the default camera so the opening view lands on the day side,
 // with the terminator sweeping across the left limb
 const SUN_DIR = new THREE.Vector3(-0.52, 0.26, 0.81).normalize();
@@ -39,8 +51,16 @@ const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) 
 
 /* ── renderer / scene ───────────────────────────────────────────────────── */
 const canvas = $('stage');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+// antialias:false is not a downgrade: everything is composited through render
+// targets, so the default framebuffer's MSAA never sees a single triangle. The
+// real antialiasing is the multisampled composer target built below.
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
+
+const Q = pickTier(renderer.getContext());
+if (DEBUG) console.info(`[orbital] quality: ${Q.name} — ${Q.reason}`);
+
+const PIXEL_RATIO = () => Math.min(devicePixelRatio, Q.maxPixelRatio);
+renderer.setPixelRatio(PIXEL_RATIO());
 renderer.setSize(innerWidth, innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.05;
@@ -69,18 +89,54 @@ scene.add(sunLight);
    the limb arc, the sun glint - rather than hazing the whole daylit disc.
    Rendering through a composer also means the passes work in linear space and
    OutputPass does tone mapping once, at the end. */
-const composer = new EffectComposer(renderer);
+const composerTarget = new THREE.WebGLRenderTarget(innerWidth, innerHeight, {
+  type: THREE.HalfFloatType,        // the bloom threshold is above 1; LDR would clip it away
+  samples: Q.msaa,                  // MSAA the geometry edges, chiefly the satellite's struts
+  colorSpace: THREE.LinearSRGBColorSpace,
+});
+const composer = new EffectComposer(renderer, composerTarget);
 composer.addPass(new RenderPass(scene, camera));
 const bloomPass = new UnrealBloomPass(
   new THREE.Vector2(innerWidth, innerHeight),
-  0.55,   // strength
-  0.40,   // radius
+  0.62,   // strength
+  0.44,   // radius
   // Threshold is luminance in the linear HDR buffer, so it is meaningful above 1.
   // Sunlit cloud tops sit right at ~1.0; anything lower blooms the entire daylit
   // disc into a white haze. This keeps it to city lights, the limb and the glint.
   1.20,
 );
 composer.addPass(bloomPass);
+
+/* Final grade. The vignette pulls the eye back to the planet, and the grain is
+   there to dither the atmosphere: a smooth gradient across a wide dark area is
+   exactly where 8-bit output banding shows, and a fraction of a code value of
+   noise costs nothing and hides it completely. Both are static under
+   reduced-motion — a crawling grain field is the thing that rule exists for. */
+const GradePass = {
+  uniforms: {
+    tDiffuse: { value: null },
+    uTime: { value: 0 },
+    uGrain: { value: Q.grain },
+    uVignette: { value: 0.34 },
+  },
+  vertexShader: /* glsl */`
+    varying vec2 vUv;
+    void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+  fragmentShader: /* glsl */`
+    uniform sampler2D tDiffuse;
+    uniform float uTime, uGrain, uVignette;
+    varying vec2 vUv;
+    void main() {
+      vec4 c = texture2D(tDiffuse, vUv);
+      vec2 d = vUv - 0.5;
+      c.rgb *= 1.0 - uVignette * dot(d, d) * 1.6;
+      float n = fract(sin(dot(vUv * 2048.0 + uTime, vec2(12.9898, 78.233))) * 43758.5453);
+      c.rgb += (n - 0.5) * uGrain;
+      gl_FragColor = c;
+    }`,
+};
+const gradePass = new ShaderPass(GradePass);
+composer.addPass(gradePass);
 composer.addPass(new OutputPass());
 
 /* ── loading ────────────────────────────────────────────────────────────── */
@@ -118,22 +174,46 @@ const oceanMap = tex('earth_ocean.jpg');
 const topoMap = tex('earth_topo.jpg');
 
 /* ── starfield: three shells so parallax reads as real depth ────────────── */
-function makeStarLayer({ count, near, far, size, brightness }) {
+
+/* Stars are not scattered uniformly across the real sky — most of them lie in a
+   band, because we are looking through the disc of our own galaxy edge-on. An
+   even sprinkle reads as a screensaver; concentrating most of the population
+   toward one great circle, and painting the same circle on the nebula shell
+   below, is what makes it read as a sky. */
+const GALACTIC_N = new THREE.Vector3(0.34, 0.82, -0.46).normalize();
+const GALACTIC_U = new THREE.Vector3(1, 0, 0).cross(GALACTIC_N).normalize();
+const GALACTIC_V = new THREE.Vector3().crossVectors(GALACTIC_N, GALACTIC_U).normalize();
+
+/* Box–Muller, used to pull stars toward the galactic plane */
+function gaussian() {
+  const u = Math.max(Math.random(), 1e-9);
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * Math.random());
+}
+
+function makeStarLayer({ count, near, far, size, brightness, clustered = 0.62 }) {
   const pos = new Float32Array(count * 3);
   const col = new Float32Array(count * 3);
   const siz = new Float32Array(count);
   const pha = new Float32Array(count);
   const c = new THREE.Color();
+  const dir = new THREE.Vector3();
 
   for (let i = 0; i < count; i++) {
-    // uniform direction on the sphere, radius spread across the shell
-    const u = Math.random() * 2 - 1;
+    // height above the galactic plane: a tight normal for the band population,
+    // uniform for the halo population that fills the rest of the sky
+    const inBand = Math.random() < clustered;
+    const u = inBand
+      ? clamp(gaussian() * 0.16, -1, 1)
+      : Math.random() * 2 - 1;
     const th = Math.random() * Math.PI * 2;
-    const s = Math.sqrt(1 - u * u);
+    const s = Math.sqrt(Math.max(1 - u * u, 0));
     const r = near + Math.pow(Math.random(), 0.6) * (far - near);
-    pos[i * 3] = s * Math.cos(th) * r;
-    pos[i * 3 + 1] = u * r;
-    pos[i * 3 + 2] = s * Math.sin(th) * r;
+
+    dir.copy(GALACTIC_U).multiplyScalar(s * Math.cos(th))
+      .addScaledVector(GALACTIC_V, s * Math.sin(th))
+      .addScaledVector(GALACTIC_N, u)
+      .multiplyScalar(r);
+    pos[i * 3] = dir.x; pos[i * 3 + 1] = dir.y; pos[i * 3 + 2] = dir.z;
 
     // mostly white, a few warm and a few blue giants
     const roll = Math.random();
@@ -153,31 +233,47 @@ function makeStarLayer({ count, near, far, size, brightness }) {
   geo.setAttribute('aPhase', new THREE.BufferAttribute(pha, 1));
 
   const mat = new THREE.ShaderMaterial({
-    uniforms: { uTime: { value: 0 }, uScale: { value: innerHeight / 2 } },
+    uniforms: {
+      uTime: { value: 0 },
+      // gl_PointSize is in device pixels, so the scale has to carry the pixel
+      // ratio or every star halves in apparent size on a retina display
+      uScale: { value: (innerHeight * PIXEL_RATIO()) / 2 },
+      uPR: { value: PIXEL_RATIO() },
+    },
     transparent: true,
     depthWrite: false,
     blending: THREE.AdditiveBlending,
     vertexShader: /* glsl */`
       attribute vec3 aColor; attribute float aSize; attribute float aPhase;
-      uniform float uTime, uScale;
-      varying vec3 vColor; varying float vTwinkle;
+      uniform float uTime, uScale, uPR;
+      varying vec3 vColor; varying float vTwinkle; varying float vBright;
       void main() {
         vColor = aColor;
-        vTwinkle = 0.75 + 0.25 * sin(uTime * 1.4 + aPhase);
+        // two beat frequencies so the field never pulses in unison
+        vTwinkle = 0.72 + 0.18 * sin(uTime * 1.4 + aPhase)
+                        + 0.10 * sin(uTime * 3.1 + aPhase * 2.7);
         vec4 mv = modelViewMatrix * vec4(position, 1.0);
         // clamp or near-shell stars balloon into blobs a few dozen px across
-        gl_PointSize = clamp(aSize * uScale / max(-mv.z, 0.001), 0.6, 3.0);
+        float px = clamp(aSize * uScale / max(-mv.z, 0.001), 0.7 * uPR, 4.2 * uPR);
+        // brightest sprites earn the diffraction spikes below
+        vBright = smoothstep(2.1 * uPR, 4.0 * uPR, px);
+        gl_PointSize = px;
         gl_Position = projectionMatrix * mv;
       }`,
     fragmentShader: /* glsl */`
-      varying vec3 vColor; varying float vTwinkle;
+      varying vec3 vColor; varying float vTwinkle; varying float vBright;
       void main() {
         vec2 d = gl_PointCoord - 0.5;
         float r2 = dot(d, d);
         if (r2 > 0.25) discard;
         float core = smoothstep(0.25, 0.0, r2);
         float halo = smoothstep(0.25, 0.02, r2) * 0.35;
-        gl_FragColor = vec4(vColor * vTwinkle, core + halo);
+        // a faint four-point flare on the brightest stars only — this is the
+        // instrument's signature, not the star's, so it stays subtle
+        float spike = vBright * 0.30
+          * (smoothstep(0.035, 0.0, d.y * d.y) + smoothstep(0.035, 0.0, d.x * d.x))
+          * smoothstep(0.25, 0.0, r2);
+        gl_FragColor = vec4(vColor * vTwinkle, core + halo + spike);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
       }`,
@@ -187,11 +283,111 @@ function makeStarLayer({ count, near, far, size, brightness }) {
 }
 
 const starLayers = [
-  makeStarLayer({ count: 16000, near: 420, far: 1400, size: 1.1, brightness: 0.5 }),
-  makeStarLayer({ count: 5400, near: 170, far: 420, size: 1.0, brightness: 0.68 }),
-  makeStarLayer({ count: 1200, near: 55, far: 170, size: 0.9, brightness: 0.92 }),
+  makeStarLayer({ count: Q.stars[0], near: 420, far: 1400, size: 1.1, brightness: 0.5 }),
+  makeStarLayer({ count: Q.stars[1], near: 170, far: 420, size: 1.0, brightness: 0.68 }),
+  // the near shell is the one that parallaxes hardest, so keep it sparse and
+  // mostly off the band or it reads as foreground dirt rather than depth
+  makeStarLayer({ count: Q.stars[2], near: 55, far: 170, size: 0.9, brightness: 0.92, clustered: 0.3 }),
 ];
 starLayers.forEach((l) => scene.add(l));
+
+/* ── milky way ──────────────────────────────────────────────────────────────
+   A far inverted shell painting the galactic band procedurally: a broad glow
+   about the plane, fbm-modulated into cloud structure, then cut by a darker
+   fbm for the dust lanes that split the band lengthwise. No texture, so it
+   costs nothing to ship and stays sharp at any zoom. */
+let milkyWay = null;
+if (Q.milkyWay) {
+  const mwMat = new THREE.ShaderMaterial({
+    uniforms: { uNormal: { value: GALACTIC_N.clone() } },
+    side: THREE.BackSide,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    vertexShader: /* glsl */`
+      varying vec3 vDir;
+      void main() {
+        vDir = normalize(position);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }`,
+    fragmentShader: /* glsl */`
+      uniform vec3 uNormal;
+      varying vec3 vDir;
+      ${NOISE_GLSL}
+      void main() {
+        vec3 D = normalize(vDir);
+        float h = dot(D, normalize(uNormal));          // sine of galactic latitude
+
+        // the band itself: bright core, wide faint skirt
+        float core = exp(-h * h * 190.0);
+        float skirt = exp(-h * h * 26.0);
+
+        // structure along the band, plus a lengthwise brightness gradient so one
+        // side reads as the galactic centre
+        float clumps = fbm(D * 5.5, 5);
+        float fine = fbm(D * 17.0, 4);
+        float centre = 0.55 + 0.45 * pow(max(fbm(D * 1.1, 2), 0.0), 0.7);
+
+        // dust lanes: a second field subtracted, biased to the middle of the band
+        float dust = smoothstep(0.42, 0.72, fbm(D * 8.0 + 41.0, 5));
+        float lane = 1.0 - dust * exp(-h * h * 320.0) * 0.85;
+
+        float density = (core * 0.85 + skirt * 0.20)
+                      * (0.35 + 0.85 * clumps) * (0.6 + 0.6 * fine)
+                      * centre * lane;
+
+        // slightly warm in the dense core, cool in the outskirts
+        vec3 warm = vec3(1.00, 0.90, 0.74);
+        vec3 cool = vec3(0.62, 0.72, 1.00);
+        vec3 col = mix(cool, warm, clamp(core * 1.2, 0.0, 1.0));
+
+        gl_FragColor = vec4(col * density * 0.085, 1.0);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }`,
+  });
+  milkyWay = new THREE.Mesh(new THREE.SphereGeometry(2200, 64, 32), mwMat);
+  milkyWay.renderOrder = -1;
+  scene.add(milkyWay);
+}
+
+/* ── the sun ────────────────────────────────────────────────────────────────
+   A small disc far out along SUN_DIR. It is off-screen from the opening camera
+   and only swings into frame when you orbit round to the night side — which is
+   the point: the glint, the terminator and the halo all resolve to a source you
+   can actually find. Bloom does the rest. */
+// 30 units across at 2600 out is ~0.66°, close to the real half-degree. Sitting
+// beyond the outermost star shell keeps it behind the field rather than in it.
+const sunSprite = new THREE.Mesh(
+  new THREE.SphereGeometry(30, 32, 16),
+  new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    vertexShader: /* glsl */`
+      varying vec3 vN; varying vec3 vView;
+      void main() {
+        vN = normalize(mat3(modelMatrix) * normal);
+        vec4 wp = modelMatrix * vec4(position, 1.0);
+        vView = normalize(cameraPosition - wp.xyz);
+        gl_Position = projectionMatrix * viewMatrix * wp;
+      }`,
+    fragmentShader: /* glsl */`
+      varying vec3 vN; varying vec3 vView;
+      void main() {
+        float f = max(dot(normalize(vN), normalize(vView)), 0.0);
+        // hot flat disc with a fast falloff into a corona
+        float disc = smoothstep(0.18, 0.55, f);
+        float corona = pow(f, 1.6) * 0.45;
+        vec3 col = mix(vec3(1.0, 0.72, 0.42), vec3(1.0, 0.98, 0.92), disc);
+        gl_FragColor = vec4(col * (disc * 9.0 + corona), 1.0);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }`,
+  }),
+);
+sunSprite.position.copy(SUN_DIR).multiplyScalar(2600);
+scene.add(sunSprite);
 
 /* ── earth ──────────────────────────────────────────────────────────────── */
 const earthGroup = new THREE.Group();
@@ -201,11 +397,17 @@ scene.add(earthGroup);
 const earthSpin = new THREE.Group();     // everything that turns with the surface
 earthGroup.add(earthSpin);
 
-const SRGB_DECODE = /* glsl */`
-  vec3 decode(vec3 c) { return pow(c, vec3(2.2)); }
-`;
-
 const earthMat = new THREE.ShaderMaterial({
+  defines: {
+    // The scattering chunk sizes its loops from these, so the same source
+    // compiles as a cheap 12-step aerial-perspective march here and a 32-step
+    // limb march in the atmosphere shell below.
+    ATMO_STEPS: Q.apSteps,
+    LIGHT_STEPS: Q.apLightSteps,
+    DISPLACE: Q.displacement > 0 ? 1 : 0,
+    DETAIL: Q.surfaceDetail ? 1 : 0,
+    WAVES: Q.oceanWaves ? 1 : 0,
+  },
   uniforms: {
     uDay: { value: dayMap },
     uNight: { value: nightMap },
@@ -213,40 +415,74 @@ const earthMat = new THREE.ShaderMaterial({
     uTopo: { value: topoMap },
     uClouds: { value: cloudMap },
     uSun: { value: SUN_DIR.clone() },
+    uSunI: { value: SUN_INTENSITY },
     uCloudOffset: { value: 0 },
     uTexel: { value: new THREE.Vector2(1 / 4096, 1 / 2048) },
-    uBump: { value: 9.0 },
+    uBump: { value: 7.0 },
+    uDisplace: { value: Q.displacement },
+    // how close the camera is, 0 far / 1 hard in — drives the procedural detail
+    // that stands in for texture resolution we do not have
+    uCloseness: { value: 0 },
+    uTime: { value: 0 },
   },
   vertexShader: /* glsl */`
+    uniform sampler2D uTopo, uOcean;
+    uniform float uDisplace;
     varying vec2 vUv; varying vec3 vN; varying vec3 vWorld;
     varying vec3 vT; varying vec3 vB;
     void main() {
       vUv = uv;
       vec3 nObj = normalize(normal);
+
       // Build the tangent frame in object space, where the pole is always +Y.
-      // Deriving it from world +Y instead would skew once the axial tilt is applied.
-      vec3 eastObj = normalize(cross(vec3(0.0, 1.0, 0.0), nObj));   // +u direction
-      vec3 northObj = cross(nObj, eastObj);                          // +v direction
+      // Deriving it from world +Y instead would skew once the axial tilt is
+      // applied. cross() degenerates on the poles themselves, so fall back to a
+      // fixed axis for that one ring of vertices.
+      vec3 up = abs(nObj.y) > 0.9995 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 1.0, 0.0);
+      vec3 eastObj = normalize(cross(up, nObj));   // +u direction
+      vec3 northObj = cross(nObj, eastObj);        // +v direction
+
       vN = normalize(mat3(modelMatrix) * nObj);
       vT = normalize(mat3(modelMatrix) * eastObj);
       vB = normalize(mat3(modelMatrix) * northObj);
-      vec4 wp = modelMatrix * vec4(position, 1.0);
+
+      vec3 p = position;
+      #if DISPLACE
+        // Real relief, not just a shading trick: the silhouette has to break at
+        // the limb or the planet reads as a decal on a perfect sphere. Land
+        // only — displacing the sea floor would push the coastlines up too.
+        float land = 1.0 - texture2D(uOcean, uv).r;
+        float hh = texture2D(uTopo, uv).r;
+        p += nObj * (hh * land * uDisplace);
+      #endif
+
+      vec4 wp = modelMatrix * vec4(p, 1.0);
       vWorld = wp.xyz;
       gl_Position = projectionMatrix * viewMatrix * wp;
     }`,
   fragmentShader: /* glsl */`
     uniform sampler2D uDay, uNight, uOcean, uTopo, uClouds;
-    uniform vec3 uSun; uniform float uCloudOffset, uBump;
+    uniform vec3 uSun;
+    uniform float uCloudOffset, uBump, uSunI, uCloseness, uTime;
     uniform vec2 uTexel;
     varying vec2 vUv; varying vec3 vN; varying vec3 vWorld;
     varying vec3 vT; varying vec3 vB;
-    ${SRGB_DECODE}
+    ${SRGB_GLSL}
+    ${ATMOSPHERE_GLSL}
+    ${NOISE_GLSL}
+
+    float D_GGX(float ndh, float a) {
+      float a2 = a * a;
+      float d = ndh * ndh * (a2 - 1.0) + 1.0;
+      return a2 / (PI * d * d + 1e-7);
+    }
 
     void main() {
       vec3 N = normalize(vN);
       vec3 L = normalize(uSun);
       vec3 V = normalize(cameraPosition - vWorld);
-      mat3 TBN = mat3(normalize(vT), normalize(vB), N);
+      vec3 Tn = normalize(vT), Bn = normalize(vB);
+      mat3 TBN = mat3(Tn, Bn, N);
 
       vec3 day = decode(texture2D(uDay, vUv).rgb);
       vec3 night = decode(texture2D(uNight, vUv).rgb);
@@ -254,21 +490,59 @@ const earthMat = new THREE.ShaderMaterial({
       float land = 1.0 - ocean;
 
       // ── relief: perturb the normal from the height field, land only ──────
-      float h  = texture2D(uTopo, vUv).r;
-      float hx = texture2D(uTopo, vUv + vec2(uTexel.x, 0.0)).r;
-      float hy = texture2D(uTopo, vUv + vec2(0.0, uTexel.y)).r;
+      // Central differences rather than forward: symmetric, so ridges do not
+      // drift half a texel toward +u/+v the way a one-sided slope makes them.
+      float hl = texture2D(uTopo, vUv - vec2(uTexel.x, 0.0)).r;
+      float hr = texture2D(uTopo, vUv + vec2(uTexel.x, 0.0)).r;
+      float hd = texture2D(uTopo, vUv - vec2(0.0, uTexel.y)).r;
+      float hu = texture2D(uTopo, vUv + vec2(0.0, uTexel.y)).r;
+
+      // An equirectangular texel covers less ground in x as you approach the
+      // poles, so the same height delta is a steeper real slope. Correct for it,
+      // but floor the term — at the pole itself the correction is unbounded.
+      float cosLat = max(sin(vUv.y * PI), 0.25);
       float s = uBump * land;
-      vec3 Np = normalize(TBN * normalize(vec3((h - hx) * s, (h - hy) * s, 1.0)));
+      vec3 slope = vec3((hl - hr) * s / cosLat, (hd - hu) * s, 1.0);
+
+      #if DETAIL
+        // Below ~4000 km the 4K basemap is visibly soft. This does not invent
+        // terrain — it adds high-frequency roughness under the real relief so
+        // the eye reads texture instead of a bilinear smear.
+        // Three octaves from a low base, not four from a high one: the top
+        // octave has to stay several pixels wide at the closest the camera can
+        // get, or this stops being detail and becomes sparkle.
+        if (uCloseness > 0.005) {
+          vec3 pw = normalize(vWorld) * 80.0;
+          float e = 0.55;
+          float n0 = fbm(pw, 3);
+          float nx = fbm(pw + Tn * e, 3);
+          float ny = fbm(pw + Bn * e, 3);
+          float k = 2.2 * uCloseness * land;
+          slope.xy += vec2(n0 - nx, n0 - ny) * k;
+          day *= 1.0 + (n0 - 0.5) * 0.10 * uCloseness * land;
+        }
+      #endif
+
+      vec3 Np = normalize(TBN * normalize(slope));
 
       float ndl = dot(Np, L);        // shading uses the bumped normal
       float ndlGeo = dot(N, L);      // day/night split uses the true sphere normal
       float lit = smoothstep(-0.16, 0.26, ndlGeo);
 
       // cloud shadow, displaced away from the sun across the surface
-      vec2 sunUv = normalize(vec2(dot(L, normalize(vT)), dot(L, normalize(vB))) + 1e-6);
+      vec2 sunUv = normalize(vec2(dot(L, Tn), dot(L, Bn)) + 1e-6);
       vec2 cloudUv = vec2(vUv.x + uCloudOffset, vUv.y);
       float cl = texture2D(uClouds, cloudUv).r;
       float clShadow = texture2D(uClouds, cloudUv - sunUv * 0.0032).r;
+
+      // ── how much sunlight survives the atmosphere on the way down ────────
+      // This is what actually reddens ground near the terminator: the direct
+      // beam has lost its blue to the long slant path before it lands.
+      vec3 sunT = vec3(0.0);
+      float lRay, lMie, lOzo;
+      if (sunOpticalDepth(vWorld + N * 1e-4, L, lRay, lMie, lOzo)) {
+        sunT = exp(-(BETA_RAY * lRay + BETA_MIE * 1.1 * lMie + BETA_OZO * lOzo));
+      }
 
       // ── surface ──────────────────────────────────────────────────────────
       vec3 albedo = day;
@@ -276,46 +550,88 @@ const earthMat = new THREE.ShaderMaterial({
       albedo = mix(albedo, albedo * vec3(0.72, 0.86, 1.12), ocean * 0.55);
 
       float diffuse = clamp(ndl, 0.0, 1.0);
-      vec3 surface = albedo * (0.035 + 1.08 * diffuse);
+      // skylight: the ground is also lit by the blue hemisphere above it, which
+      // is why shadowed slopes on the day side are blue rather than black
+      vec3 sky = vec3(0.13, 0.22, 0.42) * lit * 0.20;
+      vec3 surface = albedo * (0.022 + sky + 1.15 * diffuse * sunT);
       surface *= 1.0 - clShadow * 0.42 * lit;
 
-      // ── sun glint, water only, blocked by cloud ──────────────────────────
+      // ── sun glint: microfacet water, blocked by cloud ────────────────────
+      // A perfectly smooth sphere gives a pinpoint mirror. Real sea state
+      // smears the glint into the elongated sheen you see from orbit — but
+      // that belongs in the roughness field, not in a normal map. Perturbing
+      // the normal per pixel is what fills the ocean with crawling speckle:
+      // neighbouring fragments flip in and out of a very tight specular lobe
+      // and there is nothing to average them. Widening and narrowing the lobe
+      // instead varies the glint the same way, at a spatial frequency the
+      // framebuffer can resolve — and it is the more honest model, because
+      // roughness *is* the distribution of wave facets too small to see.
+      float rough = 0.115;
+      #if WAVES
+        if (ocean > 0.02) {
+          float sea = fbm(normalize(vWorld) * 9.0 + vec3(0.0, uTime * 0.006, 0.0), 3);
+          rough = mix(0.085, 0.21, sea);
+        }
+      #endif
       vec3 H = normalize(L + V);
       float ndh = max(dot(N, H), 0.0);
+      float ndv = max(dot(N, V), 0.0);
+      float ndlW = max(dot(N, L), 0.0);
       float fres = 0.02 + 0.98 * pow(1.0 - max(dot(V, H), 0.0), 5.0);
-      float spec = pow(ndh, 620.0) * ocean * lit * fres * 1.6;
-      spec *= 1.0 - cl * 0.85;
-
-      // ── warm scattering through the terminator ───────────────────────────
-      // Keep this narrow. Spread wide it stops reading as dusk and just smears a
-      // brown band down the limb.
-      float twilight = exp(-ndlGeo * ndlGeo * 190.0);
-      vec3 dusk = vec3(1.0, 0.46, 0.18) * twilight * 0.14 * (0.35 + 0.65 * land);
+      float vis = 0.25 / max(ndv * (1.0 - rough) + rough, 1e-3);
+      // the ceiling is a firefly guard: at grazing angles the fresnel term and
+      // the visibility term climb together and a few pixels can spike hard
+      // enough to smear across the frame once bloom gets hold of them
+      float glint = min(D_GGX(ndh, rough) * fres * vis * ndlW, 25.0);
+      vec3 spec = vec3(glint) * ocean * lit * (1.0 - cl * 0.85) * sunT * 1.7;
 
       // ── city lights, deep night only, dimmed under cloud ─────────────────
       float nightMask = smoothstep(0.08, -0.22, ndlGeo);
       vec3 city = night * vec3(1.0, 0.80, 0.52) * 2.9 * nightMask * (1.0 - cl * 0.55);
 
-      // ── atmospheric rim over the surface ─────────────────────────────────
-      float rim = pow(1.0 - max(dot(N, V), 0.0), 3.6);
-      vec3 rimCol = vec3(0.26, 0.52, 1.0) * rim * lit * 0.42;
+      vec3 color = surface + spec + city;
 
-      vec3 color = surface + spec + dusk + city + rimCol;
+      // ── aerial perspective ───────────────────────────────────────────────
+      // The atmosphere between the camera and this pixel, integrated properly:
+      // ground loses contrast and gains blue with distance, hardest at the limb
+      // where the sight line runs through the most air. This replaces the old
+      // fresnel rim entirely — that faked the symptom, this is the cause.
+      vec3 rd = normalize(vWorld - cameraPosition);
+      float tFar = length(vWorld - cameraPosition);
+      vec2 slab = raySphere(cameraPosition, rd, R_TOP);
+      float tNear = max(slab.x, 0.0);
+      if (slab.x <= slab.y && tFar > tNear) {
+        vec3 insc, trans;
+        scatter(cameraPosition, rd, tNear, tFar, L, uSunI, insc, trans);
+        color = color * trans + insc;
+      }
+
       gl_FragColor = vec4(color, 1.0);
       #include <tonemapping_fragment>
       #include <colorspace_fragment>
     }`,
 });
 
-const earth = new THREE.Mesh(new THREE.SphereGeometry(EARTH_R, 256, 160), earthMat);
+const earth = new THREE.Mesh(
+  new THREE.SphereGeometry(EARTH_R, Q.earthSegments[0], Q.earthSegments[1]),
+  earthMat,
+);
 earthSpin.add(earth);
 
 /* clouds on their own shell, drifting slightly faster than the ground */
 const cloudMat = new THREE.ShaderMaterial({
+  defines: {
+    ATMO_STEPS: Q.apSteps,
+    LIGHT_STEPS: Q.apLightSteps,
+    DETAIL: Q.surfaceDetail ? 1 : 0,
+    DEPTH: Q.cloudDepth ? 1 : 0,
+  },
   uniforms: {
     uClouds: { value: cloudMap },
     uSun: { value: SUN_DIR.clone() },
+    uSunI: { value: SUN_INTENSITY },
     uTexel: { value: new THREE.Vector2(1 / 2048, 1 / 1024) },
+    uCloseness: { value: 0 },
   },
   transparent: true,
   depthWrite: false,
@@ -330,9 +646,25 @@ const cloudMat = new THREE.ShaderMaterial({
     }`,
   fragmentShader: /* glsl */`
     uniform sampler2D uClouds; uniform vec3 uSun; uniform vec2 uTexel;
+    uniform float uSunI, uCloseness;
     varying vec2 vUv; varying vec3 vN; varying vec3 vWorld;
+    ${ATMOSPHERE_GLSL}
+    ${NOISE_GLSL}
+
     void main() {
       float d = texture2D(uClouds, vUv).r;
+
+      #if DETAIL
+        // The cloud map is 2048 wide, so edges go to mush well before the
+        // basemap does. Erode the density with high-frequency noise as the
+        // camera closes in: it gives the margins a wispy, torn edge instead of
+        // a soft blur, without inventing whole cloud systems that are not there.
+        if (uCloseness > 0.005) {
+          float w = fbm(normalize(vWorld) * 420.0, 4);
+          d = mix(d, d * (0.55 + 0.9 * w), uCloseness * 0.75);
+        }
+      #endif
+
       float a = smoothstep(0.13, 0.66, d);
       if (a < 0.004) discard;
 
@@ -348,71 +680,114 @@ const cloudMat = new THREE.ShaderMaterial({
       vec3 T = normalize(cross(vec3(0.0, 1.0, 0.0), N));
       vec3 B = cross(N, T);
       vec2 sunUv = normalize(vec2(dot(L, T), dot(L, B)) + 1e-6);
-      float toward = texture2D(uClouds, vUv + sunUv * 0.0026).r;
-      float selfShade = 1.0 - clamp((toward - d) * 1.5, 0.0, 0.55);
 
-      vec3 sunlit = vec3(1.0, 0.985, 0.96) * selfShade;
-      vec3 dusk = vec3(1.0, 0.55, 0.30);
-      float twilight = exp(-ndl * ndl * 30.0);
+      #if DEPTH
+        // Four taps stepping sunward instead of one. A single sample only knows
+        // whether its immediate neighbour is cloudy; marching a short way gives
+        // the tops actual depth ordering, so banks stack rather than flatten.
+        float occ = 0.0;
+        for (int i = 1; i <= 4; i++) {
+          float t = float(i) * 0.0022;
+          occ += max(texture2D(uClouds, vUv + sunUv * t).r - d, 0.0) / float(i);
+        }
+        float selfShade = 1.0 - clamp(occ * 0.85, 0.0, 0.62);
+      #else
+        float toward = texture2D(uClouds, vUv + sunUv * 0.0026).r;
+        float selfShade = 1.0 - clamp((toward - d) * 1.5, 0.0, 0.55);
+      #endif
+
+      // sunlight reaching cloud-top altitude, reddened near the terminator by
+      // the same optical-depth march the ground uses
+      vec3 sunT = vec3(0.0);
+      float lRay, lMie, lOzo;
+      if (sunOpticalDepth(vWorld, L, lRay, lMie, lOzo)) {
+        sunT = exp(-(BETA_RAY * lRay + BETA_MIE * 1.1 * lMie + BETA_OZO * lOzo));
+      }
+
+      vec3 sunlit = vec3(1.0, 0.985, 0.96) * selfShade * (0.25 + 0.9 * sunT);
       vec3 col = mix(vec3(0.015, 0.022, 0.038), sunlit, lit);
-      col = mix(col, dusk * selfShade, twilight * 0.55);
 
       // fade the shell at the silhouette so it doesn't ring the planet
       float edge = smoothstep(0.0, 0.30, dot(N, V));
+
+      // aerial perspective over the cloud tops too, or they float in front of a
+      // hazed planet looking unnaturally crisp at the limb
+      vec3 rd = normalize(vWorld - cameraPosition);
+      float tFar = length(vWorld - cameraPosition);
+      vec2 slab = raySphere(cameraPosition, rd, R_TOP);
+      float tNear = max(slab.x, 0.0);
+      if (slab.x <= slab.y && tFar > tNear) {
+        vec3 insc, trans;
+        scatter(cameraPosition, rd, tNear, tFar, L, uSunI, insc, trans);
+        col = col * trans + insc * a;
+      }
+
       gl_FragColor = vec4(col, a * (0.16 + 0.84 * lit) * edge);
       #include <tonemapping_fragment>
       #include <colorspace_fragment>
     }`,
 });
-const clouds = new THREE.Mesh(new THREE.SphereGeometry(CLOUD_R, 160, 96), cloudMat);
+const clouds = new THREE.Mesh(
+  new THREE.SphereGeometry(CLOUD_R, Q.cloudSegments[0], Q.cloudSegments[1]),
+  cloudMat,
+);
 earthSpin.add(clouds);
 
-/* atmosphere: back-facing shell, additive fresnel */
+/* Atmosphere: a back-facing shell carrying the full scattering march.
+
+   The shell only ever draws the halo *outside* the disc — where the sight line
+   would hit the planet, the earth shader has already accounted for the same air
+   as aerial perspective, so drawing here too would double-count it. The explicit
+   ground test below is what enforces that; depth rejection alone would not,
+   because the back face of the shell sits behind the planet either way. */
 const atmoMat = new THREE.ShaderMaterial({
-  uniforms: { uSun: { value: SUN_DIR.clone() } },
+  defines: { ATMO_STEPS: Q.atmoSteps, LIGHT_STEPS: Q.lightSteps },
+  uniforms: {
+    uSun: { value: SUN_DIR.clone() },
+    uSunI: { value: SUN_INTENSITY },
+  },
   side: THREE.BackSide,
   transparent: true,
   depthWrite: false,
   blending: THREE.AdditiveBlending,
   vertexShader: /* glsl */`
-    varying vec3 vN; varying vec3 vWorld;
+    varying vec3 vWorld;
     void main() {
-      vN = normalize(mat3(modelMatrix) * normal);
       vec4 wp = modelMatrix * vec4(position, 1.0);
       vWorld = wp.xyz;
       gl_Position = projectionMatrix * viewMatrix * wp;
     }`,
   fragmentShader: /* glsl */`
-    uniform vec3 uSun;
-    varying vec3 vN; varying vec3 vWorld;
+    uniform vec3 uSun; uniform float uSunI;
+    varying vec3 vWorld;
+    ${ATMOSPHERE_GLSL}
+
     void main() {
-      vec3 N = normalize(-vN);
-      vec3 V = normalize(cameraPosition - vWorld);
+      vec3 ro = cameraPosition;
+      vec3 rd = normalize(vWorld - ro);
       vec3 L = normalize(uSun);
-      float ndl = dot(N, L);
 
-      // two lobes: a tight bright band right at the limb over a faint outer haze
-      float grazing = 1.0 - max(dot(N, V), 0.0);
-      float tight = pow(grazing, 7.5);
-      float broad = pow(grazing, 3.6);
+      vec2 slab = raySphere(ro, rd, R_TOP);
+      if (slab.x > slab.y) discard;                       // ray misses the atmosphere
 
-      float lit = smoothstep(-0.35, 0.40, ndl);
-      // Rayleigh-ish: blue where the sun is high, reddening as it grazes, because
-      // that light has taken the longest path through the atmosphere
-      float sunset = exp(-ndl * ndl * 34.0);
-      vec3 blue = vec3(0.24, 0.52, 1.0);
-      vec3 warm = vec3(1.0, 0.47, 0.22);
-      vec3 col = mix(vec3(0.015, 0.05, 0.16), blue, lit);
-      col = mix(col, warm, sunset * 0.5);
+      vec2 ground = raySphere(ro, rd, R_GROUND);
+      if (ground.x <= ground.y && ground.y > 0.0) discard; // the surface pass owns this pixel
 
-      float intensity = (broad * 0.22 + tight * 1.7) * (0.04 + 1.7 * lit);
-      gl_FragColor = vec4(col * intensity, 1.0);
+      vec3 insc, trans;
+      scatter(ro, rd, max(slab.x, 0.0), slab.y, L, uSunI, insc, trans);
+
+      gl_FragColor = vec4(insc, 1.0);
       #include <tonemapping_fragment>
       #include <colorspace_fragment>
     }`,
 });
-const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(ATMO_R, 64, 48), atmoMat);
-earthGroup.add(atmosphere);
+const atmosphere = new THREE.Mesh(
+  new THREE.SphereGeometry(ATMO_R, Q.atmoSegments[0], Q.atmoSegments[1]),
+  atmoMat,
+);
+// The shell is a pure world-space raymarch keyed off the camera, so it must not
+// inherit the axial tilt — it lives on the scene, not inside the tilted group.
+scene.add(atmosphere);
 
 /* lat/lon -> world position (geo.js does the maths, three.js gets the vector) */
 function latLonToVec3(lat, lon, radius = EARTH_R) {
@@ -517,6 +892,10 @@ const state = {
 
 const raycaster = new THREE.Raycaster();
 raycaster.params.Points.threshold = 0.01;
+
+/* Hover picking goes against this, not against the globe mesh — see updatePointer. */
+const EARTH_SPHERE = new THREE.Sphere(new THREE.Vector3(0, 0, 0), EARTH_R);
+const _hitPoint = new THREE.Vector3();
 
 function orbitPosition(angle) {
   const p = new THREE.Vector3(Math.cos(angle) * ORBIT_R, 0, -Math.sin(angle) * ORBIT_R);
@@ -662,13 +1041,17 @@ function worldSpinQuat() {
 
 /* ── resize ─────────────────────────────────────────────────────────────── */
 function onResize() {
+  const pr = PIXEL_RATIO();
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setPixelRatio(pr);
   composer.setSize(innerWidth, innerHeight);
-  composer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  starLayers.forEach((l) => { l.material.uniforms.uScale.value = innerHeight / 2; });
+  composer.setPixelRatio(pr);
+  starLayers.forEach((l) => {
+    l.material.uniforms.uScale.value = (innerHeight * pr) / 2;
+    l.material.uniforms.uPR.value = pr;
+  });
 }
 addEventListener('resize', onResize);
 
@@ -688,6 +1071,16 @@ function tick() {
   earthSpin.rotation.y += spinDelta;
   clouds.rotation.y += spinDelta * 0.28;
   earthMat.uniforms.uCloudOffset.value = (clouds.rotation.y - earthSpin.rotation.y) / (Math.PI * 2);
+  earthMat.uniforms.uTime.value = t;
+
+  /* Procedural surface and cloud detail fades in as the camera closes, standing
+     in for basemap resolution we do not have. Computed here rather than in the
+     shader so the branch is uniform across the whole frame. */
+  const closeness = 1 - clamp((camera.position.length() - 1.5) / 1.4, 0, 1);
+  earthMat.uniforms.uCloseness.value = closeness;
+  cloudMat.uniforms.uCloseness.value = closeness;
+  // grain is dithering, not an effect — it must not crawl for reduced-motion readers
+  gradePass.uniforms.uTime.value = REDUCED ? 0 : t;
 
   /* while tracking, carry the camera round with the planet so the target stays framed */
   if (state.mode === 'holding' && !state.dragging) {
@@ -696,7 +1089,7 @@ function tick() {
 
   /* satellite placement */
   if (state.mode === 'orbit') {
-    state.orbitAngle += dt * 0.16;
+    state.orbitAngle += dt * ORBIT_RATE;
     aimSatellite(orbitPosition(state.orbitAngle), ORBIT_NORMAL);
   } else if (state.mode === 'slewing' && state.slew) {
     const s = state.slew;
@@ -829,11 +1222,16 @@ function updatePointer() {
     canvas.classList.remove('targetable');
   }
 
-  const hits = satHit ? [] : raycaster.intersectObject(earth, false);
+  // Intersect the ideal sphere, not the mesh. At ultra the globe is 2.4M
+  // triangles and three's mesh raycast is a linear scan over every one of them
+  // — that is a hundred milliseconds of main thread per pointermove, on a path
+  // that fires at input rate. The analytic solution is O(1) and strictly more
+  // accurate anyway: it reports the true surface rather than the nearest facet,
+  // so the readout no longer quantises as the tessellation coarsens.
+  const hit = satHit ? null : raycaster.ray.intersectSphere(EARTH_SPHERE, _hitPoint);
   const readout = $('cursor-readout');
-  if (hits.length) {
-    const hit = hits[0];
-    const local = earthSpin.worldToLocal(hit.point.clone());
+  if (hit) {
+    const local = earthSpin.worldToLocal(_hitPoint.clone());
     const { lat, lon } = vec3ToLatLon(local);
     state.hoverLatLon = { lat, lon };
 
@@ -846,8 +1244,10 @@ function updatePointer() {
     $('tel-lon').textContent = fmtLon(lon);
 
     reticle.visible = true;
-    reticle.position.copy(hit.point);
-    reticle.lookAt(hit.point.clone().add(hit.face.normal.clone().transformDirection(earth.matrixWorld)));
+    reticle.position.copy(_hitPoint);
+    // the sphere is centred on the origin, so the surface normal is just the
+    // hit direction — no face lookup and no matrix transform needed
+    reticle.lookAt(_hitPoint.clone().multiplyScalar(2));
     canvas.classList.add('pointing');
   } else {
     readout.hidden = true;
