@@ -39,6 +39,7 @@ Retain library LICENSE/NOTICE files and an environment/SBOM manifest. Data and b
 ## Processing boundaries
 
 - GDAL CLI is preferred for explicit translation/warping/COG inspection steps. Avoid raw Python GDAL bindings unless a capability is unavailable through Rasterio or the CLI.
+- Selecting GDAL also selects a large format-parsing attack surface. The separate acquisition, explicit driver restriction, bounded resources, isolated parser, safe argument construction, and quarantine rules in [pipeline hardening](../architecture/pipeline-hardening.md) are conditions of this decision.
 - Rasterio reads only required bands/windows and owns raster metadata/masks in Python.
 - GeoPandas/Shapely handle versioned administrative boundaries and small zonal-vector outputs.
 - NumPy performs index/mask arithmetic. Non-finite denominators become nodata, not serialized infinity.
@@ -115,4 +116,3 @@ Official project sources were accessed on 2026-08-02.
 - [rioxarray documentation — rioxarray contributors](https://corteva.github.io/rioxarray/latest/). Rasterio/Xarray integration and Apache-2.0 licensing.
 - [rio-tiler documentation — Development Seed](https://cogeotiff.github.io/rio-tiler/latest/). COG/STAC tile-reading capability and BSD-3-Clause license.
 - [TiTiler getting started — Development Seed](https://developmentseed.org/titiler/user_guide/getting_started/). Current package structure and MIT license.
-

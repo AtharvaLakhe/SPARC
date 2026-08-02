@@ -212,6 +212,7 @@ Kubernetes, separate microservices, user authentication, Dask, DuckDB in the ser
 | Contract drift | One OpenAPI source, validated examples, generated/validated types and integration gate | Incompatible build is rejected before demo |
 | Provider throttling | Provider adapter, bounded retry, cache and fallback catalog | Queued/unavailable status rather than a hanging screen |
 | Raster URL abuse | Opaque layer IDs and outbound-host allowlist | Invalid layer ID returns a safe 404 |
+| Hostile upstream raster or driver confusion | Acquisition/parser separation, explicit driver restriction, resource caps, credential-free worker and verified publication; see [pipeline hardening](pipeline-hardening.md) | Asset and derived output remain quarantined; existing verified demo results stay available |
 | Seasonal or cloud bias | Same-season windows, common-valid footprint, quality fields and warnings | Caveat is displayed beside the metric |
 | WebGL failure | Static image and text/table fallback | Core comparison remains usable |
 | 3D incompatibility | Optional isolated route/module and neutral placeholder contract | 2D dashboard is unaffected |
@@ -243,4 +244,3 @@ Official sources were accessed on 2026-08-02.
 - [GeoPandas repository — GeoPandas contributors](https://github.com/geopandas/geopandas). BSD-3-Clause license and maintenance status.
 - [Shapely repository — Shapely contributors](https://github.com/shapely/shapely). BSD-3-Clause license; documents its GEOS dependency.
 - [NumPy repository — NumPy developers](https://github.com/numpy/numpy). BSD-3-Clause license and maintenance status.
-

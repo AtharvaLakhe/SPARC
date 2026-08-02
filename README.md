@@ -2,40 +2,43 @@
 
 **Satellite-Powered Analytics for Resource Conservation**
 
-SPARC is a planned district-level environmental decision-support prototype. It will turn open Earth-observation data into understandable before/after signals for local administrators, NGOs, communities, CSR teams, and environmental practitioners.
+SPARC is a district-level environmental decision-support prototype. It turns open Earth-observation data into understandable before/after signals for local administrators, NGOs, communities, CSR teams, and environmental practitioners.
 
 SPARC outputs are **satellite-derived SDG proxy indicators**, not official UN SDG indicators. They show observed spatial or temporal patterns and do not establish causation.
 
 ## Repository status
 
-This repository is in the planning and contract phase. It contains requirements, research, architecture decisions, coordination rules, an OpenAPI draft, JSON Schemas, and clearly marked mock payloads. It intentionally contains no frontend, backend, geospatial processing implementation, downloaded imagery, processed geospatial data, deployed infrastructure, or third-party 3D model.
+Implementation has started from the frozen planning package. The first server slice is a read-only FastAPI service over clearly marked immutable mock payloads; it performs no raster processing, database access, provider calls, or live job creation. `orbital-website/` is a separately owned Three.js UI reference supplied by the user and is not yet the analytical dashboard or API client.
 
 The selected pilot is **Nagpur district** with **Bengaluru Urban** as a smaller backup. P0 covers surface-water, vegetation/green-cover, and built-up-area proxies. Land-surface temperature and surface urban heat island analysis are P1.
 
 ## High-level architecture
 
 ```text
-Browser/client (planned React + TypeScript + Vite)
+Browser/client (planned analytical dashboard; Orbital is the visual reference)
   ├─ DemoTransport → local manifest + JSON/GeoJSON/image assets
-  └─ ApiTransport  → planned FastAPI /api/v1 contract
-                          ├─ immutable result repository
+  └─ ApiTransport  → FastAPI /api/v1 contract
+                          ├─ implemented immutable mock-result repository
                           └─ future provider-neutral geoprocessing pipeline
                                → CDSE STAC / approved fallbacks
 ```
 
 The judged path is precomputed-first and runs over local HTTP without internet. Live or semi-live processing is an enhancement and must preserve the same response schemas. The optional user-provided 3D showcase is never required for analytics.
 
-## Planned request flow
-
-No runtime request flow exists yet. The frozen target flow is:
+## Implemented server request flow
 
 ```text
-User selects Nagpur, an indicator, and two comparable periods
-→ browser validates the selection against region capabilities
-→ DemoTransport reads a local payload or ApiTransport sends POST /api/v1/comparisons
-→ the contract validates region, indicator, and period fields
-→ an immutable result is returned or a restricted live job is queued
-→ the browser renders maps, metrics, quality evidence, provenance, and caveats
+HTTP client requests a known region, indicator, layer, or comparison
+→ FastAPI/Pydantic validates syntax, IDs, dates, enums, sizes, and period rules
+→ the repository resolves values through fixed in-memory catalogues, never paths
+→ a committed immutable mock payload is returned
+→ failures use sanitized application/problem+json responses
+```
+
+Run the first API slice from the repository root:
+
+```powershell
+python -m uvicorn apps.api.app.main:app --host 127.0.0.1 --port 8000
 ```
 
 ## Start here
@@ -71,11 +74,13 @@ Removing a canonical requirements, contract, methodology, ownership, or test fil
 
 - [System architecture](docs/architecture/system-architecture.md)
 - [Data pipeline](docs/architecture/data-pipeline.md)
+- [Geospatial pipeline hardening](docs/architecture/pipeline-hardening.md)
 - [API contract guide](docs/architecture/api-contract.md)
 - [Data storage](docs/architecture/data-storage.md)
 - [3D asset integration](docs/architecture/3d-asset-integration.md)
 - [Offline demo strategy](docs/architecture/offline-demo-strategy.md)
 - [Architecture decision records](docs/decisions/)
+- [Security review and adopted controls](docs/security-review.md)
 
 ### Coordination and delivery
 

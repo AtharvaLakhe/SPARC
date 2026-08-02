@@ -18,7 +18,18 @@ Future TypeScript and Pydantic bindings must be generated from a bundled copy of
 - Minor: additive optional fields or new enum-independent operations.
 - Major: removed/renamed fields, newly required fields, changed meaning, narrowed enums, or incompatible units.
 
-The v1 contract freezes at the end of Day 0. Breaking changes require both workstream owners, updated examples, regenerated bindings, migration notes, and a schema-version increase.
+The original documentation draft was re-frozen as `1.0.0-alpha.1` when implementation began. Its validation was tightened before any deployed consumer existed; all committed examples remained compatible. After the first integrated client release, further breaking changes require both workstream owners, updated examples, regenerated bindings, migration notes, and a version decision.
+
+## Validation
+
+The contract gate requires its validator dependency and fails rather than silently skipping full validation:
+
+```powershell
+python -m pip install -r apps/api/requirements-dev.txt
+python -m unittest discover -s tests -p "test_*.py"
+```
+
+The gate validates every example with JSON Schema format checking, resolves every OpenAPI reference, tests unsafe identifiers/URLs, and recursively checks object closure and explicit string/collection bounds.
 
 ## Mock rules
 

@@ -289,4 +289,6 @@ timestamp
 
 Release is blocked by any P0 contract drift, untraceable result, unapproved redistribution, exposed secret, official/causal misclaim, missing offline backup, or critical-flow accessibility failure. P1 failure removes the P1 feature; it does not weaken a P0 gate.
 
-Related documents: [development roadmap](development-roadmap.md), [offline strategy](architecture/offline-demo-strategy.md), [deployment guide](deployment-guide.md), [risk register](risk-register.md) and [demo script](demo-script.md).
+The contract-security gate must fail when its Draft 2020-12 validator dependency is unavailable; a skipped full validation is not a passing gate. It inventories every identifier, relative URL, external URL, date/time, string limit, collection limit, and object closure recursively, and separately validates duplicated OpenAPI constraints. Hostile-raster fixtures and parser isolation tests follow [pipeline hardening](architecture/pipeline-hardening.md).
+
+Related documents: [development roadmap](development-roadmap.md), [offline strategy](architecture/offline-demo-strategy.md), [pipeline hardening](architecture/pipeline-hardening.md), [security review](security-review.md), [deployment guide](deployment-guide.md), [risk register](risk-register.md) and [demo script](demo-script.md).

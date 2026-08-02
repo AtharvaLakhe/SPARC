@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://sparc.example/contracts/schemas/sparc.schema.json",
   "title": "SPARC shared contract schemas",
-  "description": "Canonical documentation-phase schemas. The example domain is reserved and is not a deployed endpoint.",
+  "description": "Canonical SPARC schemas. Patterns constrain shape only; server code must still resolve identifiers through approved catalogues and perform domain validation before I/O.",
   "$defs": {
     "Bbox": {
       "type": "array",
@@ -32,17 +32,18 @@
       "additionalProperties": false,
       "required": ["id", "name", "type", "parentId", "bbox", "centroid", "geometryUrl", "indicatorIds"],
       "properties": {
-        "id": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*(?::[a-z0-9]+(?:-[a-z0-9]+)*)*$" },
         "name": { "type": "string", "minLength": 1, "maxLength": 160 },
         "type": { "type": "string", "enum": ["district", "subdistrict", "block"] },
-        "parentId": { "type": ["string", "null"], "maxLength": 128 },
+        "parentId": { "type": ["string", "null"], "maxLength": 128, "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*(?::[a-z0-9]+(?:-[a-z0-9]+)*)*$" },
         "bbox": { "$ref": "#/$defs/Bbox" },
         "centroid": { "$ref": "#/$defs/LonLat" },
-        "geometryUrl": { "type": ["string", "null"], "pattern": "^(\\./|/)[^?]*$" },
+        "geometryUrl": { "type": ["string", "null"], "maxLength": 400, "pattern": "^(?:/(?!/)|\\./)[A-Za-z0-9][A-Za-z0-9._~:-]*(?:/[A-Za-z0-9][A-Za-z0-9._~:-]*)*$" },
         "indicatorIds": {
           "type": "array",
           "items": { "$ref": "#/$defs/IndicatorId" },
-          "uniqueItems": true
+          "uniqueItems": true,
+          "maxItems": 5
         }
       }
     },
@@ -51,8 +52,8 @@
       "additionalProperties": false,
       "required": ["startDate", "endDate", "label", "seasonLabel", "compositeMethod", "sceneCount"],
       "properties": {
-        "startDate": { "type": "string", "format": "date" },
-        "endDate": { "type": "string", "format": "date" },
+        "startDate": { "type": "string", "format": "date", "maxLength": 10, "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+        "endDate": { "type": "string", "format": "date", "maxLength": 10, "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
         "label": { "type": "string", "minLength": 1, "maxLength": 80 },
         "seasonLabel": { "type": ["string", "null"], "maxLength": 80 },
         "compositeMethod": { "type": "string", "minLength": 1, "maxLength": 120 },
@@ -63,9 +64,10 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["startDate", "endDate"],
+      "description": "The server additionally validates real calendar dates, ordering, supported archive bounds, maximum span and comparison-period compatibility before I/O.",
       "properties": {
-        "startDate": { "type": "string", "format": "date" },
-        "endDate": { "type": "string", "format": "date" }
+        "startDate": { "type": "string", "format": "date", "maxLength": 10, "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+        "endDate": { "type": "string", "format": "date", "maxLength": 10, "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" }
       }
     },
     "IndicatorId": {
@@ -78,7 +80,7 @@
       "required": ["id", "version", "name", "proxyLabel", "unit", "direction"],
       "properties": {
         "id": { "$ref": "#/$defs/IndicatorId" },
-        "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "version": { "type": "string", "maxLength": 32, "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
         "name": { "type": "string", "minLength": 1, "maxLength": 160 },
         "proxyLabel": { "type": "string", "minLength": 1, "maxLength": 240 },
         "unit": { "type": "string", "minLength": 1, "maxLength": 48 },
@@ -123,8 +125,8 @@
         "level": { "type": "string", "enum": ["high", "medium", "low", "unknown"] },
         "basis": { "type": "string", "enum": ["validated", "heuristic", "unavailable"] },
         "methodVersion": { "type": "string", "minLength": 1, "maxLength": 80 },
-        "reasons": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 },
-        "warnings": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "reasons": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 300 }, "minItems": 1, "maxItems": 20 },
+        "warnings": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 300 }, "maxItems": 20 },
         "evidence": { "$ref": "#/$defs/QualityEvidence" }
       }
     },
@@ -133,17 +135,17 @@
       "additionalProperties": false,
       "required": ["datasetId", "provider", "mission", "collection", "processingBaseline", "itemIds", "acquiredAt", "assetKeys", "sourceUrl", "citation", "license"],
       "properties": {
-        "datasetId": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "datasetId": { "type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*(?::[a-z0-9]+(?:-[a-z0-9]+)*)*$" },
         "provider": { "type": "string", "minLength": 1, "maxLength": 160 },
         "mission": { "type": "string", "minLength": 1, "maxLength": 120 },
         "collection": { "type": "string", "minLength": 1, "maxLength": 160 },
         "processingBaseline": { "type": ["string", "null"], "maxLength": 120 },
-        "itemIds": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 },
-        "acquiredAt": { "type": "array", "items": { "type": "string", "format": "date-time" }, "minItems": 1 },
-        "assetKeys": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 },
-        "sourceUrl": { "type": "string", "format": "uri" },
-        "citation": { "type": "string", "minLength": 1 },
-        "license": { "type": "string", "minLength": 1 }
+        "itemIds": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 256 }, "minItems": 1, "maxItems": 100 },
+        "acquiredAt": { "type": "array", "items": { "type": "string", "format": "date-time", "maxLength": 35, "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]{1,6})?(?:Z|[+-][0-9]{2}:[0-9]{2})$" }, "minItems": 1, "maxItems": 100 },
+        "assetKeys": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 128 }, "minItems": 1, "maxItems": 50 },
+        "sourceUrl": { "type": "string", "format": "uri", "maxLength": 2048, "pattern": "^https://[^\\s\\r\\n]+$" },
+        "citation": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "license": { "type": "string", "minLength": 1, "maxLength": 200 }
       }
     },
     "Provenance": {
@@ -151,13 +153,13 @@
       "additionalProperties": false,
       "required": ["sources", "algorithmId", "algorithmVersion", "parametersHash", "analysisCrs", "effectiveResolutionMeters", "generatedAt"],
       "properties": {
-        "sources": { "type": "array", "items": { "$ref": "#/$defs/DatasetSource" }, "minItems": 1 },
-        "algorithmId": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "sources": { "type": "array", "items": { "$ref": "#/$defs/DatasetSource" }, "minItems": 1, "maxItems": 20 },
+        "algorithmId": { "type": "string", "minLength": 1, "maxLength": 120, "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*(?::[a-z0-9]+(?:-[a-z0-9]+)*)*$" },
         "algorithmVersion": { "type": "string", "minLength": 1, "maxLength": 80 },
         "parametersHash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
-        "analysisCrs": { "type": "string", "pattern": "^EPSG:[0-9]+$" },
+        "analysisCrs": { "type": "string", "maxLength": 16, "pattern": "^EPSG:[0-9]+$" },
         "effectiveResolutionMeters": { "type": "number", "exclusiveMinimum": 0 },
-        "generatedAt": { "type": "string", "format": "date-time" }
+        "generatedAt": { "type": "string", "format": "date-time", "maxLength": 35, "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]{1,6})?(?:Z|[+-][0-9]{2}:[0-9]{2})$" }
       }
     },
     "Interpretation": {
@@ -165,10 +167,10 @@
       "additionalProperties": false,
       "required": ["summary", "caveats", "suggestedActions", "ruleId"],
       "properties": {
-        "summary": { "type": "string", "minLength": 1 },
-        "caveats": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 },
-        "suggestedActions": { "type": "array", "items": { "type": "string", "minLength": 1 } },
-        "ruleId": { "type": "string", "minLength": 1, "maxLength": 120 }
+        "summary": { "type": "string", "minLength": 1, "maxLength": 600 },
+        "caveats": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 300 }, "minItems": 1, "maxItems": 20 },
+        "suggestedActions": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 300 }, "maxItems": 20 },
+        "ruleId": { "type": "string", "minLength": 1, "maxLength": 120, "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*(?::[a-z0-9]+(?:-[a-z0-9]+)*)*$" }
       }
     },
     "LegendEntry": {
@@ -176,9 +178,9 @@
       "additionalProperties": false,
       "required": ["label", "color", "value"],
       "properties": {
-        "label": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1, "maxLength": 120 },
         "color": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
-        "value": { "type": ["number", "string"] }
+        "value": { "oneOf": [{ "type": "number" }, { "type": "string", "maxLength": 120 }] }
       }
     },
     "Attribution": {
@@ -186,8 +188,8 @@
       "additionalProperties": false,
       "required": ["label", "url"],
       "properties": {
-        "label": { "type": "string", "minLength": 1 },
-        "url": { "type": "string", "format": "uri" }
+        "label": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "url": { "type": "string", "format": "uri", "maxLength": 2048, "pattern": "^https://[^\\s\\r\\n]+$" }
       }
     },
     "LayerDescriptor": {
@@ -195,17 +197,17 @@
       "additionalProperties": false,
       "required": ["id", "kind", "representation", "href", "tileJsonHref", "bounds", "minZoom", "maxZoom", "opacity", "legend", "attributions", "checksum", "contentVersion", "availableOffline"],
       "properties": {
-        "id": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "id": { "type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*(?::[a-z0-9]+(?:-[a-z0-9]+)*)*$" },
         "kind": { "type": "string", "enum": ["raster", "vector", "image"] },
         "representation": { "type": "string", "enum": ["tilejson", "xyz", "geojson", "image"] },
-        "href": { "type": ["string", "null"], "pattern": "^(\\./|/)[^?]*$" },
-        "tileJsonHref": { "type": ["string", "null"], "pattern": "^(\\./|/)[^?]*$" },
+        "href": { "type": ["string", "null"], "maxLength": 400, "pattern": "^(?:/(?!/)|\\./)[A-Za-z0-9][A-Za-z0-9._~:-]*(?:/[A-Za-z0-9][A-Za-z0-9._~:-]*)*$" },
+        "tileJsonHref": { "type": ["string", "null"], "maxLength": 400, "pattern": "^(?:/(?!/)|\\./)[A-Za-z0-9][A-Za-z0-9._~:-]*(?:/[A-Za-z0-9][A-Za-z0-9._~:-]*)*$" },
         "bounds": { "$ref": "#/$defs/Bbox" },
         "minZoom": { "type": ["integer", "null"], "minimum": 0, "maximum": 24 },
         "maxZoom": { "type": ["integer", "null"], "minimum": 0, "maximum": 24 },
         "opacity": { "type": "number", "minimum": 0, "maximum": 1 },
-        "legend": { "type": "array", "items": { "$ref": "#/$defs/LegendEntry" }, "minItems": 1 },
-        "attributions": { "type": "array", "items": { "$ref": "#/$defs/Attribution" }, "minItems": 1 },
+        "legend": { "type": "array", "items": { "$ref": "#/$defs/LegendEntry" }, "minItems": 1, "maxItems": 50 },
+        "attributions": { "type": "array", "items": { "$ref": "#/$defs/Attribution" }, "minItems": 1, "maxItems": 20 },
         "checksum": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
         "contentVersion": { "type": "string", "minLength": 1, "maxLength": 80 },
         "availableOffline": { "type": "boolean" }
@@ -216,13 +218,13 @@
       "additionalProperties": false,
       "required": ["schemaVersion", "requestId", "generatedAt", "dataMode", "partial", "mock", "warnings"],
       "properties": {
-        "schemaVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
-        "requestId": { "type": "string", "minLength": 1, "maxLength": 160 },
-        "generatedAt": { "type": "string", "format": "date-time" },
+        "schemaVersion": { "type": "string", "maxLength": 32, "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "requestId": { "type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*(?::[a-z0-9]+(?:-[a-z0-9]+)*)*$" },
+        "generatedAt": { "type": "string", "format": "date-time", "maxLength": 35, "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]{1,6})?(?:Z|[+-][0-9]{2}:[0-9]{2})$" },
         "dataMode": { "type": "string", "enum": ["live", "cache", "demo"] },
         "partial": { "type": "boolean" },
         "mock": { "type": "boolean" },
-        "warnings": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+        "warnings": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 300 }, "maxItems": 20 }
       }
     },
     "Links": {
@@ -230,8 +232,8 @@
       "additionalProperties": false,
       "required": ["self", "related"],
       "properties": {
-        "self": { "type": "string", "pattern": "^/" },
-        "related": { "type": "array", "items": { "type": "string", "pattern": "^/" } }
+        "self": { "type": "string", "maxLength": 400, "pattern": "^(?:/(?!/)|\\./)[A-Za-z0-9][A-Za-z0-9._~:-]*(?:/[A-Za-z0-9][A-Za-z0-9._~:-]*)*$" },
+        "related": { "type": "array", "items": { "type": "string", "maxLength": 400, "pattern": "^(?:/(?!/)|\\./)[A-Za-z0-9][A-Za-z0-9._~:-]*(?:/[A-Za-z0-9][A-Za-z0-9._~:-]*)*$" }, "maxItems": 20 }
       }
     },
     "IndicatorStatus": {
@@ -247,7 +249,7 @@
         "metric": { "$ref": "#/$defs/MetricValue" },
         "qualityLevel": { "type": "string", "enum": ["high", "medium", "low", "unknown"] },
         "status": { "$ref": "#/$defs/IndicatorStatus" },
-        "comparisonUrl": { "type": ["string", "null"], "pattern": "^/" }
+        "comparisonUrl": { "type": ["string", "null"], "maxLength": 400, "pattern": "^(?:/(?!/)|\\./)[A-Za-z0-9][A-Za-z0-9._~:-]*(?:/[A-Za-z0-9][A-Za-z0-9._~:-]*)*$" }
       }
     },
     "DistrictSummaryData": {
@@ -258,7 +260,7 @@
         "region": { "$ref": "#/$defs/RegionRef" },
         "baselinePeriod": { "$ref": "#/$defs/Period" },
         "comparisonPeriod": { "$ref": "#/$defs/Period" },
-        "indicators": { "type": "array", "items": { "$ref": "#/$defs/IndicatorSummary" }, "minItems": 1 }
+        "indicators": { "type": "array", "items": { "$ref": "#/$defs/IndicatorSummary" }, "minItems": 1, "maxItems": 5 }
       }
     },
     "DistrictSummaryResponse": {
@@ -276,7 +278,7 @@
       "additionalProperties": false,
       "required": ["comparisonId", "region", "indicator", "baselinePeriod", "comparisonPeriod", "metric", "quality", "provenance", "interpretation", "layers", "status"],
       "properties": {
-        "comparisonId": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "comparisonId": { "type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*(?::[a-z0-9]+(?:-[a-z0-9]+)*)*$" },
         "region": { "$ref": "#/$defs/RegionRef" },
         "indicator": { "$ref": "#/$defs/IndicatorRef" },
         "baselinePeriod": { "$ref": "#/$defs/Period" },
@@ -285,7 +287,7 @@
         "quality": { "$ref": "#/$defs/QualityAssessment" },
         "provenance": { "$ref": "#/$defs/Provenance" },
         "interpretation": { "$ref": "#/$defs/Interpretation" },
-        "layers": { "type": "array", "items": { "$ref": "#/$defs/LayerDescriptor" } },
+        "layers": { "type": "array", "items": { "$ref": "#/$defs/LayerDescriptor" }, "maxItems": 10 },
         "status": { "$ref": "#/$defs/IndicatorStatus" }
       }
     },
@@ -304,9 +306,9 @@
       "additionalProperties": false,
       "required": ["date", "value", "unit", "qualityLevel"],
       "properties": {
-        "date": { "type": "string", "format": "date" },
+        "date": { "type": "string", "format": "date", "maxLength": 10, "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
         "value": { "type": ["number", "null"] },
-        "unit": { "type": "string", "minLength": 1 },
+        "unit": { "type": "string", "minLength": 1, "maxLength": 48 },
         "qualityLevel": { "type": "string", "enum": ["high", "medium", "low", "unknown"] }
       }
     },
@@ -317,7 +319,7 @@
       "properties": {
         "region": { "$ref": "#/$defs/RegionRef" },
         "indicator": { "$ref": "#/$defs/IndicatorRef" },
-        "points": { "type": "array", "items": { "$ref": "#/$defs/TimeSeriesPoint" } },
+        "points": { "type": "array", "items": { "$ref": "#/$defs/TimeSeriesPoint" }, "maxItems": 500 },
         "provenance": { "$ref": "#/$defs/Provenance" }
       }
     },
@@ -351,7 +353,7 @@
         "indicator": { "$ref": "#/$defs/IndicatorRef" },
         "baselinePeriod": { "$ref": "#/$defs/Period" },
         "comparisonPeriod": { "$ref": "#/$defs/Period" },
-        "results": { "type": "array", "items": { "$ref": "#/$defs/BlockResult" }, "minItems": 1 }
+        "results": { "type": "array", "items": { "$ref": "#/$defs/BlockResult" }, "minItems": 1, "maxItems": 500 }
       }
     },
     "BlockResultsResponse": {
@@ -379,13 +381,13 @@
       "additionalProperties": false,
       "required": ["id", "status", "progressPercent", "createdAt", "updatedAt", "expiresAt", "resultUrl", "error"],
       "properties": {
-        "id": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "id": { "type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*(?::[a-z0-9]+(?:-[a-z0-9]+)*)*$" },
         "status": { "type": "string", "enum": ["queued", "running", "complete", "partial", "failed", "cancelled"] },
         "progressPercent": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" },
-        "expiresAt": { "type": ["string", "null"], "format": "date-time" },
-        "resultUrl": { "type": ["string", "null"], "pattern": "^/" },
+        "createdAt": { "type": "string", "format": "date-time", "maxLength": 35, "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]{1,6})?(?:Z|[+-][0-9]{2}:[0-9]{2})$" },
+        "updatedAt": { "type": "string", "format": "date-time", "maxLength": 35, "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]{1,6})?(?:Z|[+-][0-9]{2}:[0-9]{2})$" },
+        "expiresAt": { "type": ["string", "null"], "format": "date-time", "maxLength": 35, "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]{1,6})?(?:Z|[+-][0-9]{2}:[0-9]{2})$" },
+        "resultUrl": { "type": ["string", "null"], "maxLength": 400, "pattern": "^(?:/(?!/)|\\./)[A-Za-z0-9][A-Za-z0-9._~:-]*(?:/[A-Za-z0-9][A-Za-z0-9._~:-]*)*$" },
         "error": { "type": ["string", "null"], "maxLength": 400 }
       }
     },
@@ -404,7 +406,7 @@
       "additionalProperties": false,
       "required": ["regionId", "baselinePeriod", "comparisonPeriod", "indicatorIds", "modePreference"],
       "properties": {
-        "regionId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "regionId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*(?::[a-z0-9]+(?:-[a-z0-9]+)*)*$" },
         "baselinePeriod": { "$ref": "#/$defs/PeriodInput" },
         "comparisonPeriod": { "$ref": "#/$defs/PeriodInput" },
         "indicatorIds": { "type": "array", "items": { "$ref": "#/$defs/IndicatorId" }, "minItems": 1, "maxItems": 5, "uniqueItems": true },
@@ -416,13 +418,13 @@
       "additionalProperties": false,
       "required": ["type", "title", "status", "detail", "instance", "code", "traceId", "invalidParams"],
       "properties": {
-        "type": { "type": "string", "format": "uri-reference" },
-        "title": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "format": "uri-reference", "maxLength": 2048 },
+        "title": { "type": "string", "minLength": 1, "maxLength": 200 },
         "status": { "type": "integer", "minimum": 400, "maximum": 599 },
-        "detail": { "type": "string", "minLength": 1 },
-        "instance": { "type": "string", "format": "uri-reference" },
-        "code": { "type": "string", "pattern": "^[A-Z0-9_]+$" },
-        "traceId": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "detail": { "type": "string", "minLength": 1, "maxLength": 500, "description": "Safe human-readable detail; never include stack traces, filesystem paths, environment values, internal hosts, credentials, tokens or signed URLs." },
+        "instance": { "type": "string", "format": "uri-reference", "maxLength": 400 },
+        "code": { "type": "string", "maxLength": 80, "pattern": "^[A-Z0-9_]+$" },
+        "traceId": { "type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*(?::[a-z0-9]+(?:-[a-z0-9]+)*)*$" },
         "invalidParams": {
           "type": "array",
           "items": {
@@ -430,10 +432,11 @@
             "additionalProperties": false,
             "required": ["name", "reason"],
             "properties": {
-              "name": { "type": "string", "minLength": 1 },
-              "reason": { "type": "string", "minLength": 1 }
+              "name": { "type": "string", "minLength": 1, "maxLength": 128 },
+              "reason": { "type": "string", "minLength": 1, "maxLength": 300 }
             }
-          }
+          },
+          "maxItems": 20
         }
       }
     }

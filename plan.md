@@ -217,7 +217,7 @@ Research/license gates
   - Acceptance condition: Results validate, use fixed cross-period rules, and expose raw/cleaned/sensitivity evidence
   - Fallback: Mark an unstable indicator low-quality and use the documented simpler fixed method
 
-- [ ] **D1-C-003 — Build API/result-repository skeleton to the contract**
+- [x] **D1-C-003 — Build API/result-repository skeleton to the contract**
   - Owner: Codex
   - Priority: P0
   - Dependency: D0-C-003
