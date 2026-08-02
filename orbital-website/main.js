@@ -884,6 +884,7 @@ const state = {
   camTween: null,
   hoverLatLon: null,
   satHovered: false,
+  satScreen: { x: 0, y: 0 },   // where the craft last projected to, in CSS px
   pointer: new THREE.Vector2(-10, -10),
   pointerActive: false,
   parallax: new THREE.Vector2(),
@@ -891,7 +892,6 @@ const state = {
 };
 
 const raycaster = new THREE.Raycaster();
-raycaster.params.Points.threshold = 0.01;
 
 /* Hover picking goes against this, not against the globe mesh — see updatePointer. */
 const EARTH_SPHERE = new THREE.Sphere(new THREE.Vector3(0, 0, 0), EARTH_R);
@@ -904,6 +904,51 @@ function orbitPosition(angle) {
 }
 const ORBIT_NORMAL = new THREE.Vector3(0, 1, 0).applyAxisAngle(new THREE.Vector3(1, 0, 0), ORBIT_TILT);
 
+/* ── picking the craft ──────────────────────────────────────────────────────
+   This used to be an exact mesh raycast, which is why it so often refused to
+   open. The craft is a dish and two thin panels spanning ~90 px at the default
+   camera, and almost all of that box is empty space between the struts — so the
+   cursor mostly passed straight through it. Worse, the wings turn edge-on as
+   they track the sun, and an edge-on plane is a few pixels of target.
+
+   Pick a disc around the projected anchor instead, sized from the craft's own
+   bounds so it tracks zoom, with a floor so it stays reachable when small. The
+   exact silhouette is not information the user has any way to see; the object's
+   position is. */
+const SAT_PICK_FLOOR_PX = 24;   // minimum radius, so a distant craft stays hittable
+const _satProj = new THREE.Vector3();
+const _occl = new THREE.Vector3();
+const _toSat = new THREE.Vector3();
+
+function satellitePick(clientX, clientY) {
+  if (!satellite || !Number.isFinite(clientX) || !Number.isFinite(clientY)) return false;
+
+  _toSat.copy(satAnchor.position).sub(camera.position);
+  const dist = _toSat.length();
+  _toSat.divideScalar(dist);
+
+  // The craft orbits at 1.46 R, so it spends a good part of every revolution
+  // genuinely behind the planet. The old raycast happily picked it through the
+  // globe — intersectObject only ever tested the craft, never what was in front
+  // of it — so the tooltip appeared over empty ocean.
+  const blocker = new THREE.Ray(camera.position, _toSat).intersectSphere(EARTH_SPHERE, _occl);
+  if (blocker && camera.position.distanceTo(_occl) < dist) return false;
+
+  _satProj.copy(satAnchor.position).project(camera);
+  if (_satProj.z > 1) return false;                       // behind the near plane
+
+  const sx = (_satProj.x * 0.5 + 0.5) * innerWidth;
+  const sy = (-_satProj.y * 0.5 + 0.5) * innerHeight;
+
+  // half the craft's bounding span, projected to pixels at its own depth
+  const halfPx = (SAT_SPAN * 0.5) / (dist * Math.tan(THREE.MathUtils.degToRad(camera.fov * 0.5)))
+    * (innerHeight * 0.5);
+  const r = Math.max(halfPx * 1.2, SAT_PICK_FLOOR_PX);
+
+  state.satScreen = { x: sx, y: sy };
+  return (clientX - sx) ** 2 + (clientY - sy) ** 2 <= r * r;
+}
+
 /* ── pointer handling ───────────────────────────────────────────────────── */
 canvas.addEventListener('pointermove', (e) => {
   state.pointer.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
@@ -913,15 +958,31 @@ canvas.addEventListener('pointermove', (e) => {
 });
 canvas.addEventListener('pointerleave', () => {
   state.pointerActive = false;
+  state.satHovered = false;
   $('cursor-readout').hidden = true;
   $('sat-tip').hidden = true;
   reticle.visible = false;
 });
-canvas.addEventListener('pointerdown', () => { state.dragging = true; canvas.classList.add('grabbing'); });
+
+let downX = null, downY = null;
+canvas.addEventListener('pointerdown', (e) => {
+  state.dragging = true;
+  canvas.classList.add('grabbing');
+  downX = e.clientX;
+  downY = e.clientY;
+});
 addEventListener('pointerup', () => { state.dragging = false; canvas.classList.remove('grabbing'); });
 
-canvas.addEventListener('click', () => {
-  if (state.satHovered) openConsole();
+canvas.addEventListener('click', (e) => {
+  // A drag that happens to end over the craft is not a click on it. Without
+  // this the wider hit disc would pop the console open every time an orbit
+  // gesture finished near it.
+  if (downX !== null && Math.hypot(e.clientX - downX, e.clientY - downY) > 6) return;
+
+  // Re-pick at the click point rather than trusting the last frame's hover
+  // flag. Touch never fires pointermove before the tap, so that flag is still
+  // false on a phone — the craft was not tappable there at all.
+  if (satellitePick(e.clientX, e.clientY)) openConsole();
 });
 
 /* ── console ────────────────────────────────────────────────────────────── */
@@ -1205,17 +1266,17 @@ function updatePointer() {
   if (!state.pointerActive) return;
   raycaster.setFromCamera(state.pointer, camera);
 
-  // satellite first: it sits in front of the globe
-  let satHit = false;
-  if (satellite) {
-    satHit = raycaster.intersectObject(satellite, true).length > 0;
-  }
+  // satellite first: it sits in front of the globe. Same test the click uses,
+  // so what lights up under the cursor is exactly what will open the console.
+  const satHit = satellitePick(state.clientX, state.clientY);
   state.satHovered = satHit;
   const tip = $('sat-tip');
   if (satHit) {
     tip.hidden = false;
-    tip.style.left = `${state.clientX}px`;
-    tip.style.top = `${state.clientY}px`;
+    // pin the label to the craft rather than the cursor — it names the object,
+    // and anchored to the pointer it just slides around inside its own hit disc
+    tip.style.left = `${state.satScreen.x}px`;
+    tip.style.top = `${state.satScreen.y}px`;
     canvas.classList.add('targetable');
   } else {
     tip.hidden = true;

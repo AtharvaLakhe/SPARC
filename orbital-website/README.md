@@ -126,6 +126,17 @@ machine wrong.
   mesh is 2.4M triangles and three's raycast is a linear scan over every one of
   them, on a path that fires at input rate. The analytic solution is O(1) and
   reports the true surface rather than the nearest facet.
+- The satellite is picked as a **screen-space disc** around its projected centre,
+  sized from its own bounds so it tracks zoom. An exact mesh raycast missed
+  constantly: the craft is a dish and two thin panels, almost all of that box is
+  empty space between the struts, and the wings turn edge-on as they track the
+  sun. The exact silhouette is not something the user can aim at; the position
+  is. The pick is occlusion-tested against the globe, so it does not fire
+  through the planet, and a click is ignored if the pointer travelled more than
+  6 px since pointerdown, so orbit gestures ending near the craft do not open
+  the console. Clicks re-pick at the event coordinates rather than reading the
+  last frame's hover flag — touch never fires a hover, so the craft was
+  previously not tappable at all on a phone.
 - The satellite reproduces the Blender rig — the dish stays locked on nadir and the
   solar wings rotate on their spar to track the sun. One revolution takes ~101 s.
 - Stars are three shells at different distances, mostly concentrated toward one
