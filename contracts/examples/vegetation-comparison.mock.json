@@ -1,0 +1,132 @@
+{
+  "data": {
+    "comparisonId": "mock:comparison:nagpur-vegetation",
+    "region": {
+      "id": "mock:district:nagpur",
+      "name": "Nagpur — MOCK REGION",
+      "type": "district",
+      "parentId": null,
+      "bbox": [78.1, 20.5, 79.5, 21.8],
+      "centroid": [79.08, 21.15],
+      "geometryUrl": "/demo/v1/regions/mock-nagpur.geojson",
+      "indicatorIds": ["surface-water", "vegetation", "built-up", "lst"]
+    },
+    "indicator": {
+      "id": "vegetation",
+      "version": "1.0.0",
+      "name": "Vegetation activity — MOCK",
+      "proxyLabel": "Satellite-derived vegetation activity and green-cover proxy",
+      "unit": "NDVI",
+      "direction": "context-dependent"
+    },
+    "baselinePeriod": {
+      "startDate": "2019-10-15",
+      "endDate": "2019-12-15",
+      "label": "MOCK baseline post-monsoon 2019",
+      "seasonLabel": "post-monsoon",
+      "compositeMethod": "MOCK median of per-observation NDVI",
+      "sceneCount": 6
+    },
+    "comparisonPeriod": {
+      "startDate": "2024-10-15",
+      "endDate": "2024-12-15",
+      "label": "MOCK comparison post-monsoon 2024",
+      "seasonLabel": "post-monsoon",
+      "compositeMethod": "MOCK median of per-observation NDVI",
+      "sceneCount": 7
+    },
+    "metric": {
+      "baselineValue": 0.48,
+      "comparisonValue": 0.44,
+      "absoluteChange": -0.04,
+      "percentChange": -8.33,
+      "unit": "NDVI",
+      "unavailableReason": null
+    },
+    "quality": {
+      "level": "medium",
+      "basis": "heuristic",
+      "methodVersion": "mock-vegetation-quality-v1",
+      "reasons": ["MOCK periods are season-matched and contain multiple clear observations"],
+      "warnings": ["No independent local validation; agriculture and rainfall can influence NDVI"],
+      "evidence": {
+        "commonValidPercent": 95.0,
+        "cloudPercent": 3.8,
+        "nodataPercent": 1.2,
+        "coveragePercent": 98.8,
+        "sceneCountBaseline": 6,
+        "sceneCountComparison": 7,
+        "thresholdSensitivityPercent": 7.4,
+        "independentValidationComplete": false,
+        "usersAccuracy": null,
+        "producersAccuracy": null
+      }
+    },
+    "provenance": {
+      "sources": [
+        {
+          "datasetId": "mock:dataset:sentinel-2-l2a",
+          "provider": "Copernicus Data Space Ecosystem — MOCK ITEM LIST",
+          "mission": "Sentinel-2",
+          "collection": "sentinel-2-l2a",
+          "processingBaseline": "MOCK-N0500",
+          "itemIds": ["MOCK_S2_BASELINE_001", "MOCK_S2_COMPARISON_001"],
+          "acquiredAt": ["2019-11-05T05:30:00Z", "2024-11-07T05:30:00Z"],
+          "assetKeys": ["B04", "B08", "SCL"],
+          "sourceUrl": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-2-l2a",
+          "citation": "Contains modified Copernicus Sentinel data [MOCK YEARS]",
+          "license": "Copernicus Sentinel Data Legal Notice"
+        }
+      ],
+      "algorithmId": "mock:algorithm:ndvi-median",
+      "algorithmVersion": "1.0.0",
+      "parametersHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "analysisCrs": "EPSG:32644",
+      "effectiveResolutionMeters": 10,
+      "generatedAt": "2026-08-02T00:00:00Z"
+    },
+    "interpretation": {
+      "summary": "MOCK: median vegetation activity is lower in the comparison composite.",
+      "caveats": ["This synthetic example is not a finding", "NDVI change is not automatically forest loss and may reflect crops, rainfall, irrigation, or phenology"],
+      "suggestedActions": ["In a real result, compare same-season rainfall and inspect persistent spatial patterns"],
+      "ruleId": "mock:interpretation:vegetation-change-v1"
+    },
+    "layers": [
+      {
+        "id": "mock:layer:nagpur-vegetation-change",
+        "kind": "image",
+        "representation": "image",
+        "href": "/demo/v1/layers/mock-nagpur-vegetation-change.webp",
+        "tileJsonHref": null,
+        "bounds": [78.1, 20.5, 79.5, 21.8],
+        "minZoom": null,
+        "maxZoom": null,
+        "opacity": 0.75,
+        "legend": [
+          { "label": "MOCK lower NDVI", "color": "#B91C1C", "value": "decrease" },
+          { "label": "MOCK higher NDVI", "color": "#15803D", "value": "increase" }
+        ],
+        "attributions": [
+          { "label": "Contains modified Copernicus Sentinel data — MOCK", "url": "https://dataspace.copernicus.eu/terms-and-conditions" }
+        ],
+        "checksum": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "contentVersion": "mock-1",
+        "availableOffline": true
+      }
+    ],
+    "status": "complete"
+  },
+  "meta": {
+    "schemaVersion": "1.0.0",
+    "requestId": "mock:request:vegetation-comparison",
+    "generatedAt": "2026-08-02T00:00:00Z",
+    "dataMode": "demo",
+    "partial": false,
+    "mock": true,
+    "warnings": ["SYNTHETIC MOCK VALUES — not environmental findings"]
+  },
+  "links": {
+    "self": "/api/v1/regions/mock:district:nagpur/indicators/vegetation",
+    "related": ["/api/v1/layers/mock:layer:nagpur-vegetation-change"]
+  }
+}

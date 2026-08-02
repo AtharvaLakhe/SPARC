@@ -1,0 +1,37 @@
+{
+  "data": {
+    "id": "mock:layer:nagpur-water-change",
+    "kind": "image",
+    "representation": "image",
+    "href": "/demo/v1/layers/mock-nagpur-water-change.webp",
+    "tileJsonHref": null,
+    "bounds": [78.1, 20.5, 79.5, 21.8],
+    "minZoom": null,
+    "maxZoom": null,
+    "opacity": 0.75,
+    "legend": [
+      { "label": "MOCK water gain", "color": "#2563EB", "value": "gain" },
+      { "label": "MOCK water loss", "color": "#DC2626", "value": "loss" }
+    ],
+    "attributions": [
+      { "label": "Contains modified Copernicus Sentinel data — MOCK", "url": "https://dataspace.copernicus.eu/terms-and-conditions" }
+    ],
+    "checksum": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "contentVersion": "mock-1",
+    "availableOffline": true
+  },
+  "meta": {
+    "schemaVersion": "1.0.0",
+    "requestId": "mock:request:layer-descriptor",
+    "generatedAt": "2026-08-02T00:00:00Z",
+    "dataMode": "demo",
+    "partial": false,
+    "mock": true,
+    "warnings": ["SYNTHETIC MOCK LAYER — referenced file is not included during planning"]
+  },
+  "links": {
+    "self": "/api/v1/layers/mock:layer:nagpur-water-change",
+    "related": ["/api/v1/comparisons/mock:comparison:nagpur-water"]
+  }
+}
+

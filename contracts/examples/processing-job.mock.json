@@ -1,0 +1,25 @@
+{
+  "data": {
+    "id": "mock:job:nagpur-water",
+    "status": "queued",
+    "progressPercent": 0,
+    "createdAt": "2026-08-02T00:00:00Z",
+    "updatedAt": "2026-08-02T00:00:00Z",
+    "expiresAt": "2026-08-03T00:00:00Z",
+    "resultUrl": null,
+    "error": null
+  },
+  "meta": {
+    "schemaVersion": "1.0.0",
+    "requestId": "mock:request:processing-job",
+    "generatedAt": "2026-08-02T00:00:00Z",
+    "dataMode": "live",
+    "partial": false,
+    "mock": true,
+    "warnings": ["SYNTHETIC P1 JOB — job creation is disabled in P0"]
+  },
+  "links": {
+    "self": "/api/v1/processing/jobs/mock:job:nagpur-water",
+    "related": []
+  }
+}

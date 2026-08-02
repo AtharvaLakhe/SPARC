@@ -1,0 +1,98 @@
+{
+  "data": {
+    "parentRegion": {
+      "id": "mock:district:nagpur",
+      "name": "Nagpur — MOCK REGION",
+      "type": "district",
+      "parentId": null,
+      "bbox": [78.1, 20.5, 79.5, 21.8],
+      "centroid": [79.08, 21.15],
+      "geometryUrl": "/demo/v1/regions/mock-nagpur.geojson",
+      "indicatorIds": ["surface-water", "vegetation", "built-up", "lst"]
+    },
+    "indicator": {
+      "id": "built-up",
+      "version": "1.0.0",
+      "name": "Built-up area — MOCK",
+      "proxyLabel": "Satellite-derived built-up-area proxy",
+      "unit": "km2",
+      "direction": "context-dependent"
+    },
+    "baselinePeriod": {
+      "startDate": "2019-10-15",
+      "endDate": "2019-12-15",
+      "label": "MOCK baseline post-monsoon 2019",
+      "seasonLabel": "post-monsoon",
+      "compositeMethod": "MOCK fixed spectral-consensus composite",
+      "sceneCount": 6
+    },
+    "comparisonPeriod": {
+      "startDate": "2024-10-15",
+      "endDate": "2024-12-15",
+      "label": "MOCK comparison post-monsoon 2024",
+      "seasonLabel": "post-monsoon",
+      "compositeMethod": "MOCK fixed spectral-consensus composite",
+      "sceneCount": 7
+    },
+    "results": [
+      {
+        "region": {
+          "id": "mock:subdistrict:hingna",
+          "name": "Hingna — MOCK SUBDISTRICT",
+          "type": "subdistrict",
+          "parentId": "mock:district:nagpur",
+          "bbox": [78.75, 20.8, 79.1, 21.15],
+          "centroid": [78.93, 20.98],
+          "geometryUrl": "/demo/v1/regions/mock-hingna.geojson",
+          "indicatorIds": ["surface-water", "vegetation", "built-up"]
+        },
+        "metric": {
+          "baselineValue": 22.1,
+          "comparisonValue": 28.4,
+          "absoluteChange": 6.3,
+          "percentChange": 28.51,
+          "unit": "km2",
+          "unavailableReason": null
+        },
+        "qualityLevel": "low",
+        "status": "complete"
+      },
+      {
+        "region": {
+          "id": "mock:subdistrict:kamptee",
+          "name": "Kamptee — MOCK SUBDISTRICT",
+          "type": "subdistrict",
+          "parentId": "mock:district:nagpur",
+          "bbox": [79.15, 21.1, 79.35, 21.35],
+          "centroid": [79.25, 21.22],
+          "geometryUrl": "/demo/v1/regions/mock-kamptee.geojson",
+          "indicatorIds": ["surface-water", "vegetation", "built-up"]
+        },
+        "metric": {
+          "baselineValue": 12.8,
+          "comparisonValue": 14.0,
+          "absoluteChange": 1.2,
+          "percentChange": 9.38,
+          "unit": "km2",
+          "unavailableReason": null
+        },
+        "qualityLevel": "low",
+        "status": "complete"
+      }
+    ]
+  },
+  "meta": {
+    "schemaVersion": "1.0.0",
+    "requestId": "mock:request:block-results",
+    "generatedAt": "2026-08-02T00:00:00Z",
+    "dataMode": "demo",
+    "partial": false,
+    "mock": true,
+    "warnings": ["SYNTHETIC MOCK VALUES — names identify planned interface examples only"]
+  },
+  "links": {
+    "self": "/api/v1/regions/mock:district:nagpur/indicators",
+    "related": ["/api/v1/regions/mock:subdistrict:hingna"]
+  }
+}
+

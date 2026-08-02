@@ -1,0 +1,132 @@
+{
+  "data": {
+    "comparisonId": "mock:comparison:nagpur-built",
+    "region": {
+      "id": "mock:district:nagpur",
+      "name": "Nagpur — MOCK REGION",
+      "type": "district",
+      "parentId": null,
+      "bbox": [78.1, 20.5, 79.5, 21.8],
+      "centroid": [79.08, 21.15],
+      "geometryUrl": "/demo/v1/regions/mock-nagpur.geojson",
+      "indicatorIds": ["surface-water", "vegetation", "built-up", "lst"]
+    },
+    "indicator": {
+      "id": "built-up",
+      "version": "1.0.0",
+      "name": "Built-up area — MOCK",
+      "proxyLabel": "Satellite-derived built-up-area proxy",
+      "unit": "km2",
+      "direction": "context-dependent"
+    },
+    "baselinePeriod": {
+      "startDate": "2019-10-15",
+      "endDate": "2019-12-15",
+      "label": "MOCK baseline post-monsoon 2019",
+      "seasonLabel": "post-monsoon",
+      "compositeMethod": "MOCK fixed spectral-consensus composite",
+      "sceneCount": 6
+    },
+    "comparisonPeriod": {
+      "startDate": "2024-10-15",
+      "endDate": "2024-12-15",
+      "label": "MOCK comparison post-monsoon 2024",
+      "seasonLabel": "post-monsoon",
+      "compositeMethod": "MOCK fixed spectral-consensus composite",
+      "sceneCount": 7
+    },
+    "metric": {
+      "baselineValue": 145.0,
+      "comparisonValue": 168.5,
+      "absoluteChange": 23.5,
+      "percentChange": 16.21,
+      "unit": "km2",
+      "unavailableReason": null
+    },
+    "quality": {
+      "level": "low",
+      "basis": "heuristic",
+      "methodVersion": "mock-built-quality-v1",
+      "reasons": ["MOCK multi-index agreement is usable for demonstration"],
+      "warnings": ["No independent validation", "Bare soil and construction may be confused with built surfaces"],
+      "evidence": {
+        "commonValidPercent": 93.6,
+        "cloudPercent": 4.5,
+        "nodataPercent": 1.9,
+        "coveragePercent": 98.1,
+        "sceneCountBaseline": 6,
+        "sceneCountComparison": 7,
+        "thresholdSensitivityPercent": 14.2,
+        "independentValidationComplete": false,
+        "usersAccuracy": null,
+        "producersAccuracy": null
+      }
+    },
+    "provenance": {
+      "sources": [
+        {
+          "datasetId": "mock:dataset:sentinel-2-l2a",
+          "provider": "Copernicus Data Space Ecosystem — MOCK ITEM LIST",
+          "mission": "Sentinel-2",
+          "collection": "sentinel-2-l2a",
+          "processingBaseline": "MOCK-N0500",
+          "itemIds": ["MOCK_S2_BASELINE_001", "MOCK_S2_COMPARISON_001"],
+          "acquiredAt": ["2019-11-05T05:30:00Z", "2024-11-07T05:30:00Z"],
+          "assetKeys": ["B03", "B04", "B08", "B11", "SCL"],
+          "sourceUrl": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-2-l2a",
+          "citation": "Contains modified Copernicus Sentinel data [MOCK YEARS]",
+          "license": "Copernicus Sentinel Data Legal Notice"
+        }
+      ],
+      "algorithmId": "mock:algorithm:built-spectral-consensus",
+      "algorithmVersion": "1.0.0",
+      "parametersHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+      "analysisCrs": "EPSG:32644",
+      "effectiveResolutionMeters": 20,
+      "generatedAt": "2026-08-02T00:00:00Z"
+    },
+    "interpretation": {
+      "summary": "MOCK: the mapped built-up proxy is higher in the comparison composite.",
+      "caveats": ["This synthetic example is not a finding", "The spectral proxy may confuse bare soil, construction, dry vegetation, and reflective roofs"],
+      "suggestedActions": ["In a real result, inspect gain areas against independent high-resolution reference samples"],
+      "ruleId": "mock:interpretation:built-change-v1"
+    },
+    "layers": [
+      {
+        "id": "mock:layer:nagpur-built-change",
+        "kind": "vector",
+        "representation": "geojson",
+        "href": "/demo/v1/layers/mock-nagpur-built-change.geojson",
+        "tileJsonHref": null,
+        "bounds": [78.1, 20.5, 79.5, 21.8],
+        "minZoom": null,
+        "maxZoom": null,
+        "opacity": 0.8,
+        "legend": [
+          { "label": "MOCK persistent built proxy", "color": "#6B7280", "value": "persistent" },
+          { "label": "MOCK candidate gain", "color": "#F97316", "value": "gain" }
+        ],
+        "attributions": [
+          { "label": "Contains modified Copernicus Sentinel data — MOCK", "url": "https://dataspace.copernicus.eu/terms-and-conditions" }
+        ],
+        "checksum": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+        "contentVersion": "mock-1",
+        "availableOffline": true
+      }
+    ],
+    "status": "complete"
+  },
+  "meta": {
+    "schemaVersion": "1.0.0",
+    "requestId": "mock:request:built-comparison",
+    "generatedAt": "2026-08-02T00:00:00Z",
+    "dataMode": "demo",
+    "partial": false,
+    "mock": true,
+    "warnings": ["SYNTHETIC MOCK VALUES — not environmental findings"]
+  },
+  "links": {
+    "self": "/api/v1/regions/mock:district:nagpur/indicators/built-up",
+    "related": ["/api/v1/layers/mock:layer:nagpur-built-change"]
+  }
+}

@@ -1,0 +1,132 @@
+{
+  "data": {
+    "comparisonId": "mock:comparison:nagpur-lst",
+    "region": {
+      "id": "mock:district:nagpur",
+      "name": "Nagpur — MOCK REGION",
+      "type": "district",
+      "parentId": null,
+      "bbox": [78.1, 20.5, 79.5, 21.8],
+      "centroid": [79.08, 21.15],
+      "geometryUrl": "/demo/v1/regions/mock-nagpur.geojson",
+      "indicatorIds": ["surface-water", "vegetation", "built-up", "lst"]
+    },
+    "indicator": {
+      "id": "lst",
+      "version": "1.0.0",
+      "name": "Land-surface temperature — MOCK P1",
+      "proxyLabel": "Satellite-derived daytime land-surface-temperature signal",
+      "unit": "degC",
+      "direction": "context-dependent"
+    },
+    "baselinePeriod": {
+      "startDate": "2019-03-01",
+      "endDate": "2019-05-15",
+      "label": "MOCK pre-monsoon baseline 2019",
+      "seasonLabel": "pre-monsoon",
+      "compositeMethod": "MOCK median of QA-filtered Landsat Level-2 ST_B10 scenes",
+      "sceneCount": 4
+    },
+    "comparisonPeriod": {
+      "startDate": "2024-03-01",
+      "endDate": "2024-05-15",
+      "label": "MOCK pre-monsoon comparison 2024",
+      "seasonLabel": "pre-monsoon",
+      "compositeMethod": "MOCK median of QA-filtered Landsat Level-2 ST_B10 scenes",
+      "sceneCount": 5
+    },
+    "metric": {
+      "baselineValue": 38.2,
+      "comparisonValue": 39.7,
+      "absoluteChange": 1.5,
+      "percentChange": 3.93,
+      "unit": "degC",
+      "unavailableReason": null
+    },
+    "quality": {
+      "level": "low",
+      "basis": "heuristic",
+      "methodVersion": "mock-lst-quality-v1",
+      "reasons": ["MOCK periods contain multiple QA-filtered daytime scenes"],
+      "warnings": ["No independent validation", "Surface temperature is not air temperature or direct heat exposure"],
+      "evidence": {
+        "commonValidPercent": 86.4,
+        "cloudPercent": 9.0,
+        "nodataPercent": 4.6,
+        "coveragePercent": 95.4,
+        "sceneCountBaseline": 4,
+        "sceneCountComparison": 5,
+        "thresholdSensitivityPercent": null,
+        "independentValidationComplete": false,
+        "usersAccuracy": null,
+        "producersAccuracy": null
+      }
+    },
+    "provenance": {
+      "sources": [
+        {
+          "datasetId": "mock:dataset:landsat-c2-l2",
+          "provider": "USGS — MOCK ITEM LIST",
+          "mission": "Landsat 8/9",
+          "collection": "Collection 2 Level-2",
+          "processingBaseline": "MOCK-COLLECTION-2-LEVEL-2",
+          "itemIds": ["MOCK_LC08_L2SP_BASELINE", "MOCK_LC09_L2SP_COMPARISON"],
+          "acquiredAt": ["2019-04-10T05:00:00Z", "2024-04-12T05:00:00Z"],
+          "assetKeys": ["ST_B10", "ST_QA", "ST_CDIST", "QA_PIXEL"],
+          "sourceUrl": "https://www.usgs.gov/landsat-missions/landsat-collection-2-surface-temperature",
+          "citation": "USGS Landsat Collection 2 Level-2 — MOCK scenes",
+          "license": "US government data; acknowledge USGS"
+        }
+      ],
+      "algorithmId": "mock:algorithm:landsat-level2-st",
+      "algorithmVersion": "1.0.0",
+      "parametersHash": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+      "analysisCrs": "EPSG:32644",
+      "effectiveResolutionMeters": 100,
+      "generatedAt": "2026-08-02T00:00:00Z"
+    },
+    "interpretation": {
+      "summary": "MOCK: median daytime land-surface temperature is higher in the comparison window.",
+      "caveats": ["This synthetic example is not a finding", "Weather, soil moisture, emissivity, cloud adjacency, and scene timing can affect the comparison"],
+      "suggestedActions": ["In a real result, compare per-scene conditions and inspect corroborating ground or local records"],
+      "ruleId": "mock:interpretation:lst-change-v1"
+    },
+    "layers": [
+      {
+        "id": "mock:layer:nagpur-lst-change",
+        "kind": "image",
+        "representation": "image",
+        "href": "/demo/v1/layers/mock-nagpur-lst-change.webp",
+        "tileJsonHref": null,
+        "bounds": [78.1, 20.5, 79.5, 21.8],
+        "minZoom": null,
+        "maxZoom": null,
+        "opacity": 0.75,
+        "legend": [
+          { "label": "MOCK cooler change", "color": "#2563EB", "value": -2 },
+          { "label": "MOCK warmer change", "color": "#DC2626", "value": 2 }
+        ],
+        "attributions": [
+          { "label": "USGS Landsat — MOCK", "url": "https://www.usgs.gov/landsat-missions" }
+        ],
+        "checksum": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+        "contentVersion": "mock-1",
+        "availableOffline": true
+      }
+    ],
+    "status": "complete"
+  },
+  "meta": {
+    "schemaVersion": "1.0.0",
+    "requestId": "mock:request:lst-comparison",
+    "generatedAt": "2026-08-02T00:00:00Z",
+    "dataMode": "demo",
+    "partial": false,
+    "mock": true,
+    "warnings": ["SYNTHETIC MOCK VALUES — not environmental findings", "P1 example only"]
+  },
+  "links": {
+    "self": "/api/v1/regions/mock:district:nagpur/indicators/lst",
+    "related": ["/api/v1/layers/mock:layer:nagpur-lst-change"]
+  }
+}

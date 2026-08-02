@@ -1,0 +1,48 @@
+# Environment and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
+service-account*.json
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# JavaScript
+node_modules/
+dist/
+.vite/
+coverage/
+
+# Geospatial working data: manifests and intentionally reviewed demo files may be committed
+data/raw/**
+data/interim/**
+data/processed/**
+data/cache/**
+!data/raw/.gitkeep
+!data/interim/.gitkeep
+!data/processed/.gitkeep
+
+# User-provided 3D model payloads require explicit approval and a licensing/size review
+assets/models/earth/*
+assets/models/satellite/*
+!assets/models/earth/README.md
+!assets/models/satellite/README.md
+
+# Local tooling and operating-system files
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/
+

@@ -1,0 +1,756 @@
+openapi: 3.1.0
+info:
+  title: SPARC API
+  version: 1.0.0-draft
+  summary: Contract-first API for satellite-derived local environmental proxy indicators.
+  description: |
+    Documentation-phase contract only; no endpoint is implemented yet.
+    SPARC results are satellite-derived proxy indicators, not official UN SDG indicators,
+    and do not establish causation. `loading` is a browser state; server resources use
+    queued, running, complete, partial, failed, or cancelled states.
+  contact:
+    name: SPARC contract owner
+  license:
+    name: Project license not yet selected
+    identifier: LicenseRef-SPARC-Undecided
+servers:
+  - url: http://localhost:8000
+    description: Planned local development API
+  - url: https://api.example.invalid
+    description: Non-routable documentation placeholder; cloud hosting is undecided
+tags:
+  - name: Health
+  - name: Regions
+  - name: Indicators
+  - name: Comparisons
+  - name: Layers
+  - name: Processing
+  - name: Metadata
+security: []
+paths:
+  /api/v1/health:
+    get:
+      operationId: getHealth
+      tags: [Health]
+      summary: Return cheap process liveness without calling dependencies.
+      x-sparc-maturity: required-p0
+      responses:
+        '200':
+          description: Process is alive. No credential or detailed configuration is returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [status, version, dataMode]
+                properties:
+                  status:
+                    type: string
+                    const: ok
+                  version:
+                    type: string
+                  dataMode:
+                    type: string
+                    enum: [live, cache, demo]
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/regions:
+    get:
+      operationId: listRegions
+      tags: [Regions]
+      summary: List available districts and child regions with capabilities.
+      x-sparc-maturity: required-p0
+      parameters:
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [district, subdistrict, block]
+        - name: parentId
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 128
+      responses:
+        '200':
+          description: Region references; large geometries are linked rather than embedded.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [data, meta, links]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/RegionRef'
+                  meta:
+                    $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/ResponseMeta'
+                  links:
+                    $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/Links'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/regions/{regionId}:
+    get:
+      operationId: getRegion
+      tags: [Regions]
+      summary: Return one region, its parent/children links, bounds, and capabilities.
+      x-sparc-maturity: required-p0
+      parameters:
+        - $ref: '#/components/parameters/RegionId'
+      responses:
+        '200':
+          description: Region metadata.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [data, meta, links]
+                properties:
+                  data:
+                    $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/RegionRef'
+                  meta:
+                    $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/ResponseMeta'
+                  links:
+                    $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/Links'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/regions/{regionId}/summary:
+    get:
+      operationId: getRegionSummary
+      tags: [Regions, Indicators]
+      summary: Return a district or child-region summary for two supported periods.
+      x-sparc-maturity: required-p0
+      parameters:
+        - $ref: '#/components/parameters/RegionId'
+        - $ref: '#/components/parameters/BaselineStart'
+        - $ref: '#/components/parameters/BaselineEnd'
+        - $ref: '#/components/parameters/ComparisonStart'
+        - $ref: '#/components/parameters/ComparisonEnd'
+      responses:
+        '200':
+          description: Complete or usable partial summary. Inspect `meta.partial` and warnings.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/DistrictSummaryResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/regions/{regionId}/indicators:
+    get:
+      operationId: listRegionIndicators
+      tags: [Indicators]
+      summary: List supported indicator results for a region and period pair.
+      x-sparc-maturity: required-p0
+      parameters:
+        - $ref: '#/components/parameters/RegionId'
+        - $ref: '#/components/parameters/BaselineStart'
+        - $ref: '#/components/parameters/BaselineEnd'
+        - $ref: '#/components/parameters/ComparisonStart'
+        - $ref: '#/components/parameters/ComparisonEnd'
+        - name: indicatorId
+          in: query
+          required: false
+          schema:
+            $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/IndicatorId'
+      responses:
+        '200':
+          description: Summary list; an unavailable indicator is explicit rather than silently omitted.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [data, meta, links]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/IndicatorSummary'
+                  meta:
+                    $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/ResponseMeta'
+                  links:
+                    $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/Links'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /api/v1/regions/{regionId}/indicators/{indicatorId}:
+    get:
+      operationId: getRegionIndicator
+      tags: [Indicators]
+      summary: Return one detailed indicator comparison, quality, provenance, interpretation, and layers.
+      x-sparc-maturity: required-p0
+      parameters:
+        - $ref: '#/components/parameters/RegionId'
+        - $ref: '#/components/parameters/IndicatorId'
+        - $ref: '#/components/parameters/BaselineStart'
+        - $ref: '#/components/parameters/BaselineEnd'
+        - $ref: '#/components/parameters/ComparisonStart'
+        - $ref: '#/components/parameters/ComparisonEnd'
+      responses:
+        '200':
+          description: Detailed complete or partial result.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/IndicatorComparisonResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /api/v1/regions/{regionId}/timeseries:
+    get:
+      operationId: getRegionTimeSeries
+      tags: [Indicators]
+      summary: Return a same-method time series for one indicator.
+      x-sparc-maturity: planned-p1
+      parameters:
+        - $ref: '#/components/parameters/RegionId'
+        - name: indicatorId
+          in: query
+          required: true
+          schema:
+            $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/IndicatorId'
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Time series with provenance.
+          content:
+            application/json:
+              schema:
+                $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/TimeSeriesResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /api/v1/comparisons:
+    post:
+      operationId: createComparison
+      tags: [Comparisons]
+      summary: Resolve a supported comparison or accept restricted live work.
+      description: |
+        The normal UI operation. Only approved region IDs, indicators, and bounded periods are accepted.
+        The operation cannot receive an arbitrary AOI, upstream URL, local path, expression, or command.
+      x-sparc-maturity: required-p0
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/ComparisonRequest'
+      responses:
+        '200':
+          description: Immutable demo/cache summary was available immediately.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/DistrictSummaryResponse'
+        '202':
+          description: Future live work was accepted. Poll the Location resource.
+          headers:
+            Location:
+              required: true
+              schema:
+                type: string
+                pattern: '^/api/v1/processing/jobs/'
+          content:
+            application/json:
+              schema:
+                $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/JobResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /api/v1/comparisons/{comparisonId}:
+    get:
+      operationId: getComparison
+      tags: [Comparisons]
+      summary: Return the current comparison summary.
+      x-sparc-maturity: required-p0
+      parameters:
+        - $ref: '#/components/parameters/ComparisonId'
+      responses:
+        '200':
+          description: Complete or usable partial comparison summary.
+          content:
+            application/json:
+              schema:
+                $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/DistrictSummaryResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/processing/jobs:
+    post:
+      operationId: createProcessingJob
+      tags: [Processing]
+      summary: Create an approved processing recipe job.
+      description: |
+        P1 administrative endpoint. It is disabled in P0. It accepts only named approved recipes
+        and catalogued regions; arbitrary URLs, paths, commands, code, and free-form geometries are forbidden.
+      x-sparc-maturity: planned-p1-restricted
+      security:
+        - AdminToken: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [regionId, recipeId, baselinePeriod, comparisonPeriod]
+              properties:
+                regionId:
+                  type: string
+                  maxLength: 128
+                recipeId:
+                  type: string
+                  enum: [surface-water-v1, vegetation-v1, built-up-v1, lst-v1]
+                baselinePeriod:
+                  $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/PeriodInput'
+                comparisonPeriod:
+                  $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/PeriodInput'
+      responses:
+        '202':
+          description: Approved work was queued.
+          headers:
+            Location:
+              required: true
+              schema:
+                type: string
+                pattern: '^/api/v1/processing/jobs/'
+          content:
+            application/json:
+              schema:
+                $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/JobResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/processing/jobs/{jobId}:
+    get:
+      operationId: getProcessingJob
+      tags: [Processing]
+      summary: Return safe status for a known processing job.
+      x-sparc-maturity: planned-p1
+      parameters:
+        - $ref: '#/components/parameters/JobId'
+      responses:
+        '200':
+          description: Job resource. Failed jobs still return a resource with `status=failed`.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              example: no-store
+          content:
+            application/json:
+              schema:
+                $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/JobResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/layers/{layerId}:
+    get:
+      operationId: getLayer
+      tags: [Layers]
+      summary: Resolve an opaque allowlisted layer descriptor.
+      description: The endpoint never accepts an upstream URL and never exposes provider credentials or transient signed URLs.
+      x-sparc-maturity: required-p0
+      parameters:
+        - $ref: '#/components/parameters/LayerId'
+      responses:
+        '200':
+          description: Layer descriptor using relative application URLs.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/LayerResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/layers/{layerId}/tilejson.json:
+    get:
+      operationId: getLayerTileJson
+      tags: [Layers]
+      summary: Return TileJSON for an approved layer.
+      x-sparc-maturity: planned-p1
+      parameters:
+        - $ref: '#/components/parameters/LayerId'
+      responses:
+        '200':
+          description: Restricted TileJSON with application-controlled tile templates.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [tilejson, name, tiles, bounds, minzoom, maxzoom, attribution]
+                properties:
+                  tilejson:
+                    type: string
+                    const: 3.0.0
+                  name:
+                    type: string
+                  tiles:
+                    type: array
+                    items:
+                      type: string
+                      pattern: '^/api/v1/'
+                  bounds:
+                    $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/Bbox'
+                  minzoom:
+                    type: integer
+                    minimum: 0
+                    maximum: 24
+                  maxzoom:
+                    type: integer
+                    minimum: 0
+                    maximum: 24
+                  attribution:
+                    type: string
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /api/v1/metadata/datasets:
+    get:
+      operationId: listDatasets
+      tags: [Metadata]
+      summary: List source datasets, citations, licenses, and supported roles.
+      x-sparc-maturity: required-p0
+      responses:
+        '200':
+          description: Dataset metadata. It contains stable source/catalog identities only.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [data, meta, links]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/DatasetSource'
+                  meta:
+                    $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/ResponseMeta'
+                  links:
+                    $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/Links'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /api/v1/metadata/indicators:
+    get:
+      operationId: listIndicatorMetadata
+      tags: [Metadata, Indicators]
+      summary: List indicator definitions, versions, units, direction, and proxy labels.
+      x-sparc-maturity: required-p0
+      responses:
+        '200':
+          description: Indicator metadata.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [data, meta, links]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/IndicatorRef'
+                  meta:
+                    $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/ResponseMeta'
+                  links:
+                    $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/Links'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+components:
+  securitySchemes:
+    AdminToken:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque-admin-token
+      description: Planned P1 server-side administrative credential; never stored in browser code.
+  headers:
+    ETag:
+      description: Strong or weak validator for immutable result content.
+      schema:
+        type: string
+  parameters:
+    RegionId:
+      name: regionId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 128
+    IndicatorId:
+      name: indicatorId
+      in: path
+      required: true
+      schema:
+        $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/IndicatorId'
+    ComparisonId:
+      name: comparisonId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 160
+    JobId:
+      name: jobId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 160
+    LayerId:
+      name: layerId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 160
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: Opaque client key; reuse with a different body returns 409.
+      schema:
+        type: string
+        minLength: 16
+        maxLength: 128
+    BaselineStart:
+      name: baselineStart
+      in: query
+      required: true
+      schema:
+        type: string
+        format: date
+    BaselineEnd:
+      name: baselineEnd
+      in: query
+      required: true
+      schema:
+        type: string
+        format: date
+    ComparisonStart:
+      name: comparisonStart
+      in: query
+      required: true
+      schema:
+        type: string
+        format: date
+    ComparisonEnd:
+      name: comparisonEnd
+      in: query
+      required: true
+      schema:
+        type: string
+        format: date
+  responses:
+    BadRequest:
+      description: Malformed syntax, query, or JSON.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/ProblemDetails'
+    Unauthorized:
+      description: Required authentication is absent or invalid.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/ProblemDetails'
+    Forbidden:
+      description: The authenticated principal is not permitted to perform the operation.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/ProblemDetails'
+    NotFound:
+      description: A requested region, comparison, layer, job, or result does not exist.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/ProblemDetails'
+    Gone:
+      description: The requested transient resource existed but has expired.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/ProblemDetails'
+    Conflict:
+      description: State or idempotency-key conflict.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/ProblemDetails'
+    UnprocessableEntity:
+      description: Well-formed input violates schema or domain rules.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/ProblemDetails'
+    TooManyRequests:
+      description: Rate limit exceeded.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 1
+      content:
+        application/problem+json:
+          schema:
+            $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/ProblemDetails'
+    InternalError:
+      description: Unexpected server failure; raw exceptions and secrets are not returned.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/ProblemDetails'
+    BadGateway:
+      description: An approved upstream provider returned an invalid or failed response.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/ProblemDetails'
+    ServiceUnavailable:
+      description: Required upstream or service capacity is temporarily unavailable.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 1
+      content:
+        application/problem+json:
+          schema:
+            $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/ProblemDetails'

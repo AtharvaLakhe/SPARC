@@ -1,0 +1,441 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sparc.example/contracts/schemas/sparc.schema.json",
+  "title": "SPARC shared contract schemas",
+  "description": "Canonical documentation-phase schemas. The example domain is reserved and is not a deployed endpoint.",
+  "$defs": {
+    "Bbox": {
+      "type": "array",
+      "description": "RFC 7946 order: west, south, east, north.",
+      "prefixItems": [
+        { "type": "number", "minimum": -180, "maximum": 180 },
+        { "type": "number", "minimum": -90, "maximum": 90 },
+        { "type": "number", "minimum": -180, "maximum": 180 },
+        { "type": "number", "minimum": -90, "maximum": 90 }
+      ],
+      "items": false,
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "LonLat": {
+      "type": "array",
+      "prefixItems": [
+        { "type": "number", "minimum": -180, "maximum": 180 },
+        { "type": "number", "minimum": -90, "maximum": 90 }
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "RegionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "type", "parentId", "bbox", "centroid", "geometryUrl", "indicatorIds"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "name": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "type": { "type": "string", "enum": ["district", "subdistrict", "block"] },
+        "parentId": { "type": ["string", "null"], "maxLength": 128 },
+        "bbox": { "$ref": "#/$defs/Bbox" },
+        "centroid": { "$ref": "#/$defs/LonLat" },
+        "geometryUrl": { "type": ["string", "null"], "pattern": "^(\\./|/)[^?]*$" },
+        "indicatorIds": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/IndicatorId" },
+          "uniqueItems": true
+        }
+      }
+    },
+    "Period": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["startDate", "endDate", "label", "seasonLabel", "compositeMethod", "sceneCount"],
+      "properties": {
+        "startDate": { "type": "string", "format": "date" },
+        "endDate": { "type": "string", "format": "date" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "seasonLabel": { "type": ["string", "null"], "maxLength": 80 },
+        "compositeMethod": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "sceneCount": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "PeriodInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["startDate", "endDate"],
+      "properties": {
+        "startDate": { "type": "string", "format": "date" },
+        "endDate": { "type": "string", "format": "date" }
+      }
+    },
+    "IndicatorId": {
+      "type": "string",
+      "enum": ["surface-water", "vegetation", "built-up", "lst", "suhi"]
+    },
+    "IndicatorRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "name", "proxyLabel", "unit", "direction"],
+      "properties": {
+        "id": { "$ref": "#/$defs/IndicatorId" },
+        "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "proxyLabel": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "unit": { "type": "string", "minLength": 1, "maxLength": 48 },
+        "direction": { "type": "string", "enum": ["context-dependent", "higher-is-better", "lower-is-better", "neutral"] }
+      }
+    },
+    "MetricValue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["baselineValue", "comparisonValue", "absoluteChange", "percentChange", "unit", "unavailableReason"],
+      "properties": {
+        "baselineValue": { "type": ["number", "null"] },
+        "comparisonValue": { "type": ["number", "null"] },
+        "absoluteChange": { "type": ["number", "null"] },
+        "percentChange": { "type": ["number", "null"] },
+        "unit": { "type": "string", "minLength": 1, "maxLength": 48 },
+        "unavailableReason": { "type": ["string", "null"], "maxLength": 240 }
+      }
+    },
+    "QualityEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commonValidPercent", "cloudPercent", "nodataPercent", "coveragePercent", "sceneCountBaseline", "sceneCountComparison", "thresholdSensitivityPercent", "independentValidationComplete", "usersAccuracy", "producersAccuracy"],
+      "properties": {
+        "commonValidPercent": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+        "cloudPercent": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+        "nodataPercent": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+        "coveragePercent": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+        "sceneCountBaseline": { "type": "integer", "minimum": 0 },
+        "sceneCountComparison": { "type": "integer", "minimum": 0 },
+        "thresholdSensitivityPercent": { "type": ["number", "null"], "minimum": 0 },
+        "independentValidationComplete": { "type": "boolean" },
+        "usersAccuracy": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "producersAccuracy": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+      }
+    },
+    "QualityAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "basis", "methodVersion", "reasons", "warnings", "evidence"],
+      "properties": {
+        "level": { "type": "string", "enum": ["high", "medium", "low", "unknown"] },
+        "basis": { "type": "string", "enum": ["validated", "heuristic", "unavailable"] },
+        "methodVersion": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "reasons": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 },
+        "warnings": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "evidence": { "$ref": "#/$defs/QualityEvidence" }
+      }
+    },
+    "DatasetSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["datasetId", "provider", "mission", "collection", "processingBaseline", "itemIds", "acquiredAt", "assetKeys", "sourceUrl", "citation", "license"],
+      "properties": {
+        "datasetId": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "provider": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "mission": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "collection": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "processingBaseline": { "type": ["string", "null"], "maxLength": 120 },
+        "itemIds": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 },
+        "acquiredAt": { "type": "array", "items": { "type": "string", "format": "date-time" }, "minItems": 1 },
+        "assetKeys": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 },
+        "sourceUrl": { "type": "string", "format": "uri" },
+        "citation": { "type": "string", "minLength": 1 },
+        "license": { "type": "string", "minLength": 1 }
+      }
+    },
+    "Provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sources", "algorithmId", "algorithmVersion", "parametersHash", "analysisCrs", "effectiveResolutionMeters", "generatedAt"],
+      "properties": {
+        "sources": { "type": "array", "items": { "$ref": "#/$defs/DatasetSource" }, "minItems": 1 },
+        "algorithmId": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "algorithmVersion": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "parametersHash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "analysisCrs": { "type": "string", "pattern": "^EPSG:[0-9]+$" },
+        "effectiveResolutionMeters": { "type": "number", "exclusiveMinimum": 0 },
+        "generatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Interpretation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["summary", "caveats", "suggestedActions", "ruleId"],
+      "properties": {
+        "summary": { "type": "string", "minLength": 1 },
+        "caveats": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 },
+        "suggestedActions": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "ruleId": { "type": "string", "minLength": 1, "maxLength": 120 }
+      }
+    },
+    "LegendEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "color", "value"],
+      "properties": {
+        "label": { "type": "string", "minLength": 1 },
+        "color": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "value": { "type": ["number", "string"] }
+      }
+    },
+    "Attribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "url"],
+      "properties": {
+        "label": { "type": "string", "minLength": 1 },
+        "url": { "type": "string", "format": "uri" }
+      }
+    },
+    "LayerDescriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "representation", "href", "tileJsonHref", "bounds", "minZoom", "maxZoom", "opacity", "legend", "attributions", "checksum", "contentVersion", "availableOffline"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "kind": { "type": "string", "enum": ["raster", "vector", "image"] },
+        "representation": { "type": "string", "enum": ["tilejson", "xyz", "geojson", "image"] },
+        "href": { "type": ["string", "null"], "pattern": "^(\\./|/)[^?]*$" },
+        "tileJsonHref": { "type": ["string", "null"], "pattern": "^(\\./|/)[^?]*$" },
+        "bounds": { "$ref": "#/$defs/Bbox" },
+        "minZoom": { "type": ["integer", "null"], "minimum": 0, "maximum": 24 },
+        "maxZoom": { "type": ["integer", "null"], "minimum": 0, "maximum": 24 },
+        "opacity": { "type": "number", "minimum": 0, "maximum": 1 },
+        "legend": { "type": "array", "items": { "$ref": "#/$defs/LegendEntry" }, "minItems": 1 },
+        "attributions": { "type": "array", "items": { "$ref": "#/$defs/Attribution" }, "minItems": 1 },
+        "checksum": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "contentVersion": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "availableOffline": { "type": "boolean" }
+      }
+    },
+    "ResponseMeta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "requestId", "generatedAt", "dataMode", "partial", "mock", "warnings"],
+      "properties": {
+        "schemaVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "requestId": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "generatedAt": { "type": "string", "format": "date-time" },
+        "dataMode": { "type": "string", "enum": ["live", "cache", "demo"] },
+        "partial": { "type": "boolean" },
+        "mock": { "type": "boolean" },
+        "warnings": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "Links": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["self", "related"],
+      "properties": {
+        "self": { "type": "string", "pattern": "^/" },
+        "related": { "type": "array", "items": { "type": "string", "pattern": "^/" } }
+      }
+    },
+    "IndicatorStatus": {
+      "type": "string",
+      "enum": ["complete", "partial", "failed", "unavailable"]
+    },
+    "IndicatorSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["indicator", "metric", "qualityLevel", "status", "comparisonUrl"],
+      "properties": {
+        "indicator": { "$ref": "#/$defs/IndicatorRef" },
+        "metric": { "$ref": "#/$defs/MetricValue" },
+        "qualityLevel": { "type": "string", "enum": ["high", "medium", "low", "unknown"] },
+        "status": { "$ref": "#/$defs/IndicatorStatus" },
+        "comparisonUrl": { "type": ["string", "null"], "pattern": "^/" }
+      }
+    },
+    "DistrictSummaryData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["region", "baselinePeriod", "comparisonPeriod", "indicators"],
+      "properties": {
+        "region": { "$ref": "#/$defs/RegionRef" },
+        "baselinePeriod": { "$ref": "#/$defs/Period" },
+        "comparisonPeriod": { "$ref": "#/$defs/Period" },
+        "indicators": { "type": "array", "items": { "$ref": "#/$defs/IndicatorSummary" }, "minItems": 1 }
+      }
+    },
+    "DistrictSummaryResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["data", "meta", "links"],
+      "properties": {
+        "data": { "$ref": "#/$defs/DistrictSummaryData" },
+        "meta": { "$ref": "#/$defs/ResponseMeta" },
+        "links": { "$ref": "#/$defs/Links" }
+      }
+    },
+    "IndicatorComparisonData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["comparisonId", "region", "indicator", "baselinePeriod", "comparisonPeriod", "metric", "quality", "provenance", "interpretation", "layers", "status"],
+      "properties": {
+        "comparisonId": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "region": { "$ref": "#/$defs/RegionRef" },
+        "indicator": { "$ref": "#/$defs/IndicatorRef" },
+        "baselinePeriod": { "$ref": "#/$defs/Period" },
+        "comparisonPeriod": { "$ref": "#/$defs/Period" },
+        "metric": { "$ref": "#/$defs/MetricValue" },
+        "quality": { "$ref": "#/$defs/QualityAssessment" },
+        "provenance": { "$ref": "#/$defs/Provenance" },
+        "interpretation": { "$ref": "#/$defs/Interpretation" },
+        "layers": { "type": "array", "items": { "$ref": "#/$defs/LayerDescriptor" } },
+        "status": { "$ref": "#/$defs/IndicatorStatus" }
+      }
+    },
+    "IndicatorComparisonResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["data", "meta", "links"],
+      "properties": {
+        "data": { "$ref": "#/$defs/IndicatorComparisonData" },
+        "meta": { "$ref": "#/$defs/ResponseMeta" },
+        "links": { "$ref": "#/$defs/Links" }
+      }
+    },
+    "TimeSeriesPoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["date", "value", "unit", "qualityLevel"],
+      "properties": {
+        "date": { "type": "string", "format": "date" },
+        "value": { "type": ["number", "null"] },
+        "unit": { "type": "string", "minLength": 1 },
+        "qualityLevel": { "type": "string", "enum": ["high", "medium", "low", "unknown"] }
+      }
+    },
+    "TimeSeriesData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["region", "indicator", "points", "provenance"],
+      "properties": {
+        "region": { "$ref": "#/$defs/RegionRef" },
+        "indicator": { "$ref": "#/$defs/IndicatorRef" },
+        "points": { "type": "array", "items": { "$ref": "#/$defs/TimeSeriesPoint" } },
+        "provenance": { "$ref": "#/$defs/Provenance" }
+      }
+    },
+    "TimeSeriesResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["data", "meta", "links"],
+      "properties": {
+        "data": { "$ref": "#/$defs/TimeSeriesData" },
+        "meta": { "$ref": "#/$defs/ResponseMeta" },
+        "links": { "$ref": "#/$defs/Links" }
+      }
+    },
+    "BlockResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["region", "metric", "qualityLevel", "status"],
+      "properties": {
+        "region": { "$ref": "#/$defs/RegionRef" },
+        "metric": { "$ref": "#/$defs/MetricValue" },
+        "qualityLevel": { "type": "string", "enum": ["high", "medium", "low", "unknown"] },
+        "status": { "$ref": "#/$defs/IndicatorStatus" }
+      }
+    },
+    "BlockResultsData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["parentRegion", "indicator", "baselinePeriod", "comparisonPeriod", "results"],
+      "properties": {
+        "parentRegion": { "$ref": "#/$defs/RegionRef" },
+        "indicator": { "$ref": "#/$defs/IndicatorRef" },
+        "baselinePeriod": { "$ref": "#/$defs/Period" },
+        "comparisonPeriod": { "$ref": "#/$defs/Period" },
+        "results": { "type": "array", "items": { "$ref": "#/$defs/BlockResult" }, "minItems": 1 }
+      }
+    },
+    "BlockResultsResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["data", "meta", "links"],
+      "properties": {
+        "data": { "$ref": "#/$defs/BlockResultsData" },
+        "meta": { "$ref": "#/$defs/ResponseMeta" },
+        "links": { "$ref": "#/$defs/Links" }
+      }
+    },
+    "LayerResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["data", "meta", "links"],
+      "properties": {
+        "data": { "$ref": "#/$defs/LayerDescriptor" },
+        "meta": { "$ref": "#/$defs/ResponseMeta" },
+        "links": { "$ref": "#/$defs/Links" }
+      }
+    },
+    "Job": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "status", "progressPercent", "createdAt", "updatedAt", "expiresAt", "resultUrl", "error"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "status": { "type": "string", "enum": ["queued", "running", "complete", "partial", "failed", "cancelled"] },
+        "progressPercent": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "expiresAt": { "type": ["string", "null"], "format": "date-time" },
+        "resultUrl": { "type": ["string", "null"], "pattern": "^/" },
+        "error": { "type": ["string", "null"], "maxLength": 400 }
+      }
+    },
+    "JobResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["data", "meta", "links"],
+      "properties": {
+        "data": { "$ref": "#/$defs/Job" },
+        "meta": { "$ref": "#/$defs/ResponseMeta" },
+        "links": { "$ref": "#/$defs/Links" }
+      }
+    },
+    "ComparisonRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["regionId", "baselinePeriod", "comparisonPeriod", "indicatorIds", "modePreference"],
+      "properties": {
+        "regionId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "baselinePeriod": { "$ref": "#/$defs/PeriodInput" },
+        "comparisonPeriod": { "$ref": "#/$defs/PeriodInput" },
+        "indicatorIds": { "type": "array", "items": { "$ref": "#/$defs/IndicatorId" }, "minItems": 1, "maxItems": 5, "uniqueItems": true },
+        "modePreference": { "type": "string", "enum": ["auto", "demo", "live"] }
+      }
+    },
+    "ProblemDetails": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "title", "status", "detail", "instance", "code", "traceId", "invalidParams"],
+      "properties": {
+        "type": { "type": "string", "format": "uri-reference" },
+        "title": { "type": "string", "minLength": 1 },
+        "status": { "type": "integer", "minimum": 400, "maximum": 599 },
+        "detail": { "type": "string", "minLength": 1 },
+        "instance": { "type": "string", "format": "uri-reference" },
+        "code": { "type": "string", "pattern": "^[A-Z0-9_]+$" },
+        "traceId": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "invalidParams": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "reason"],
+            "properties": {
+              "name": { "type": "string", "minLength": 1 },
+              "reason": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    }
+  }
+}

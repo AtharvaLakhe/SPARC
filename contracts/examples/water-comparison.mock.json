@@ -1,0 +1,132 @@
+{
+  "data": {
+    "comparisonId": "mock:comparison:nagpur-water",
+    "region": {
+      "id": "mock:district:nagpur",
+      "name": "Nagpur — MOCK REGION",
+      "type": "district",
+      "parentId": null,
+      "bbox": [78.1, 20.5, 79.5, 21.8],
+      "centroid": [79.08, 21.15],
+      "geometryUrl": "/demo/v1/regions/mock-nagpur.geojson",
+      "indicatorIds": ["surface-water", "vegetation", "built-up", "lst"]
+    },
+    "indicator": {
+      "id": "surface-water",
+      "version": "1.0.0",
+      "name": "Open surface water — MOCK",
+      "proxyLabel": "Satellite-derived open-surface-water-area proxy",
+      "unit": "km2",
+      "direction": "context-dependent"
+    },
+    "baselinePeriod": {
+      "startDate": "2019-10-15",
+      "endDate": "2019-12-15",
+      "label": "MOCK baseline post-monsoon 2019",
+      "seasonLabel": "post-monsoon",
+      "compositeMethod": "MOCK median of per-observation MNDWI",
+      "sceneCount": 6
+    },
+    "comparisonPeriod": {
+      "startDate": "2024-10-15",
+      "endDate": "2024-12-15",
+      "label": "MOCK comparison post-monsoon 2024",
+      "seasonLabel": "post-monsoon",
+      "compositeMethod": "MOCK median of per-observation MNDWI",
+      "sceneCount": 7
+    },
+    "metric": {
+      "baselineValue": 118.4,
+      "comparisonValue": 111.2,
+      "absoluteChange": -7.2,
+      "percentChange": -6.08,
+      "unit": "km2",
+      "unavailableReason": null
+    },
+    "quality": {
+      "level": "medium",
+      "basis": "heuristic",
+      "methodVersion": "mock-water-quality-v1",
+      "reasons": ["MOCK common-valid coverage and multi-scene support pass prototype gates"],
+      "warnings": ["No independent local validation; values are synthetic"],
+      "evidence": {
+        "commonValidPercent": 94.1,
+        "cloudPercent": 4.2,
+        "nodataPercent": 1.7,
+        "coveragePercent": 98.3,
+        "sceneCountBaseline": 6,
+        "sceneCountComparison": 7,
+        "thresholdSensitivityPercent": 5.8,
+        "independentValidationComplete": false,
+        "usersAccuracy": null,
+        "producersAccuracy": null
+      }
+    },
+    "provenance": {
+      "sources": [
+        {
+          "datasetId": "mock:dataset:sentinel-2-l2a",
+          "provider": "Copernicus Data Space Ecosystem — MOCK ITEM LIST",
+          "mission": "Sentinel-2",
+          "collection": "sentinel-2-l2a",
+          "processingBaseline": "MOCK-N0500",
+          "itemIds": ["MOCK_S2_BASELINE_001", "MOCK_S2_COMPARISON_001"],
+          "acquiredAt": ["2019-11-05T05:30:00Z", "2024-11-07T05:30:00Z"],
+          "assetKeys": ["B03", "B11", "SCL"],
+          "sourceUrl": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-2-l2a",
+          "citation": "Contains modified Copernicus Sentinel data [MOCK YEARS]",
+          "license": "Copernicus Sentinel Data Legal Notice"
+        }
+      ],
+      "algorithmId": "mock:algorithm:mndwi-fixed-zero",
+      "algorithmVersion": "1.0.0",
+      "parametersHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "analysisCrs": "EPSG:32644",
+      "effectiveResolutionMeters": 20,
+      "generatedAt": "2026-08-02T00:00:00Z"
+    },
+    "interpretation": {
+      "summary": "MOCK: the mapped open-water proxy is lower in the comparison composite.",
+      "caveats": ["This synthetic example is not a finding", "The method does not identify the cause or measure water volume or quality"],
+      "suggestedActions": ["In a real result, inspect named water bodies and corroborate with local records before acting"],
+      "ruleId": "mock:interpretation:water-change-v1"
+    },
+    "layers": [
+      {
+        "id": "mock:layer:nagpur-water-change",
+        "kind": "image",
+        "representation": "image",
+        "href": "/demo/v1/layers/mock-nagpur-water-change.webp",
+        "tileJsonHref": null,
+        "bounds": [78.1, 20.5, 79.5, 21.8],
+        "minZoom": null,
+        "maxZoom": null,
+        "opacity": 0.75,
+        "legend": [
+          { "label": "MOCK water gain", "color": "#2563EB", "value": "gain" },
+          { "label": "MOCK water loss", "color": "#DC2626", "value": "loss" }
+        ],
+        "attributions": [
+          { "label": "Contains modified Copernicus Sentinel data — MOCK", "url": "https://dataspace.copernicus.eu/terms-and-conditions" }
+        ],
+        "checksum": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "contentVersion": "mock-1",
+        "availableOffline": true
+      }
+    ],
+    "status": "complete"
+  },
+  "meta": {
+    "schemaVersion": "1.0.0",
+    "requestId": "mock:request:water-comparison",
+    "generatedAt": "2026-08-02T00:00:00Z",
+    "dataMode": "demo",
+    "partial": false,
+    "mock": true,
+    "warnings": ["SYNTHETIC MOCK VALUES — not environmental findings"]
+  },
+  "links": {
+    "self": "/api/v1/regions/mock:district:nagpur/indicators/surface-water",
+    "related": ["/api/v1/layers/mock:layer:nagpur-water-change"]
+  }
+}

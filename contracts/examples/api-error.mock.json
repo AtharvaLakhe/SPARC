@@ -1,0 +1,15 @@
+{
+  "type": "/problems/unsupported-period",
+  "title": "Unsupported comparison period",
+  "status": 422,
+  "detail": "MOCK: the requested dates do not match a supported precomputed comparison and live processing is unavailable.",
+  "instance": "/api/v1/comparisons/mock:request:error",
+  "code": "UNSUPPORTED_PERIOD",
+  "traceId": "mock:trace:unprocessable-period",
+  "invalidParams": [
+    {
+      "name": "comparisonPeriod",
+      "reason": "MOCK period is outside the configured same-season windows"
+    }
+  ]
+}

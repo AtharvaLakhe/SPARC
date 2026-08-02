@@ -1,0 +1,109 @@
+{
+  "data": {
+    "region": {
+      "id": "mock:district:nagpur",
+      "name": "Nagpur — MOCK REGION",
+      "type": "district",
+      "parentId": null,
+      "bbox": [78.1, 20.5, 79.5, 21.8],
+      "centroid": [79.08, 21.15],
+      "geometryUrl": "/demo/v1/regions/mock-nagpur.geojson",
+      "indicatorIds": ["surface-water", "vegetation", "built-up", "lst"]
+    },
+    "baselinePeriod": {
+      "startDate": "2019-10-15",
+      "endDate": "2019-12-15",
+      "label": "MOCK baseline post-monsoon 2019",
+      "seasonLabel": "post-monsoon",
+      "compositeMethod": "MOCK per-observation index median",
+      "sceneCount": 6
+    },
+    "comparisonPeriod": {
+      "startDate": "2024-10-15",
+      "endDate": "2024-12-15",
+      "label": "MOCK comparison post-monsoon 2024",
+      "seasonLabel": "post-monsoon",
+      "compositeMethod": "MOCK per-observation index median",
+      "sceneCount": 7
+    },
+    "indicators": [
+      {
+        "indicator": {
+          "id": "surface-water",
+          "version": "1.0.0",
+          "name": "Open surface water — MOCK",
+          "proxyLabel": "Satellite-derived open-surface-water-area proxy",
+          "unit": "km2",
+          "direction": "context-dependent"
+        },
+        "metric": {
+          "baselineValue": 118.4,
+          "comparisonValue": 111.2,
+          "absoluteChange": -7.2,
+          "percentChange": -6.08,
+          "unit": "km2",
+          "unavailableReason": null
+        },
+        "qualityLevel": "medium",
+        "status": "complete",
+        "comparisonUrl": "/api/v1/comparisons/mock:comparison:nagpur-water"
+      },
+      {
+        "indicator": {
+          "id": "vegetation",
+          "version": "1.0.0",
+          "name": "Vegetation activity — MOCK",
+          "proxyLabel": "Satellite-derived vegetation activity and green-cover proxy",
+          "unit": "NDVI",
+          "direction": "context-dependent"
+        },
+        "metric": {
+          "baselineValue": 0.48,
+          "comparisonValue": 0.44,
+          "absoluteChange": -0.04,
+          "percentChange": -8.33,
+          "unit": "NDVI",
+          "unavailableReason": null
+        },
+        "qualityLevel": "medium",
+        "status": "complete",
+        "comparisonUrl": "/api/v1/comparisons/mock:comparison:nagpur-vegetation"
+      },
+      {
+        "indicator": {
+          "id": "built-up",
+          "version": "1.0.0",
+          "name": "Built-up area — MOCK",
+          "proxyLabel": "Satellite-derived built-up-area proxy",
+          "unit": "km2",
+          "direction": "context-dependent"
+        },
+        "metric": {
+          "baselineValue": 145.0,
+          "comparisonValue": 168.5,
+          "absoluteChange": 23.5,
+          "percentChange": 16.21,
+          "unit": "km2",
+          "unavailableReason": null
+        },
+        "qualityLevel": "low",
+        "status": "complete",
+        "comparisonUrl": "/api/v1/comparisons/mock:comparison:nagpur-built"
+      }
+    ]
+  },
+  "meta": {
+    "schemaVersion": "1.0.0",
+    "requestId": "mock:request:district-summary",
+    "generatedAt": "2026-08-02T00:00:00Z",
+    "dataMode": "demo",
+    "partial": false,
+    "mock": true,
+    "warnings": ["SYNTHETIC MOCK VALUES — not environmental findings"]
+  },
+  "links": {
+    "self": "/api/v1/regions/mock:district:nagpur/summary",
+    "related": ["/api/v1/regions/mock:district:nagpur/indicators"]
+  }
+}
+

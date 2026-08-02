@@ -1,0 +1,66 @@
+{
+  "data": {
+    "region": {
+      "id": "mock:district:nagpur",
+      "name": "Nagpur — MOCK REGION",
+      "type": "district",
+      "parentId": null,
+      "bbox": [78.1, 20.5, 79.5, 21.8],
+      "centroid": [79.08, 21.15],
+      "geometryUrl": "/demo/v1/regions/mock-nagpur.geojson",
+      "indicatorIds": ["surface-water", "vegetation", "built-up", "lst"]
+    },
+    "indicator": {
+      "id": "vegetation",
+      "version": "1.0.0",
+      "name": "Vegetation activity — MOCK P1 SERIES",
+      "proxyLabel": "Satellite-derived vegetation-activity proxy",
+      "unit": "NDVI",
+      "direction": "context-dependent"
+    },
+    "points": [
+      { "date": "2019-11-15", "value": 0.48, "unit": "NDVI", "qualityLevel": "medium" },
+      { "date": "2020-11-15", "value": 0.47, "unit": "NDVI", "qualityLevel": "medium" },
+      { "date": "2021-11-15", "value": null, "unit": "NDVI", "qualityLevel": "unknown" },
+      { "date": "2022-11-15", "value": 0.46, "unit": "NDVI", "qualityLevel": "medium" },
+      { "date": "2023-11-15", "value": 0.45, "unit": "NDVI", "qualityLevel": "medium" },
+      { "date": "2024-11-15", "value": 0.44, "unit": "NDVI", "qualityLevel": "medium" }
+    ],
+    "provenance": {
+      "sources": [
+        {
+          "datasetId": "mock:dataset:sentinel-2-l2a",
+          "provider": "Copernicus Data Space Ecosystem — MOCK ITEM LIST",
+          "mission": "Sentinel-2",
+          "collection": "sentinel-2-l2a",
+          "processingBaseline": "MOCK-N0500",
+          "itemIds": ["MOCK_SERIES_2019", "MOCK_SERIES_2020", "MOCK_SERIES_2022", "MOCK_SERIES_2023", "MOCK_SERIES_2024"],
+          "acquiredAt": ["2019-11-15T05:30:00Z", "2020-11-15T05:30:00Z", "2022-11-15T05:30:00Z", "2023-11-15T05:30:00Z", "2024-11-15T05:30:00Z"],
+          "assetKeys": ["B04", "B08", "SCL"],
+          "sourceUrl": "https://stac.dataspace.copernicus.eu/v1/collections/sentinel-2-l2a",
+          "citation": "Contains modified Copernicus Sentinel data [MOCK YEARS]",
+          "license": "Copernicus Sentinel Data Legal Notice"
+        }
+      ],
+      "algorithmId": "mock:algorithm:annual-seasonal-ndvi",
+      "algorithmVersion": "1.0.0",
+      "parametersHash": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "analysisCrs": "EPSG:32644",
+      "effectiveResolutionMeters": 10,
+      "generatedAt": "2026-08-02T00:00:00Z"
+    }
+  },
+  "meta": {
+    "schemaVersion": "1.0.0",
+    "requestId": "mock:request:time-series",
+    "generatedAt": "2026-08-02T00:00:00Z",
+    "dataMode": "demo",
+    "partial": true,
+    "mock": true,
+    "warnings": ["SYNTHETIC MOCK VALUES", "The 2021 point is intentionally unavailable"]
+  },
+  "links": {
+    "self": "/api/v1/regions/mock:district:nagpur/timeseries",
+    "related": ["/api/v1/metadata/indicators"]
+  }
+}
