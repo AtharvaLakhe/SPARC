@@ -2,22 +2,23 @@
 
 **Owner:** Claude  
 **Reviewers:** Codex for contract/server assumptions; shared review for scientific wording  
-**Status:** Planned implementation; no frontend runtime is created by this document
+**Status:** Planned analytical dashboard; a separate `orbital-website/` browser runtime exists but does not consume SPARC data. See the [delivery status](./project-status.md) for current readiness and remaining scope.
 
 This handoff is the browser workstream's implementation boundary. It is deliberately contract-first: the React application can be built against committed synthetic examples before FastAPI exists, then switch transports without changing presentation components.
 
 ## 1. What exists and what is planned
 
-At this planning checkpoint, the repository contains contracts, examples and documentation, not an implemented web application. Paths below marked “planned” must not be described as current code.
+At this checkpoint, the repository contains contracts, synthetic fixtures, a mock-only API, processing evidence, and a separate Three.js targeting experience. It does **not** contain the SPARC analytical dashboard. Paths below marked “planned” must not be described as current code.
 
 | Classification | Artifact | Runs where | Purpose |
 |---|---|---|---|
 | Shared contract | [`contracts/openapi.yaml`](../contracts/openapi.yaml) | Validation/build input | Defines HTTP operations, parameters, status codes and operation-specific schemas |
 | Shared contract | [`packages/contracts/schemas/sparc.schema.json`](../packages/contracts/schemas/sparc.schema.json) | Validation/build input and optionally a browser boundary validator | Canonical JSON Schema 2020-12 response/request shapes |
 | Shared fixtures | [`contracts/examples/`](../contracts/examples/README.md) | Development/test input | Synthetic interface examples; they are not environmental results |
+| Browser/client, existing separate reference | [`orbital-website/`](../orbital-website/README.md) | Browser over local HTTP | Three.js globe, offline place/coordinate targeting, and a showcase reference; it does not render SPARC analytics or call the API |
 | Browser/client, planned | `apps/web/**` | Browser after Vite build | React UI, browser-side input checks, data gateway, view-model mapping and accessibility |
 | Build/configuration, planned | `apps/web/vite.config.*`, TypeScript configuration | Developer machine/CI | Bundles browser code and injects public `VITE_*` values |
-| Server/backend, planned | `apps/api/**` | FastAPI process | Performs authoritative request validation and serves immutable results |
+| Server/backend, existing mock-only slice | `apps/api/**` | FastAPI process | Performs authoritative request validation and serves allowlisted synthetic fixtures; it does not yet serve processing results |
 | Database code | none in P0 | nowhere | P0 uses immutable files/manifests; no browser or server database dependency is planned |
 | External API code, planned | provider adapter under the Codex lane | Server/data-processing process only | Optional catalog/acquisition; never called directly by the browser |
 

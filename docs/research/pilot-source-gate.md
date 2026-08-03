@@ -74,7 +74,8 @@ The worker `scripts/data.process_earth_engine_p0` validates the local boundary g
 | Nagpur / surface water | completed | 0.9996252842573716 | Pre-publication; sensitivity and independent validation pending |
 | Bengaluru Urban / surface water | completed | 0.9980801049781208 | Pre-publication; sensitivity and independent validation pending |
 | Nagpur / built candidate | completed | 0.9996252842573716 | Pre-publication; sensitivity and independent validation pending |
-| Nagpur / vegetation | completed through guarded 10 m full-resolution CSV batch export; imported into the local pre-publication manifest | 0.9996252931776228 | Threshold sensitivity and independent validation remain required; method and scale were not relaxed |
+| Nagpur / vegetation | completed through guarded 10 m full-resolution CSV batch exports; default plus 0.20/0.30/0.40 sensitivity rows imported into the local pre-publication manifest | 0.9996252931776228 | Sensitivity is material (net −27.03, −277.40, and −487.10 km² respectively); independent validation remains required; method and scale were not relaxed |
+| Nagpur / vegetation validation frame | completed blinded exploratory sample export | 100 points | Up to 25 points per mapped stable non-target, stable target, gain, and loss stratum; no map labels or NDVI values exported; independent reference labels remain absent |
 
 ## Gate result
 
@@ -82,13 +83,14 @@ The worker `scripts/data.process_earth_engine_p0` validates the local boundary g
 |---|---|---|
 | Candidate Sentinel-2 products exist for all four fixed windows | Pass | Continue metadata and acquisition design |
 | Every discovered product exposes required P0 assets | Pass | Asset-key mapping can be frozen |
-| Exact district intersection and common-valid coverage | Pass for completed water/built/vegetation runs | Validated AOIs, per-pixel SCL analysis, and a checksum/CRS/method/area-math validated vegetation batch import |
+| Exact district intersection and common-valid coverage | Pass for completed water/built/vegetation runs | Validated AOIs, per-pixel SCL analysis, and checksum/CRS/method/area-math validated default and three-row vegetation sensitivity batch imports |
 | Boundary version and technical metadata | Pass | Pinned geoBoundaries `IND-ADM2-76128533`; selected features, CRS, state containment, provenance, and checksums verified |
 | Boundary redistribution basis | Conditional pass | ODbL attribution and applicable share-alike obligations must accompany any committed, redistributed, or deployed geometry; not CC BY-only |
 | OGD boundary fallback artifact | Not used | geoBoundaries release resolves the district-boundary blocker |
+| Independent vegetation validation | Pending | A 100-point blinded exploratory frame and label template exist, but no temporally appropriate independent labels, inclusion-probability calculation, or design-consistent accuracy analysis exists |
 | Nagpur child-region identity and geometry QA | Pending | Hingna remains provisional; district-only fallback remains active |
 
-D0-C-001 passes for the two district AOIs. D1 raster processing has begun against validated district polygons, never search envelopes. P0 publication remains blocked until threshold sensitivity and independent validation pass. The 10 m vegetation result was produced with controlled batch/export processing and imported only after its boundary checksum, CRS, method settings, and area arithmetic matched the approved request.
+D0-C-001 passes for the two district AOIs. D1 raster processing has begun against validated district polygons, never search envelopes. P0 publication remains blocked on independent validation. The 10 m vegetation result and its fixed 0.20/0.30/0.40 sensitivity rows were produced with controlled batch/export processing and imported only after their boundary checksum, CRS, method settings, and area arithmetic matched the approved requests. The sensitivity range is material, so the default result remains `quality: unknown`.
 
 ## Sources
 

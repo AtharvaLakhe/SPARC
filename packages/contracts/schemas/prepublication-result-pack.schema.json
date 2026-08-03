@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sparc.example/schemas/prepublication-result-pack.schema.json",
+  "title": "SPARC pre-publication result pack",
+  "description": "Offline-only evidence package. This is not an HTTP response schema and must not be served by the mock API.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["packVersion", "status", "generatedAt", "region", "periods", "coverage", "indicators", "validation", "provenance", "disclaimer"],
+  "properties": {
+    "packVersion": { "const": "1" },
+    "status": { "const": "pre-publication" },
+    "generatedAt": { "type": "string", "format": "date-time", "maxLength": 35, "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]{1,6})?Z$" },
+    "region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "name", "boundarySha256"],
+      "properties": {
+        "key": { "type": "string", "enum": ["nagpur", "bengaluru-urban"] },
+        "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "boundarySha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "periods": { "$ref": "#/$defs/Periods" },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["expectedIndicators", "includedIndicators", "allExpectedIndicatorsPresent"],
+      "properties": {
+        "expectedIndicators": { "type": "array", "items": { "$ref": "#/$defs/IndicatorId" }, "minItems": 1, "maxItems": 3, "uniqueItems": true },
+        "includedIndicators": { "type": "array", "items": { "$ref": "#/$defs/IndicatorId" }, "minItems": 1, "maxItems": 3, "uniqueItems": true },
+        "allExpectedIndicatorsPresent": { "type": "boolean", "description": "Only states whether all three P0 reports are included. It does not mean that validation or publication gates have passed." }
+      }
+    },
+    "indicators": { "type": "array", "items": { "$ref": "#/$defs/Indicator" }, "minItems": 1, "maxItems": 3 },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["independentValidation", "vegetationLabelFrame"],
+      "properties": {
+        "independentValidation": { "const": "NOT_COMPLETED" },
+        "vegetationLabelFrame": { "type": "string", "enum": ["NOT_APPLICABLE", "EXPLORATORY_REVIEW_ONLY"] }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceProvider", "sourceCollection", "reportDigests"],
+      "properties": {
+        "sourceProvider": { "const": "Google Earth Engine" },
+        "sourceCollection": { "const": "COPERNICUS/S2_SR_HARMONIZED" },
+        "reportDigests": { "type": "array", "items": { "$ref": "#/$defs/ReportDigest" }, "minItems": 1, "maxItems": 3 }
+      }
+    },
+    "disclaimer": { "const": "This boundary is suitable for prototype analysis but is not an authoritative legal or cadastral boundary." }
+  },
+  "$defs": {
+    "IndicatorId": { "type": "string", "enum": ["surface-water", "vegetation", "built-up"] },
+    "Date": { "type": "string", "maxLength": 10, "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+    "Period": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start", "end", "endInclusive"],
+      "properties": {
+        "start": { "$ref": "#/$defs/Date" },
+        "end": { "$ref": "#/$defs/Date" },
+        "endInclusive": { "const": true }
+      }
+    },
+    "Periods": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["baseline", "comparison"],
+      "properties": {
+        "baseline": { "$ref": "#/$defs/Period" },
+        "comparison": { "$ref": "#/$defs/Period" }
+      }
+    },
+    "AreaSqKm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["baseline", "comparison", "gain", "loss", "net", "percentChange"],
+      "properties": {
+        "baseline": { "type": "number", "minimum": 0 },
+        "comparison": { "type": "number", "minimum": 0 },
+        "gain": { "type": "number", "minimum": 0 },
+        "loss": { "type": "number", "minimum": 0 },
+        "net": { "type": "number" },
+        "percentChange": { "type": "number" }
+      }
+    },
+    "CommonValid": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["boundaryAreaSqKm", "areaSqKm", "fraction"],
+      "properties": {
+        "boundaryAreaSqKm": { "type": "number", "exclusiveMinimum": 0 },
+        "areaSqKm": { "type": "number", "minimum": 0 },
+        "fraction": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "MedianIndex": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["baseline", "comparison"],
+      "properties": {
+        "baseline": { "type": ["number", "null"] },
+        "comparison": { "type": ["number", "null"] }
+      }
+    },
+    "SensitivityRow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["threshold", "netAreaSqKm", "percentChange", "commonValidFraction"],
+      "properties": {
+        "threshold": { "type": "number", "enum": [0.2, 0.3, 0.4] },
+        "netAreaSqKm": { "type": "number" },
+        "percentChange": { "type": "number" },
+        "commonValidFraction": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "Sensitivity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "rawCsvSha256", "rows", "disclaimer"],
+      "properties": {
+        "status": { "const": "completed-pre-publication" },
+        "rawCsvSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "rows": { "type": "array", "items": { "$ref": "#/$defs/SensitivityRow" }, "minItems": 3, "maxItems": 3 },
+        "disclaimer": { "const": "Sensitivity evidence does not calibrate or replace the default green-cover proxy." }
+      }
+    },
+    "Indicator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["indicatorId", "methodVersion", "threshold", "analysis", "areaSqKm", "commonValid", "medianIndex", "quality", "sensitivity"],
+      "properties": {
+        "indicatorId": { "$ref": "#/$defs/IndicatorId" },
+        "methodVersion": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "threshold": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "analysis": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["crs", "pixelSizeMetres", "minClearObservations"],
+          "properties": {
+            "crs": { "type": "string", "pattern": "^EPSG:[0-9]+$" },
+            "pixelSizeMetres": { "type": "integer", "minimum": 1, "maximum": 1000 },
+            "minClearObservations": { "type": "integer", "minimum": 1, "maximum": 100 }
+          }
+        },
+        "areaSqKm": { "$ref": "#/$defs/AreaSqKm" },
+        "commonValid": { "$ref": "#/$defs/CommonValid" },
+        "medianIndex": { "$ref": "#/$defs/MedianIndex" },
+        "quality": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["level", "warnings"],
+          "properties": {
+            "level": { "const": "unknown" },
+            "warnings": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 300 }, "minItems": 2, "maxItems": 20 }
+          }
+        },
+        "sensitivity": { "oneOf": [{ "$ref": "#/$defs/Sensitivity" }, { "type": "null" }] }
+      }
+    },
+    "ReportDigest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fileName", "sha256", "reportCreatedAt", "batchTask"],
+      "properties": {
+        "fileName": { "type": "string", "minLength": 1, "maxLength": 180, "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*\\.json$" },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "reportCreatedAt": { "type": "string", "format": "date-time", "maxLength": 35, "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]{1,6})?Z$" },
+        "batchTask": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["description", "id", "rawCsvSha256"],
+              "properties": {
+                "description": { "type": ["string", "null"], "maxLength": 160 },
+                "id": { "type": ["string", "null"], "maxLength": 160 },
+                "rawCsvSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

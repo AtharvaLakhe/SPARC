@@ -20,6 +20,9 @@ from .validate_boundary_gate import BoundaryGateError, validate_boundary_gate
 
 MIN_CLEAR_OBSERVATIONS = 2
 ALLOWED_SCL_VALUES = (4, 5, 6)
+VEGETATION_SENSITIVITY_THRESHOLDS = (0.20, 0.30, 0.40)
+EXPLORATORY_VALIDATION_POINTS_PER_STRATUM = 25
+EXPLORATORY_VALIDATION_SEED = 20_260_803
 DRIVE_FOLDER_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,80}$")
 REGIONS = {
     "nagpur": {
@@ -174,11 +177,18 @@ def _median_indices(ee: Any, baseline: Any, comparison: Any, common_valid: Any, 
     }
 
 
-def _classification(ee: Any, indicator_id: str, median: Any) -> Any:
+def _vegetation_threshold_label(threshold: float) -> str:
+    if threshold not in VEGETATION_SENSITIVITY_THRESHOLDS:
+        raise ValueError(f"Unsupported vegetation sensitivity threshold: {threshold}")
+    return f"NDVI >= {threshold:.2f}"
+
+
+def _classification(ee: Any, indicator_id: str, median: Any, *, vegetation_threshold: float | None = None) -> Any:
     if indicator_id == "surface-water":
         return median.select("mndwi").gt(0)
     if indicator_id == "vegetation":
-        return median.select("ndvi").gte(0.30)
+        threshold = 0.30 if vegetation_threshold is None else vegetation_threshold
+        return median.select("ndvi").gte(threshold)
     if indicator_id == "built-up":
         return (
             median.select("ndbi")
@@ -261,6 +271,8 @@ def _indicator_export_feature(
     comparison_collection: Any,
     analysis_crs: str,
     boundary_sha256: str,
+    *,
+    vegetation_threshold: float | None = None,
 ) -> Any:
     """Build one lazy Earth Engine feature for an asynchronous CSV export.
 
@@ -271,12 +283,21 @@ def _indicator_export_feature(
     """
 
     config = INDICATORS[indicator_id]
+    if vegetation_threshold is not None and indicator_id != "vegetation":
+        raise ValueError("Vegetation sensitivity thresholds can only be exported for the vegetation indicator")
+    threshold_label = (
+        config["threshold"] if vegetation_threshold is None else _vegetation_threshold_label(vegetation_threshold)
+    )
     scale = int(config["scaleMetres"])
     baseline = _period_composite(ee, baseline_collection, indicator_id)
     comparison = _period_composite(ee, comparison_collection, indicator_id)
     common_valid = baseline["valid"].And(comparison["valid"])
-    baseline_class = _classification(ee, indicator_id, baseline["median"]).updateMask(common_valid)
-    comparison_class = _classification(ee, indicator_id, comparison["median"]).updateMask(common_valid)
+    baseline_class = _classification(
+        ee, indicator_id, baseline["median"], vegetation_threshold=vegetation_threshold
+    ).updateMask(common_valid)
+    comparison_class = _classification(
+        ee, indicator_id, comparison["median"], vegetation_threshold=vegetation_threshold
+    ).updateMask(common_valid)
     areas = _area_statistics_lazy(ee, baseline_class, comparison_class, common_valid, geometry, scale, analysis_crs)
     median_band = INDICATORS[indicator_id]["indexBands"][0]
     median_indexes = _median_indices_lazy(
@@ -295,7 +316,8 @@ def _indicator_export_feature(
         {
             "indicatorId": indicator_id,
             "methodVersion": config["methodVersion"],
-            "threshold": config["threshold"],
+            "threshold": threshold_label,
+            "sensitivityThreshold": vegetation_threshold,
             "boundarySha256": boundary_sha256,
             "analysisCrs": analysis_crs,
             "pixelSizeMetres": scale,
@@ -373,6 +395,7 @@ def create_batch_export(
     output_dir: Path,
     *,
     start: bool,
+    vegetation_sensitivity_thresholds: tuple[float, ...] | None = None,
 ) -> dict[str, Any]:
     """Create an explicitly guarded Earth Engine table-export task.
 
@@ -384,6 +407,11 @@ def create_batch_export(
 
     if not DRIVE_FOLDER_PATTERN.fullmatch(drive_folder):
         raise ValueError("--drive-folder must contain 1–80 letters, numbers, hyphens, or underscores")
+    if vegetation_sensitivity_thresholds:
+        if indicator_ids != ("vegetation",):
+            raise ValueError("Vegetation sensitivity export requires exactly --indicator vegetation")
+        if tuple(vegetation_sensitivity_thresholds) != VEGETATION_SENSITIVITY_THRESHOLDS:
+            raise ValueError("Vegetation sensitivity export must use the documented 0.20, 0.30, and 0.40 thresholds")
     ee = _initialize(project)
     boundary_geometry, boundary_manifest = _load_region_geometry(region)
     analysis_crs = REGIONS[region]["analysisCrs"]
@@ -395,7 +423,8 @@ def create_batch_export(
     comparison_collection = _period_collection(ee, geometry, comparison_start, comparison_end)
     baseline_sources = _source_metadata(ee, baseline_collection)
     comparison_sources = _source_metadata(ee, comparison_collection)
-    task_description = f"sparc_{region}_{'_'.join(indicator_ids)}_p0_v1"
+    task_description = f"sparc_{region}_{'_'.join(indicator_ids)}_p0"
+    task_description += "_sensitivity_v1" if vegetation_sensitivity_thresholds else "_v1"
     request = {
         "manifestVersion": "1",
         "createdAt": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
@@ -422,6 +451,7 @@ def create_batch_export(
             "sclAllowedValues": list(ALLOWED_SCL_VALUES),
             "minClearObservations": MIN_CLEAR_OBSERVATIONS,
             "notes": "Batch task preserves full-resolution statistics after an interactive reduction timeout.",
+            "vegetationSensitivityThresholds": list(vegetation_sensitivity_thresholds or ()),
         },
         "source": {
             "provider": "Google Earth Engine",
@@ -433,18 +463,26 @@ def create_batch_export(
     output_dir.mkdir(parents=True, exist_ok=True)
     request_path = output_dir / f"{task_description}.batch-request.json"
     request_path.write_text(json.dumps(request, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    features = [
-        _indicator_export_feature(
-            ee,
-            indicator_id,
-            geometry,
-            baseline_collection,
-            comparison_collection,
-            analysis_crs,
-            boundary_manifest["boundary"]["sha256"],
+    features = []
+    for indicator_id in indicator_ids:
+        thresholds = (
+            vegetation_sensitivity_thresholds
+            if indicator_id == "vegetation" and vegetation_sensitivity_thresholds
+            else (None,)
         )
-        for indicator_id in indicator_ids
-    ]
+        features.extend(
+            _indicator_export_feature(
+                ee,
+                indicator_id,
+                geometry,
+                baseline_collection,
+                comparison_collection,
+                analysis_crs,
+                boundary_manifest["boundary"]["sha256"],
+                vegetation_threshold=threshold,
+            )
+            for threshold in thresholds
+        )
     task = ee.batch.Export.table.toDrive(
         collection=ee.FeatureCollection(features),
         description=task_description,
@@ -455,6 +493,137 @@ def create_batch_export(
     if not start:
         return request
 
+    task.start()
+    request["task"]["id"] = task.id
+    request_path.write_text(json.dumps(request, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return request
+
+
+def create_vegetation_validation_sample_export(
+    project: str,
+    drive_folder: str,
+    output_dir: Path,
+    *,
+    start: bool,
+) -> dict[str, Any]:
+    """Export a blinded exploratory label frame for the fixed Nagpur vegetation map.
+
+    The export omits mapped classes and NDVI values so an annotator can label
+    reference evidence without seeing the candidate classification. It is a
+    exploratory sample frame, not completed independent validation.
+    """
+
+    if not DRIVE_FOLDER_PATTERN.fullmatch(drive_folder):
+        raise ValueError("--drive-folder must contain 1–80 letters, numbers, hyphens, or underscores")
+    ee = _initialize(project)
+    boundary_geometry, boundary_manifest = _load_region_geometry("nagpur")
+    analysis_crs = REGIONS["nagpur"]["analysisCrs"]
+    geometry = ee.Geometry(boundary_geometry, "EPSG:4326", False)
+    pilot = PILOTS["nagpur"]
+    baseline_start, baseline_end = pilot.periods[0]
+    comparison_start, comparison_end = pilot.periods[1]
+    baseline_collection = _period_collection(ee, geometry, baseline_start, baseline_end)
+    comparison_collection = _period_collection(ee, geometry, comparison_start, comparison_end)
+    baseline = _period_composite(ee, baseline_collection, "vegetation")
+    comparison = _period_composite(ee, comparison_collection, "vegetation")
+    common_valid = baseline["valid"].And(comparison["valid"])
+    baseline_class = _classification(ee, "vegetation", baseline["median"]).updateMask(common_valid)
+    comparison_class = _classification(ee, "vegetation", comparison["median"]).updateMask(common_valid)
+    stable_target = baseline_class.And(comparison_class)
+    gain = baseline_class.Not().And(comparison_class)
+    loss = baseline_class.And(comparison_class.Not())
+    strata = (
+        ee.Image(0)
+        .where(stable_target, 1)
+        .where(gain, 2)
+        .where(loss, 3)
+        .rename("stratum")
+        .toInt()
+        .updateMask(common_valid)
+    )
+    samples = strata.stratifiedSample(
+        numPoints=EXPLORATORY_VALIDATION_POINTS_PER_STRATUM,
+        classBand="stratum",
+        region=geometry,
+        scale=10,
+        projection=analysis_crs,
+        seed=EXPLORATORY_VALIDATION_SEED,
+        classValues=[0, 1, 2, 3],
+        classPoints=[EXPLORATORY_VALIDATION_POINTS_PER_STRATUM] * 4,
+        dropNulls=True,
+        tileScale=4,
+        geometries=True,
+    )
+
+    def blind_sample(feature: Any) -> Any:
+        coordinates = ee.List(ee.Feature(feature).geometry().coordinates())
+        sample_id = ee.String(ee.Number(coordinates.get(0)).format("%.6f")).cat("_").cat(
+            ee.Number(coordinates.get(1)).format("%.6f")
+        )
+        return ee.Feature(
+            ee.Feature(feature).geometry(),
+            {
+                "sampleId": sample_id,
+                "inclusionProbability": None,
+                "design": "exploratory-stratified-25-per-mapped-stratum",
+                "referenceStatus": "UNLABELLED",
+            },
+        )
+
+    blinded_samples = samples.map(blind_sample)
+    task_description = "sparc_nagpur_vegetation_validation_frame_v1"
+    request = {
+        "manifestVersion": "1",
+        "createdAt": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+        "status": "started" if start else "dry-run",
+        "task": {
+            "description": task_description,
+            "destination": "Google Drive",
+            "driveFolder": drive_folder,
+            "fileNamePrefix": task_description,
+            "fileFormat": "CSV",
+        },
+        "region": {
+            "key": "nagpur",
+            "boundarySha256": boundary_manifest["boundary"]["sha256"],
+        },
+        "method": {
+            "indicatorId": "vegetation",
+            "methodVersion": INDICATORS["vegetation"]["methodVersion"],
+            "threshold": INDICATORS["vegetation"]["threshold"],
+            "analysisCrs": analysis_crs,
+            "pixelSizeMetres": 10,
+            "minClearObservations": MIN_CLEAR_OBSERVATIONS,
+            "commonValidOnly": True,
+            "strata": {
+                "0": "stable-non-target",
+                "1": "stable-target",
+                "2": "mapped-gain",
+                "3": "mapped-loss",
+            },
+            "targetPointsPerStratum": EXPLORATORY_VALIDATION_POINTS_PER_STRATUM,
+            "seed": EXPLORATORY_VALIDATION_SEED,
+            "blindedExport": True,
+            "status": "EXPLORATORY_REVIEW_ONLY",
+        },
+        "periods": {
+            "baseline": {"start": baseline_start, "end": baseline_end, "endInclusive": True},
+            "comparison": {"start": comparison_start, "end": comparison_end, "endInclusive": True},
+        },
+        "disclaimer": "This is an unlabeled exploratory sample frame, not completed independent validation.",
+    }
+    output_dir.mkdir(parents=True, exist_ok=True)
+    request_path = output_dir / f"{task_description}.batch-request.json"
+    request_path.write_text(json.dumps(request, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    task = ee.batch.Export.table.toDrive(
+        collection=blinded_samples,
+        description=task_description,
+        folder=drive_folder,
+        fileNamePrefix=task_description,
+        fileFormat="CSV",
+    )
+    if not start:
+        return request
     task.start()
     request["task"]["id"] = task.id
     request_path.write_text(json.dumps(request, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
@@ -472,7 +641,7 @@ def _required_csv_float(row: dict[str, str], field: str) -> float:
     return parsed
 
 
-def _read_single_export_row(path: Path) -> dict[str, str]:
+def _read_export_rows(path: Path) -> list[dict[str, str]]:
     try:
         if path.stat().st_size > 1024 * 1024:
             raise ValueError("Batch CSV exceeds the 1 MiB safety limit")
@@ -480,9 +649,101 @@ def _read_single_export_row(path: Path) -> dict[str, str]:
             rows = list(csv.DictReader(handle))
     except OSError as exc:
         raise ValueError(f"Could not read batch CSV: {path}") from exc
+    if not rows:
+        raise ValueError("Batch CSV must contain at least one summary row")
+    return rows
+
+
+def _read_single_export_row(path: Path) -> dict[str, str]:
+    rows = _read_export_rows(path)
     if len(rows) != 1:
         raise ValueError(f"Batch CSV must contain exactly one summary row, found {len(rows)}")
     return rows[0]
+
+
+def _validated_sensitivity_row(row: dict[str, str], boundary_sha256: str) -> dict[str, Any]:
+    threshold = _required_csv_float(row, "sensitivityThreshold")
+    if threshold not in VEGETATION_SENSITIVITY_THRESHOLDS:
+        raise ValueError("Sensitivity CSV has an unapproved threshold")
+    if row.get("indicatorId") != "vegetation" or row.get("methodVersion") != INDICATORS["vegetation"]["methodVersion"]:
+        raise ValueError("Sensitivity CSV indicator or method version does not match the approved method")
+    if row.get("threshold") != _vegetation_threshold_label(threshold):
+        raise ValueError("Sensitivity CSV threshold label does not match its numeric threshold")
+    if row.get("boundarySha256") != boundary_sha256:
+        raise ValueError("Sensitivity CSV boundary checksum does not match the approved boundary")
+    if row.get("analysisCrs") != REGIONS["nagpur"]["analysisCrs"]:
+        raise ValueError("Sensitivity CSV analysis CRS does not match the approved region CRS")
+    if _required_csv_float(row, "pixelSizeMetres") != float(INDICATORS["vegetation"]["scaleMetres"]):
+        raise ValueError("Sensitivity CSV pixel size does not match the approved method")
+    if _required_csv_float(row, "minClearObservations") != float(MIN_CLEAR_OBSERVATIONS):
+        raise ValueError("Sensitivity CSV observation floor does not match the approved method")
+
+    areas = {field: _required_csv_float(row, field) for field in (
+        "boundaryAreaSqM", "commonValidAreaSqM", "baselineAreaSqM", "comparisonAreaSqM", "gainAreaSqM", "lossAreaSqM", "netAreaSqM"
+    )}
+    if min(areas[name] for name in ("boundaryAreaSqM", "commonValidAreaSqM", "baselineAreaSqM", "comparisonAreaSqM", "gainAreaSqM", "lossAreaSqM")) < 0:
+        raise ValueError("Sensitivity CSV contains a negative area")
+    if areas["commonValidAreaSqM"] > areas["boundaryAreaSqM"] + 1:
+        raise ValueError("Sensitivity CSV common-valid area exceeds the boundary area")
+    if not math.isclose(areas["netAreaSqM"], areas["comparisonAreaSqM"] - areas["baselineAreaSqM"], abs_tol=1):
+        raise ValueError("Sensitivity CSV net area does not equal comparison minus baseline")
+    if not math.isclose(areas["netAreaSqM"], areas["gainAreaSqM"] - areas["lossAreaSqM"], abs_tol=1):
+        raise ValueError("Sensitivity CSV net area does not equal gain minus loss")
+    percent_change = _required_csv_float(row, "percentChange")
+    expected_percent = 100 * areas["netAreaSqM"] / areas["baselineAreaSqM"] if areas["baselineAreaSqM"] else None
+    if expected_percent is None or not math.isclose(percent_change, expected_percent, abs_tol=1e-9):
+        raise ValueError("Sensitivity CSV percent change is inconsistent with its baseline and net area")
+    return {
+        "threshold": threshold,
+        "thresholdLabel": row["threshold"],
+        "areaSqKm": {
+            "baseline": areas["baselineAreaSqM"] / 1_000_000,
+            "comparison": areas["comparisonAreaSqM"] / 1_000_000,
+            "gain": areas["gainAreaSqM"] / 1_000_000,
+            "loss": areas["lossAreaSqM"] / 1_000_000,
+            "net": areas["netAreaSqM"] / 1_000_000,
+            "percentChange": percent_change,
+        },
+        "commonValidFraction": areas["commonValidAreaSqM"] / areas["boundaryAreaSqM"],
+    }
+
+
+def import_vegetation_sensitivity(csv_path: Path, batch_request_path: Path) -> dict[str, Any]:
+    """Validate the fixed three-threshold vegetation sensitivity batch export."""
+
+    rows = _read_export_rows(csv_path)
+    request = _read_json(batch_request_path)
+    _, boundary_manifest = _load_region_geometry("nagpur")
+    boundary_sha256 = boundary_manifest["boundary"]["sha256"]
+    if request.get("region", {}).get("key") != "nagpur" or request.get("region", {}).get("boundarySha256") != boundary_sha256:
+        raise ValueError("Sensitivity batch request does not match the approved Nagpur boundary")
+    if request.get("indicatorIds") != ["vegetation"]:
+        raise ValueError("Sensitivity batch request does not match the vegetation indicator")
+    if request.get("method", {}).get("vegetationSensitivityThresholds") != list(VEGETATION_SENSITIVITY_THRESHOLDS):
+        raise ValueError("Sensitivity batch request does not contain the documented threshold set")
+    if len(rows) != len(VEGETATION_SENSITIVITY_THRESHOLDS):
+        raise ValueError("Sensitivity CSV must contain exactly the three documented threshold rows")
+    validated_rows = [_validated_sensitivity_row(row, boundary_sha256) for row in rows]
+    if {item["threshold"] for item in validated_rows} != set(VEGETATION_SENSITIVITY_THRESHOLDS):
+        raise ValueError("Sensitivity CSV must contain each documented threshold exactly once")
+    return {
+        "status": "completed-pre-publication",
+        "region": {"key": "nagpur", "boundarySha256": boundary_sha256},
+        "batchExport": {
+            "taskDescription": request.get("task", {}).get("description"),
+            "taskId": request.get("task", {}).get("id"),
+            "rawCsv": csv_path.as_posix(),
+            "rawCsvSha256": _sha256_file(csv_path),
+        },
+        "method": {
+            "indicatorId": "vegetation",
+            "methodVersion": INDICATORS["vegetation"]["methodVersion"],
+            "thresholds": list(VEGETATION_SENSITIVITY_THRESHOLDS),
+            "fixedControls": {"analysisCrs": REGIONS["nagpur"]["analysisCrs"], "pixelSizeMetres": 10, "minClearObservations": MIN_CLEAR_OBSERVATIONS},
+        },
+        "rows": sorted(validated_rows, key=lambda item: item["threshold"]),
+        "disclaimer": "Sensitivity evidence does not calibrate or replace the default green-cover proxy.",
+    }
 
 
 def import_batch_export(
@@ -634,7 +895,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--region", choices=["all", *REGIONS], default="all")
     parser.add_argument("--indicator", choices=["all", *INDICATORS], default="all")
-    parser.add_argument("--mode", choices=("interactive", "batch-export"), default="interactive")
+    parser.add_argument(
+        "--mode",
+        choices=("interactive", "batch-export", "validation-sample-export"),
+        default="interactive",
+    )
     parser.add_argument("--drive-folder", help="Google Drive folder name for a batch CSV export")
     parser.add_argument(
         "--start-batch-export",
@@ -643,9 +908,47 @@ def main() -> int:
     )
     parser.add_argument("--import-export-csv", type=Path, help="Completed Earth Engine batch CSV to validate and import")
     parser.add_argument("--batch-request", type=Path, help="Local batch-request JSON associated with --import-export-csv")
+    parser.add_argument(
+        "--import-vegetation-sensitivity-csv",
+        type=Path,
+        help="Completed three-row vegetation sensitivity CSV to validate and attach to the local vegetation report",
+    )
+    parser.add_argument(
+        "--vegetation-sensitivity",
+        action="store_true",
+        help="Export the documented NDVI 0.20, 0.30, and 0.40 sensitivity rows in one guarded batch task.",
+    )
     parser.add_argument("--project", default=os.getenv("EARTH_ENGINE_PROJECT"))
     parser.add_argument("--output-dir", type=Path, default=Path("data/processed/earth-engine-p0"))
     args = parser.parse_args()
+
+    if args.vegetation_sensitivity and (args.mode != "batch-export" or args.indicator != "vegetation"):
+        parser.error("--vegetation-sensitivity requires --mode batch-export --indicator vegetation")
+    if args.import_export_csv and args.import_vegetation_sensitivity_csv:
+        parser.error("Use only one batch CSV import mode at a time")
+
+    if args.import_vegetation_sensitivity_csv:
+        if args.region != "nagpur" or args.indicator != "vegetation":
+            parser.error("--import-vegetation-sensitivity-csv requires --region nagpur --indicator vegetation")
+        request_path = args.batch_request or args.output_dir / "sparc_nagpur_vegetation_p0_sensitivity_v1.batch-request.json"
+        sensitivity = import_vegetation_sensitivity(args.import_vegetation_sensitivity_csv, request_path)
+        output = args.output_dir / "nagpur-vegetation.json"
+        report = _read_json(output)
+        if report.get("region", {}).get("boundarySha256") != sensitivity["region"]["boundarySha256"]:
+            parser.error("Local vegetation report does not match the approved sensitivity boundary")
+        indicators = report.get("indicators")
+        if not isinstance(indicators, list) or len(indicators) != 1 or indicators[0].get("indicatorId") != "vegetation":
+            parser.error("Local vegetation report does not have exactly one vegetation indicator")
+        indicators[0]["thresholdSensitivity"] = sensitivity
+        indicators[0]["quality"]["warnings"] = [
+            "Pre-publication result: independent validation is not complete.",
+            "Threshold sensitivity completed with fixed documented NDVI thresholds 0.20, 0.30, and 0.40.",
+            "Imported from a full-resolution Earth Engine batch export after the interactive reduction timed out.",
+            "This is a prototype analysis boundary, not an authoritative legal or cadastral boundary.",
+        ]
+        output.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        print(f"nagpur: imported vegetation sensitivity -> {output}")
+        return 0
 
     if args.import_export_csv:
         if args.region == "all" or args.indicator == "all":
@@ -658,6 +961,20 @@ def main() -> int:
         print(f"{args.region}: imported batch export -> {output}")
         return 0
     project = _require_project(args.project)
+    if args.mode == "validation-sample-export":
+        if args.region != "nagpur" or args.indicator != "vegetation":
+            parser.error("--mode validation-sample-export requires --region nagpur --indicator vegetation")
+        if not args.drive_folder:
+            parser.error("--drive-folder is required with --mode validation-sample-export")
+        request = create_vegetation_validation_sample_export(
+            project,
+            args.drive_folder,
+            args.output_dir,
+            start=args.start_batch_export,
+        )
+        action = "started" if args.start_batch_export else "prepared"
+        print(f"nagpur: {action} validation sample export {request['task']['description']}")
+        return 0
     selected = REGIONS if args.region == "all" else {args.region: REGIONS[args.region]}
     indicator_ids = tuple(INDICATORS) if args.indicator == "all" else (args.indicator,)
     for region in selected:
@@ -671,6 +988,9 @@ def main() -> int:
                 args.drive_folder,
                 args.output_dir,
                 start=args.start_batch_export,
+                vegetation_sensitivity_thresholds=(
+                    VEGETATION_SENSITIVITY_THRESHOLDS if args.vegetation_sensitivity else None
+                ),
             )
             action = "started" if args.start_batch_export else "prepared"
             print(f"{region}: {action} batch export {request['task']['description']}")

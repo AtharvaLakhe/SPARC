@@ -1,7 +1,7 @@
 # SPARC validation and uncertainty plan
 
-**Status:** planning specification; no validation sample has been drawn  
-**Evidence cut-off:** 2026-08-02  
+**Status:** exploratory blinded Nagpur vegetation sample frame created; no independent reference labels or formal validation result
+**Evidence cut-off:** 2026-08-03
 **Primary methodological authority:** Olofsson et al., “Good practices for estimating area and assessing accuracy of land change.” ([OLOFSSON-2014](research/source-register.md#olofsson-2014))
 
 ## Terms
@@ -24,6 +24,12 @@
 | Surface UHI | Scene-level urban/rural sample pair | independently measured or sensitivity-tested surface contrast | scene count, median contrast, bootstrap interval, rural-definition sensitivity |
 
 The reference label must match the public claim. A “green” label cannot silently become “forest,” and a built-candidate label cannot be validated against only building centroids while claiming impervious area.
+
+## Current implementation status
+
+On 2026-08-03, SPARC exported a deterministic, blinded Nagpur vegetation frame with up to 25 points from each mapped stable non-target, stable target, gain, and loss stratum (100 points total). The raw export is retained under Git-ignored `data/raw/validation/`; `scripts.data.create_validation_label_template` produced the local label template and metadata record under `data/processed/validation/`.
+
+The frame contains no mapped class or NDVI values and every point is `UNLABELLED`. It is therefore `EXPLORATORY_REVIEW_ONLY`: no independent reference evidence, temporal labels, inclusion-probability calculation, error matrix, accuracy value, error-adjusted area, or confidence interval exists yet. It does not pass the independent-validation release gate.
 
 ## Validation sequence
 

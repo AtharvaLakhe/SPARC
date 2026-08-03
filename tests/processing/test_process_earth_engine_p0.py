@@ -6,10 +6,19 @@ from pathlib import Path
 import unittest
 from unittest.mock import patch
 
-from scripts.data.process_earth_engine_p0 import import_batch_export
+from scripts.data.process_earth_engine_p0 import (
+    EXPLORATORY_VALIDATION_POINTS_PER_STRATUM,
+    EXPLORATORY_VALIDATION_SEED,
+    VEGETATION_SENSITIVITY_THRESHOLDS,
+    _vegetation_threshold_label,
+    import_batch_export,
+    import_vegetation_sensitivity,
+)
 
 
 BOUNDARY_SHA = "f811022adbe26c7634ba4d884db3251c53bd2d23b8d55e18f6d24fe3cb3b2b33"
+
+
 class EarthEngineP0ImportTests(unittest.TestCase):
     def _request(self) -> dict:
         return {
@@ -49,6 +58,18 @@ class EarthEngineP0ImportTests(unittest.TestCase):
             "threshold": "NDVI >= 0.30",
         }
 
+    def _sensitivity_request(self) -> dict:
+        request = self._request()
+        request["task"] = {"description": "sparc_nagpur_vegetation_p0_sensitivity_v1", "id": "task-sensitivity"}
+        request["method"] = {"vegetationSensitivityThresholds": [0.2, 0.3, 0.4]}
+        return request
+
+    def _sensitivity_row(self, threshold: float) -> dict[str, str]:
+        row = self._export_row()
+        row["sensitivityThreshold"] = str(threshold)
+        row["threshold"] = f"NDVI >= {threshold:.2f}"
+        return row
+
     def test_import_validates_and_converts_batch_summary(self) -> None:
         approved_manifest = {"boundary": {"sha256": BOUNDARY_SHA}}
         with (
@@ -78,6 +99,33 @@ class EarthEngineP0ImportTests(unittest.TestCase):
         ):
             with self.assertRaisesRegex(ValueError, "boundary checksum"):
                 import_batch_export("nagpur", "vegetation", Path("vegetation.csv"), Path("request.json"))
+
+    def test_vegetation_sensitivity_thresholds_are_fixed_and_labelled(self) -> None:
+        self.assertEqual(VEGETATION_SENSITIVITY_THRESHOLDS, (0.20, 0.30, 0.40))
+        self.assertEqual(_vegetation_threshold_label(0.20), "NDVI >= 0.20")
+        self.assertEqual(_vegetation_threshold_label(0.40), "NDVI >= 0.40")
+        with self.assertRaisesRegex(ValueError, "Unsupported"):
+            _vegetation_threshold_label(0.25)
+
+    def test_imports_each_documented_vegetation_sensitivity_threshold_once(self) -> None:
+        approved_manifest = {"boundary": {"sha256": BOUNDARY_SHA}}
+        with (
+            patch(
+                "scripts.data.process_earth_engine_p0._read_export_rows",
+                return_value=[self._sensitivity_row(threshold) for threshold in VEGETATION_SENSITIVITY_THRESHOLDS],
+            ),
+            patch("scripts.data.process_earth_engine_p0._read_json", return_value=self._sensitivity_request()),
+            patch("scripts.data.process_earth_engine_p0._load_region_geometry", return_value=({}, approved_manifest)),
+            patch("scripts.data.process_earth_engine_p0._sha256_file", return_value="2" * 64),
+        ):
+            report = import_vegetation_sensitivity(Path("sensitivity.csv"), Path("request.json"))
+
+        self.assertEqual([row["threshold"] for row in report["rows"]], [0.2, 0.3, 0.4])
+        self.assertEqual(report["batchExport"]["taskId"], "task-sensitivity")
+
+    def test_exploratory_validation_frame_configuration_is_fixed(self) -> None:
+        self.assertEqual(EXPLORATORY_VALIDATION_POINTS_PER_STRATUM, 25)
+        self.assertEqual(EXPLORATORY_VALIDATION_SEED, 20_260_803)
 
 
 if __name__ == "__main__":

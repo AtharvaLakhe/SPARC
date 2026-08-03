@@ -1,6 +1,6 @@
 # Integration plan
 
-**Status:** Implementation-ready plan  
+**Status:** Integration plan; contract fixtures and a mock-only API runtime exist, but no real/pre-publication pack or analytical frontend is integrated. See [delivery status](./project-status.md).
 **Integrators:** Codex and Claude alternate or nominate one owner each day  
 **Branch pattern:** `integration/day-N` from the current verified `main`  
 **Primary rule:** A daily checkpoint is merged only when the same frozen contract works through both the API and demo transports.

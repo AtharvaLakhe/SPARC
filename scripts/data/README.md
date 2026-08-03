@@ -59,3 +59,66 @@ python -m scripts.data.process_earth_engine_p0 `
   --indicator vegetation `
   --import-export-csv data\raw\earth-engine-exports\sparc_nagpur_vegetation_p0_v1.csv
 ```
+
+### Vegetation threshold sensitivity
+
+The vegetation method fixes the input scenes, 10 m UTM grid, SCL mask, common-valid footprint, and two-observation floor. It varies only the documented NDVI thresholds `0.20`, `0.30`, and `0.40` in one three-row CSV export:
+
+```powershell
+python -m scripts.data.process_earth_engine_p0 `
+  --region nagpur `
+  --indicator vegetation `
+  --mode batch-export `
+  --vegetation-sensitivity `
+  --drive-folder SPARC_EE_EXPORTS_20260803 `
+  --start-batch-export
+```
+
+This creates external Drive state. The resulting rows are sensitivity evidence, not separate calibrated classifications; retain them with the batch request and do not change the default `NDVI >= 0.30` rule from their outcome.
+
+After downloading the completed three-row CSV, validate it and attach the evidence to the existing local Nagpur vegetation report:
+
+```powershell
+python -m scripts.data.process_earth_engine_p0 `
+  --region nagpur `
+  --indicator vegetation `
+  --import-vegetation-sensitivity-csv data\raw\earth-engine-exports\sparc_nagpur_vegetation_p0_sensitivity_v1.csv
+```
+
+### Exploratory reference-label frame
+
+Independent validation cannot be fabricated from another global satellite product. This export creates a blinded, deterministic frame of up to 25 points from each mapped stable non-target, stable target, gain, and loss stratum. It omits NDVI values and mapped classes so reviewers can make an initial reference judgement without seeing the candidate result.
+
+```powershell
+python -m scripts.data.process_earth_engine_p0 `
+  --region nagpur `
+  --indicator vegetation `
+  --mode validation-sample-export `
+  --drive-folder SPARC_EE_EXPORTS_20260803 `
+  --start-batch-export
+```
+
+This is explicitly `EXPLORATORY_REVIEW_ONLY`: the exported points still need temporally appropriate independent labels, a recorded inclusion-probability design, and a design-consistent accuracy analysis before any formal-validation claim is possible.
+
+Create the controlled local label template from the downloaded blinded CSV:
+
+```powershell
+python -m scripts.data.create_validation_label_template `
+  --sample-csv data\raw\validation\sparc_nagpur_vegetation_validation_frame_v1.csv `
+  --output-csv data\processed\validation\nagpur-vegetation-label-template.csv `
+  --metadata-json data\processed\validation\nagpur-vegetation-label-template.metadata.json
+```
+
+### Pre-publication result pack
+
+After validated local P0 reports exist, build one non-overwritable offline pack. It rechecks the report region, boundary checksum, fixed periods, Earth Engine collection, area arithmetic, unknown quality, boundary disclaimer, completed vegetation sensitivity, and report checksums before writing a new result.
+
+```powershell
+python -m scripts.data.build_prepublication_result_pack `
+  --report data\processed\earth-engine-p0\nagpur-surface-water.json `
+  --report data\processed\earth-engine-p0\nagpur-vegetation.json `
+  --report data\processed\earth-engine-p0\nagpur-built-up.json `
+  --output data\processed\prepublication-packs\nagpur-p0-v1.json
+```
+
+The output remains Git-ignored and uses [`prepublication-result-pack.schema.json`](../../packages/contracts/schemas/prepublication-result-pack.schema.json). It is an offline evidence and integration boundary, not an HTTP response and not a deployable result. The current FastAPI service must remain in `SPARC_DATA_MODE=demo` until a separately reviewed mapping and disclosure path exists.

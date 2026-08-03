@@ -218,7 +218,7 @@ Research/license gates
   - Expected output: One representative result per P0 method plus formula/schema tests
   - Acceptance condition: Results validate, use fixed cross-period rules, and expose raw/cleaned/sensitivity evidence
   - Fallback: Mark an unstable indicator low-quality and use the documented simpler fixed method
-  - Progress 2026-08-03: Pre-publication water runs completed for Nagpur and Bengaluru Urban; Nagpur built-candidate and 10 m vegetation runs completed. The vegetation batch CSV was imported only after it matched the approved boundary checksum, CRS, method settings, coverage, and area arithmetic. All results remain `quality: unknown` until threshold sensitivity and independent validation.
+  - Progress 2026-08-03: Pre-publication water runs completed for Nagpur and Bengaluru Urban; Nagpur built-candidate and 10 m vegetation runs completed. The vegetation default and fixed 0.20/0.30/0.40 sensitivity batch CSVs were imported only after each matched the approved boundary checksum, CRS, method settings, coverage, and area arithmetic. A deterministic blinded 100-point vegetation label frame and controlled local label template now exist, but no independent labels or formal accuracy analysis exist. The vegetation net change spans −27.03 to −487.10 km² across those thresholds, so it remains `quality: unknown`; water and built sensitivity are also pending.
 
 - [x] **D1-C-003 — Build API/result-repository skeleton to the contract**
   - Owner: Codex
@@ -255,6 +255,7 @@ Research/license gates
   - Expected output: Nagpur district/tahsil results, Bengaluru backup, layers, quality, provenance, manifests, and checksums
   - Acceptance condition: Primary and backup payloads validate and all referenced local assets resolve
   - Fallback: Preserve the district and whichever Nagpur subdistrict passes the gate; otherwise mark child results unavailable and keep the district-level backup
+  - Progress 2026-08-03: A schema-checked, non-overwritable local Nagpur pre-publication pack was generated from the three validated report files. It retains report checksums, `quality: unknown`, the boundary disclaimer, vegetation threshold sensitivity, and `NOT_COMPLETED` independent validation. It is not connected to the mock-only API, and Bengaluru Urban remains incomplete.
 
 - [ ] **D2-C-002 — Complete comparison and contract behavior**
   - Owner: Codex

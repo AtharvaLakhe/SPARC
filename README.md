@@ -8,7 +8,7 @@ SPARC outputs are **satellite-derived SDG proxy indicators**, not official UN SD
 
 ## Repository status
 
-Implementation has started from the frozen planning package. The first server slice is a read-only FastAPI service over clearly marked immutable mock payloads; it performs no raster processing, database access, provider calls, or live job creation. `orbital-website/` is a separately owned Three.js UI reference supplied by the user and is not yet the analytical dashboard or API client.
+Implementation has started from the frozen planning package. The first server slice is a read-only FastAPI service over clearly marked immutable mock payloads; it performs no raster processing, database access, provider calls, or live job creation. `orbital-website/` is a separately owned Three.js UI reference supplied by the user and is not yet the analytical dashboard or API client. The evidence-based current stage, remaining gates, and missing dashboard work are tracked in the [delivery status](docs/project-status.md).
 
 The selected pilot is **Nagpur district** with **Bengaluru Urban** as a smaller backup. P0 covers surface-water, vegetation/green-cover, and built-up-area proxies. Land-surface temperature and surface urban heat island analysis are P1.
 
@@ -90,6 +90,7 @@ Removing a canonical requirements, contract, methodology, ownership, or test fil
 - [Integration plan](docs/integration-plan.md)
 - [Git workflow](docs/git-workflow.md)
 - [Development roadmap](docs/development-roadmap.md)
+- [Project delivery status](docs/project-status.md)
 - [Testing plan](docs/testing-plan.md)
 - [Deployment guide](docs/deployment-guide.md)
 - [Risk register](docs/risk-register.md)

@@ -1,6 +1,6 @@
 # SPARC development roadmap
 
-**Status:** implementation roadmap; no application code exists yet  
+**Status:** implementation roadmap; a mock-only API and a separate Orbital browser reference exist, but no analytical dashboard or real result pack is integrated. See [delivery status](./project-status.md).
 **Delivery window:** Day 0 through Day 3, with optional Day 4 contingency  
 **Contract freeze:** end of Day 0  
 **Primary pilot:** Nagpur district; **backup:** Bengaluru Urban
