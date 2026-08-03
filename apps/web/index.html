@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SPARC — local environmental proxy indicators</title>
+<meta name="description" content="District-level satellite-derived environmental proxy indicators with provenance and quality evidence. Not official SDG indicators.">
+<!-- Inline so the offline bundle needs no extra request; without it the browser
+     asks for /favicon.ico on every load and logs a 404. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230b0f14'/%3E%3Cpath d='M6 21l6-8 5 6 3-4 6 6z' fill='%2358b7ff'/%3E%3Ccircle cx='22' cy='10' r='3' fill='%23ffb454'/%3E%3C/svg%3E">
+</head>
+<body>
+<!-- The analytical journey is server-agnostic HTML+React. There is no 3D scene
+     on this route: the dashboard must be complete without WebGL. -->
+<div id="root"></div>
+<noscript>
+  <p style="font-family: system-ui, sans-serif; padding: 24px; max-width: 60ch;">
+    SPARC needs JavaScript to render indicator comparisons. The underlying
+    results are immutable JSON files under <code>contracts/examples/</code> and
+    can be read directly without this application.
+  </p>
+</noscript>
+<script type="module" src="/src/main.tsx"></script>
+</body>
+</html>

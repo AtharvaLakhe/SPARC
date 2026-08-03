@@ -1,0 +1,182 @@
+/* Quality, provenance and limitation disclosure.
+ *
+ * The requirement is that data mode, mock/pre-publication state, coverage,
+ * method, sources, attribution, warnings and the boundary disclaimer are all
+ * "visible without opening developer tools". So none of this is behind a
+ * console log or a tooltip, and the parts that qualify the result — the badge,
+ * the proxy disclaimer, the boundary disclaimer — are not inside a collapsed
+ * <details>. Only the long source inventory collapses, and it defaults open on
+ * the detail screen where provenance is the point. */
+
+import { useId } from 'react';
+import type { Provenance } from '../contract/types';
+import {
+  BOUNDARY_DISCLAIMER,
+  PROXY_DISCLAIMER,
+  type ModeBadge,
+  type QualityView,
+} from '../viewmodel/mapper';
+import { BoundaryAttributionLine } from './BoundaryProvenance';
+import { Callout, QualityPill, Row, Value } from './Primitives';
+
+/* Data-provenance strip.
+ *
+ * This used to be a large orange MOCK DATA banner repeated on every screen. It
+ * was removed as noise. What remains is one quiet line — because the governing
+ * documents require the evidence grade to stay visible until real packs are
+ * connected, and a demo that silently presents synthetic numbers as findings is
+ * the exact failure this project is built to avoid. It is small, not absent. */
+export function ModeBanner({ badge, warnings }: { badge: ModeBadge; warnings: string[] }) {
+  return (
+    <div className={`prov prov--${badge.grade}`}>
+      <span className="prov__dot" aria-hidden="true" />
+      <span className="prov__grade">{badge.grade === 'synthetic' ? 'Demo data' : 'Pre-publication'}</span>
+      <span className="prov__sep" aria-hidden="true">·</span>
+      <span className="prov__src">{badge.transportLabel}</span>
+      {warnings.length ? (
+        <span className="prov__warn" title={warnings.join(' · ')}>{warnings.length} note{warnings.length > 1 ? 's' : ''}</span>
+      ) : null}
+    </div>
+  );
+}
+
+export function LimitationsPanel() {
+  const id = useId();
+  return (
+    <section className="panel panel--limits" aria-labelledby={id}>
+      <h3 id={id}>Limitations you must read before using these numbers</h3>
+      <ul className="limits">
+        <li>{PROXY_DISCLAIMER}</li>
+        <li>{BOUNDARY_DISCLAIMER}</li>
+        <li>
+          A change in a proxy is not a cause. Vegetation indices move with crops,
+          rainfall, irrigation and harvest timing; a built-up signal is confused
+          by bare soil and construction; open water excludes volume, quality and
+          groundwater.
+        </li>
+        <li>
+          Pixels that were cloudy or invalid are <em>unknown</em>, not unchanged.
+          Read common-valid coverage before reading the change value.
+        </li>
+      </ul>
+      {/* Attribution sits inside the limitations block so it travels with any
+          screenshot of the caveats — the two are needed together. */}
+      <BoundaryAttributionLine />
+    </section>
+  );
+}
+
+export function QualityPanel({ quality }: { quality: QualityView }) {
+  const id = useId();
+  return (
+    <section className="panel" aria-labelledby={id}>
+      <h3 id={id}>Quality evidence</h3>
+
+      <p className="panel__lede">
+        <QualityPill level={quality.level} />
+        <span className="panel__basis">
+          Basis: {quality.basis} · Method {quality.methodVersion}
+        </span>
+      </p>
+
+      {!quality.independentValidationComplete ? (
+        <Callout tone="warn" title="No independent validation">
+          <p>
+            No independent reference labels have been applied to this result, so
+            no accuracy figure can be quoted. A quality grade above “unknown”
+            here reflects internal gates only — coverage, scene count and
+            threshold behaviour — not measured correctness.
+          </p>
+        </Callout>
+      ) : null}
+
+      {quality.reasons.length ? (
+        <>
+          <h4>Why this grade</h4>
+          <ul className="list">{quality.reasons.map((r) => <li key={r}>{r}</li>)}</ul>
+        </>
+      ) : null}
+
+      {quality.warnings.length ? (
+        <>
+          <h4>Warnings</h4>
+          <ul className="list list--warn">{quality.warnings.map((w) => <li key={w}>{w}</li>)}</ul>
+        </>
+      ) : null}
+
+      <h4>Evidence</h4>
+      <dl className="rows">
+        {quality.rows.map((row) => (
+          <Row key={row.label} label={row.label} note={row.note}>
+            <Value value={row.value} />
+          </Row>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
+export function ProvenancePanel({ provenance }: { provenance: Provenance }) {
+  const id = useId();
+  return (
+    <section className="panel" aria-labelledby={id}>
+      <h3 id={id}>Provenance</h3>
+
+      <dl className="rows">
+        <Row label="Algorithm"><code>{provenance.algorithmId}</code> v{provenance.algorithmVersion}</Row>
+        <Row label="Parameters hash"><code className="wrap">{provenance.parametersHash}</code></Row>
+        <Row label="Analysis CRS">{provenance.analysisCrs}</Row>
+        <Row
+          label="Effective resolution"
+          note="The thermal or spectral support can be coarser than the published grid."
+        >
+          {provenance.effectiveResolutionMeters === null
+            ? 'Unavailable'
+            : `${provenance.effectiveResolutionMeters} m`}
+        </Row>
+        <Row label="Generated">{provenance.generatedAt}</Row>
+      </dl>
+
+      <h4>Source observations</h4>
+      {provenance.sources.map((source) => (
+        <details key={source.datasetId} className="source" open>
+          <summary>
+            {source.provider}
+            {source.mission ? ` · ${source.mission}` : ''}
+          </summary>
+          <dl className="rows">
+            <Row label="Dataset"><code>{source.datasetId}</code></Row>
+            {source.collection ? <Row label="Collection">{source.collection}</Row> : null}
+            {source.processingBaseline ? (
+              <Row label="Processing baseline">{source.processingBaseline}</Row>
+            ) : null}
+            <Row label="Scene items">
+              <ul className="list list--tight">
+                {source.itemIds.map((item) => <li key={item}><code>{item}</code></li>)}
+              </ul>
+            </Row>
+            {source.acquiredAt.length ? (
+              <Row label="Acquired">
+                <ul className="list list--tight">
+                  {source.acquiredAt.map((at) => <li key={at}>{at}</li>)}
+                </ul>
+              </Row>
+            ) : null}
+            {source.assetKeys.length ? (
+              <Row label="Bands / assets">{source.assetKeys.join(', ')}</Row>
+            ) : null}
+            <Row label="Citation">{source.citation}</Row>
+            <Row label="Licence">{source.license}</Row>
+            {source.sourceUrl ? (
+              <Row label="Catalogue">
+                <a href={source.sourceUrl} target="_blank" rel="noreferrer noopener" className="wrap">
+                  {source.sourceUrl}
+                </a>
+              </Row>
+            ) : null}
+          </dl>
+        </details>
+      ))}
+    </section>
+  );
+}

@@ -1189,6 +1189,7 @@ $('suggestions').addEventListener('click', (e) => {
   if (!li) return;
   goTo(+li.dataset.lat, +li.dataset.lon, li.dataset.name);
   closeConsole();
+  handOff(+li.dataset.lat, +li.dataset.lon, li.dataset.name);
 });
 
 $('console-form').addEventListener('submit', (e) => { e.preventDefault(); submit(); });
@@ -1205,7 +1206,46 @@ function submit() {
   }
   goTo(parsed.lat, parsed.lon, parsed.name);
   closeConsole();
+  handOff(parsed.lat, parsed.lon, parsed.name);
 }
+
+/* ── handoff to the SPARC analytical dashboard ──────────────────────────────
+   This page answers *where*; the dashboard answers *what changed there*. The
+   craft is allowed to finish its slew first so the two read as one movement
+   rather than a page swap — and because watching it lock on is the moment that
+   explains what the dashboard is about to show you.
+
+   Only the console paths hand off. A `?target=` deep link also calls goTo(),
+   and handing off from there would bounce straight back out of this page. */
+function handOff(lat, lon, name) {
+  const open = () => {
+    if (window.SPARC) window.SPARC.open({ lat, lon, name });
+    // No panel bundle loaded (opened straight from file://, say) — the
+    // standalone dashboard still exists, so fall back to it rather than
+    // leaving the click doing nothing.
+    else location.href = `app/#/locate?lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}`;
+  };
+  // Let the craft finish its slew first: watching it lock on is what explains
+  // where the numbers in the panel came from.
+  if (REDUCED) open();
+  else setTimeout(open, (SLEW_DUR + 0.4) * 1000);
+}
+
+/* The panel announces which indicator is being read; the marker and beam take
+   that indicator's colour so the globe and the numbers agree at a glance.
+   Purely cosmetic and entirely optional — the panel never waits on this. */
+const INDICATOR_COLOUR = {
+  'surface-water': 0x4da3ff,   // water
+  vegetation: 0x63d68a,        // green cover
+  'built-up': 0xffb454,        // built surface
+  lst: 0xff7a5c,               // surface heat
+};
+addEventListener('sparc:indicator', (e) => {
+  const hex = INDICATOR_COLOUR[e.detail?.indicatorId] ?? MARK;
+  [ringMat, mastMat].forEach((mat) => mat.color.setHex(hex));
+  designatorMat.uniforms.uColor.value.setHex(hex);
+  beamMat.uniforms.uColor.value.setHex(hex);
+});
 
 /* ── targeting ──────────────────────────────────────────────────────────── */
 function goTo(lat, lon, name, { instant = false } = {}) {
