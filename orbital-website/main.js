@@ -1240,6 +1240,80 @@ const INDICATOR_COLOUR = {
   'built-up': 0xffb454,        // built surface
   lst: 0xff7a5c,               // surface heat
 };
+/* ── district choropleth ────────────────────────────────────────────────────
+   The district's own boundary, laid on the surface and tinted by the indicator
+   in focus.
+
+   The tint is uniform on purpose. Each result is one zonal statistic for the
+   whole polygon, so a varying raster inside it would render structure the data
+   does not contain — and a viewer would read that texture as information. Flat
+   fill is the faithful choice: shape says where, colour says which indicator,
+   opacity says how much it moved.
+
+   An approximate outline (a bounding box, for a district with no gated
+   geometry) is drawn dashed and dimmer, so it cannot pass for a surveyed
+   boundary. */
+const districtGroup = new THREE.Group();
+earthSpin.add(districtGroup);
+
+function clearDistrict() {
+  for (const child of districtGroup.children) {
+    child.geometry?.dispose?.();
+    child.material?.dispose?.();
+  }
+  districtGroup.clear();
+}
+
+function drawDistrict({ rings, approximate, colour, intensity }) {
+  clearDistrict();
+  if (!rings?.length || !rings[0]?.length) return;
+
+  const hex = colour ?? MARK;
+  const lift = EARTH_R + Q.displacement + 0.0016;   // clear the displaced terrain
+
+  // Triangulate in lon/lat, then lift every vertex onto the sphere. ShapeGeometry
+  // does the earcut for us, holes included.
+  const outer = rings[0];
+  const shape = new THREE.Shape(outer.map(([lon, lat]) => new THREE.Vector2(lon, lat)));
+  for (let i = 1; i < rings.length; i++) {
+    shape.holes.push(new THREE.Path(rings[i].map(([lon, lat]) => new THREE.Vector2(lon, lat))));
+  }
+
+  const geo = new THREE.ShapeGeometry(shape);
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const v = latLonToVec3(pos.getY(i), pos.getX(i), lift);
+    pos.setXYZ(i, v.x, v.y, v.z);
+  }
+  geo.computeVertexNormals();
+
+  const fill = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
+    color: hex,
+    transparent: true,
+    opacity: (intensity ?? 0.35) * (approximate ? 0.6 : 1),
+    side: THREE.DoubleSide,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  }));
+  districtGroup.add(fill);
+
+  // Outline, lifted a little further so it is never z-fought by its own fill.
+  const outlinePts = outer.map(([lon, lat]) => latLonToVec3(lat, lon, lift + 0.0012));
+  const outlineGeo = new THREE.BufferGeometry().setFromPoints(outlinePts);
+  const outlineMat = approximate
+    ? new THREE.LineDashedMaterial({ color: hex, transparent: true, opacity: 0.75, dashSize: 0.012, gapSize: 0.01 })
+    : new THREE.LineBasicMaterial({ color: hex, transparent: true, opacity: 0.95 });
+  const outline = new THREE.LineLoop(outlineGeo, outlineMat);
+  if (approximate) outline.computeLineDistances();
+  districtGroup.add(outline);
+}
+
+addEventListener('sparc:district', (e) => {
+  const d = e.detail;
+  if (!d || !d.rings) { clearDistrict(); return; }
+  drawDistrict(d);
+});
+
 addEventListener('sparc:indicator', (e) => {
   const hex = INDICATOR_COLOUR[e.detail?.indicatorId] ?? MARK;
   [ringMat, mastMat].forEach((mat) => mat.color.setHex(hex));

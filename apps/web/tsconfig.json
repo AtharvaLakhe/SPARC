@@ -20,7 +20,8 @@
       "@contract/*": ["../../packages/contracts/schemas/*"],
       "@fixtures/*": ["../../contracts/examples/*"],
       "@globe/*": ["../../orbital-website/*"],
-      "@boundaries/*": ["../../data/metadata/boundaries/geoBoundaries-IND-ADM2-76128533/*"]
+      "@boundaries/*": ["../../data/metadata/boundaries/geoBoundaries-IND-ADM2-76128533/*"],
+      "@validated/*": ["../../data/validated/boundaries/geoBoundaries-IND-ADM2-76128533/*"]
     }
   },
   "include": ["src", "vite.config.ts"]

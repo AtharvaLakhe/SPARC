@@ -19,6 +19,8 @@ import { DetailScreen } from './features/DetailView';
 import { LimitationsPanel, ModeBanner } from './features/Disclosure';
 import { ErrorView, LoadingView } from './features/StateViews';
 import { SummaryScreen } from './features/SummaryView';
+import { intensityFor, shapeForRegion } from './globe/overlay';
+import { styleFor } from './indicators';
 import { LocationConsole, PeriodConsole } from './shell/Consoles';
 import {
   mapDetail, mapSummary,
@@ -135,6 +137,43 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
     dispatchEvent(new CustomEvent('sparc:indicator', { detail: { indicatorId: id } }));
   }, [route]);
 
+  /* Choropleth patch for the district in view. Sent whenever the district or
+     the focused indicator changes; cleared when the panel leaves the results,
+     because a patch left behind on the globe would keep asserting a selection
+     that is no longer current. */
+  useEffect(() => {
+    if (stage !== 'dashboard') {
+      dispatchEvent(new CustomEvent('sparc:district', { detail: null }));
+      return;
+    }
+    const shape = shapeForRegion(regionId);
+    if (!shape) return;
+
+    /* Point the globe at it. Picking a district from the list previously left
+       the planet wherever it happened to be, so the patch was often drawn on
+       the far side and the user saw nothing happen. */
+    const centre = summary.status === 'ready' ? summary.value : null;
+    const globe = (window as unknown as { __orbital?: { goTo?: (lat: number, lon: number, name: string) => void } }).__orbital;
+    if (centre && globe?.goTo) {
+      const [w, s2, e, n] = centre.bbox;
+      globe.goTo((s2 + n) / 2, (w + e) / 2, centre.regionName);
+    }
+
+    const focused = route.name === 'indicator' ? route.indicatorId : null;
+    const card = summary.status === 'ready'
+      ? summary.value.indicators.find((i) => (focused ? i.id === focused : true))
+      : undefined;
+
+    dispatchEvent(new CustomEvent('sparc:district', {
+      detail: {
+        rings: shape.rings,
+        approximate: shape.approximate,
+        colour: Number(styleFor(focused ?? 'surface-water').accent.replace('#', '0x')),
+        intensity: intensityFor(card?.metric.percentRaw ?? null),
+      },
+    }));
+  }, [stage, regionId, route, summary]);
+
   const go = useCallback((hash: string) => { location.hash = hash; }, []);
   const openIndicator = useCallback((id: string) => {
     if (panel) setPanelNav({ stage: 'dashboard', route: { name: 'indicator', indicatorId: id } });
@@ -162,7 +201,14 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
             regions={regions.length ? regions : [{ id: DEFAULT_REGION, name: 'Nagpur', centroid: [79.08, 21.15], bbox: [78.1, 20.5, 79.5, 21.8] } as RegionRef]}
             onResolved={(id) => {
               setRegionId(id);
-              const next = { stage: 'period' as Stage, route: { name: 'summary' as const } };
+              /* Straight to the numbers. There is exactly one processed
+                 comparison window, so asking which one to use is a question
+                 with a single possible answer — pure friction between the user
+                 and the thing they asked for. "Change period" in the header
+                 reopens it for when there is more than one. */
+              const next = FROZEN_PERIODS.length > 1
+                ? { stage: 'period' as Stage, route: { name: 'summary' as const } }
+                : { stage: 'dashboard' as Stage, route: { name: 'summary' as const } };
               if (panel) setPanelNav(next); else setNav(next);
             }}
             handoff={panel ? panel.target : handoffFromHash(location.hash)}

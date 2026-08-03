@@ -15,6 +15,9 @@ import builtUpComparison from '@fixtures/built-up-comparison.mock.json';
 import lstComparison from '@fixtures/lst-comparison.mock.json';
 import partialData from '@fixtures/partial-data.mock.json';
 
+import {
+  cityForRegionId, comparisonForCity, demoRegions, summaryForCity,
+} from '../demo/cities';
 import type {
   ComparisonSelection,
   DistrictSummaryResponse,
@@ -67,11 +70,14 @@ export class DemoTransport implements Transport {
   }
 
   async listRegions(): Promise<RegionRef[]> {
-    return [this.summary.data.region];
+    // The real pack first, then the generated demo districts. Order matters:
+    // the one district with actual processing behind it should lead.
+    return [this.summary.data.region, ...demoRegions()];
   }
 
   async getRegionSummary(selection: ComparisonSelection): Promise<DistrictSummaryResponse> {
-    if (selection.regionId !== this.summary.data.region.id) {
+    const city = cityForRegionId(selection.regionId);
+    if (!city && selection.regionId !== this.summary.data.region.id) {
       throw new DataError('not-found', 'No demo pack exists for the requested region.');
     }
     if (!periodsMatch(selection, this.summary)) {
@@ -79,6 +85,19 @@ export class DemoTransport implements Transport {
         'invalid-input',
         'The demo pack only contains the frozen post-monsoon 2019 to 2024 comparison.',
       );
+    }
+    // Generated districts are validated exactly like the committed fixtures.
+    // If the generator ever drifts from the schema this throws here rather than
+    // rendering something the contract does not allow.
+    if (city) {
+      try {
+        return assertDistrictSummary(summaryForCity(city));
+      } catch (err) {
+        if (err instanceof ContractViolation) {
+          throw new DataError('contract', err.message, { detail: err.errors });
+        }
+        throw err;
+      }
     }
     return this.summary;
   }
@@ -91,9 +110,12 @@ export class DemoTransport implements Transport {
     // every indicator, rather than each branch inventing its own check.
     await this.getRegionSummary(selection);
 
-    const source = this.usePartial && PARTIAL_OVERRIDE[indicatorId]
-      ? PARTIAL_OVERRIDE[indicatorId]
-      : COMPARISONS[indicatorId];
+    const city = cityForRegionId(selection.regionId);
+    const source = city
+      ? comparisonForCity(city, indicatorId)
+      : this.usePartial && PARTIAL_OVERRIDE[indicatorId]
+        ? PARTIAL_OVERRIDE[indicatorId]
+        : COMPARISONS[indicatorId];
 
     if (!source) {
       throw new DataError('not-found', `No demo result is packaged for "${indicatorId}".`);

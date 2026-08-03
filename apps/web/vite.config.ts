@@ -30,6 +30,10 @@ export default defineConfig({
       // from the record it is supposed to be reproducing — and for an ODbL
       // source with share-alike obligations, drifting is a compliance problem
       // rather than a cosmetic one.
+      // Validated district geometry — the real polygons the pipeline gated.
+      '@validated': path.resolve(
+        repoRoot, 'data', 'validated', 'boundaries', 'geoBoundaries-IND-ADM2-76128533',
+      ),
       '@boundaries': path.resolve(
         repoRoot, 'data', 'metadata', 'boundaries', 'geoBoundaries-IND-ADM2-76128533',
       ),

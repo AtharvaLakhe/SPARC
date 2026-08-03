@@ -5,6 +5,8 @@ import './styles.css';
 import './stage.css';
 import './panel.css';
 import './cards.css';
+import './picker.css';
+import './viz.css';
 
 /* Top-level boundary. A render crash must not leave a blank page: the whole
    point of the offline demo is that it degrades to something a presenter can
@@ -56,6 +58,7 @@ function ensureHost(): HTMLElement {
 }
 
 function openPanel(target: PanelTarget) {
+  if (teardown) { clearTimeout(teardown); teardown = null; }
   const host = ensureHost();
   host.classList.add('sparc-panel--open');
   document.documentElement.classList.add('sparc-panel-open');
@@ -71,9 +74,23 @@ function openPanel(target: PanelTarget) {
   requestAnimationFrame(() => host.querySelector<HTMLElement>('[data-autofocus]')?.focus());
 }
 
+let teardown: ReturnType<typeof setTimeout> | null = null;
+
 function closePanel() {
   panelHost?.classList.remove('sparc-panel--open');
   document.documentElement.classList.remove('sparc-panel-open');
+  dispatchEvent(new CustomEvent('sparc:district', { detail: null }));
+
+  /* Unmount after the slide-out finishes. Keeping the tree alive would keep
+     its state too, so reopening would drop you back on whatever indicator you
+     were last reading instead of the district summary. The panel is a fresh
+     question every time it is asked. */
+  if (teardown) clearTimeout(teardown);
+  teardown = setTimeout(() => {
+    panelRoot?.unmount();
+    panelRoot = null;
+    teardown = null;
+  }, 460);
 }
 
 declare global {

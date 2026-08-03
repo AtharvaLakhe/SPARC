@@ -11,6 +11,7 @@ import { findPlaces } from '@globe/places.js';
 import { parseQuery } from '@globe/geo.js';
 import type { RegionRef } from '../contract/types';
 import { FROZEN_PERIODS, type FrozenPeriod } from '../config';
+import { CityPicker } from './CityPicker';
 
 /** Great-circle distance in km. */
 function haversineKm(aLat: number, aLon: number, bLat: number, bLon: number): number {
@@ -139,14 +140,10 @@ export function LocationConsole({
         {message ? <p className="console__msg" role="status">{message}</p> : null}
 
         <div className="console__foot">
-          <p className="console__foot-label">Districts with a processed pack</p>
-          <div className="console__chips">
-            {regions.map((r) => (
-              <button key={r.id} type="button" className="chip" onClick={() => onResolved(r.id)}>
-                {r.name}
-              </button>
-            ))}
-          </div>
+          <CityPicker
+            onPick={onResolved}
+            realRegion={regions.find((r) => r.id.includes('nagpur')) ?? regions[0] ?? null}
+          />
         </div>
       </div>
     </div>

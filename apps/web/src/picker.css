@@ -1,0 +1,106 @@
+/* District picker.
+ *
+ * Fully fluid: the grid uses auto-fit with an intrinsic minimum, so it goes
+ * 4-up on a wide screen and 1-up at 360 px without a single width media query.
+ * The old version was a fixed row of pills that neither reflowed nor said
+ * anything about the data behind them. */
+
+.picker { margin: 0.6rem 0 0; }
+
+.picker__label {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.6rem;
+  margin: 1.2rem 0 0.6rem;
+  font-size: 0.68rem; letter-spacing: 0.22em; text-transform: uppercase;
+  color: #7d8a9e;
+}
+.picker__label--real { margin-top: 0.2rem; color: #7ee2b8; }
+.picker__warn {
+  letter-spacing: 0.08em; text-transform: none; font-size: 0.72rem;
+  color: #ffb454;
+}
+
+.picker__real { list-style: none; margin: 0; padding: 0; }
+.picker__grid {
+  list-style: none; margin: 0; padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(13.5rem, 100%), 1fr));
+  gap: 0.7rem;
+}
+
+.citycard {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column; gap: 0.5rem;
+  text-align: left; font: inherit; cursor: pointer;
+  padding: 0.85rem 0.95rem;
+  border-radius: 12px;
+  color: #e6edf6;
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(140, 170, 210, 0.18);
+  transition: transform 170ms ease, border-color 170ms ease, box-shadow 170ms ease;
+}
+.citycard:hover {
+  transform: translateY(-3px);
+  border-color: rgba(88, 183, 255, 0.65);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.42);
+}
+.citycard--real {
+  background: linear-gradient(150deg, rgba(126, 226, 184, 0.14), rgba(126, 226, 184, 0.03));
+  border-color: rgba(126, 226, 184, 0.42);
+}
+.citycard--real:hover { border-color: rgba(126, 226, 184, 0.9); }
+
+.citycard__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.45rem; }
+.citycard__name { font-size: 1.02rem; font-weight: 650; letter-spacing: -0.01em; }
+.citycard__country { font-size: 0.72rem; color: #7d8a9e; }
+.citycard__badge {
+  font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 0.1rem 0.4rem; border-radius: 999px;
+  color: #7ee2b8; border: 1px solid rgba(126, 226, 184, 0.5);
+}
+.citycard__story { font-size: 0.74rem; line-height: 1.45; color: #93a4b8; }
+
+/* ── dials ───────────────────────────────────────────────────────────────── */
+.citycard__dials {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 0.3rem; margin-top: 0.15rem;
+}
+.dial { display: flex; flex-direction: column; align-items: center; gap: 0.1rem; }
+.dial__svg { width: 100%; max-width: 3.1rem; height: auto; display: block; }
+.dial__track { fill: none; stroke: rgba(140, 170, 210, 0.22); stroke-width: 3; }
+.dial__arc {
+  fill: none; stroke-width: 3; stroke-linecap: round;
+  transition: stroke-dasharray 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dial__glyph { font-size: 11px; text-anchor: middle; opacity: 0.95; }
+.dial__pct { font-size: 0.7rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+.dial__label {
+  font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase; color: #7d8a9e;
+}
+
+/* ── footer ──────────────────────────────────────────────────────────────── */
+.citycard__foot {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 0.4rem; margin-top: auto; padding-top: 0.5rem;
+  border-top: 1px solid rgba(140, 170, 210, 0.14);
+}
+.citycard__cov {
+  display: flex; align-items: center; gap: 0.4rem;
+  font-size: 0.63rem; letter-spacing: 0.06em; color: #7d8a9e;
+}
+.citycard__covbar {
+  width: 2.6rem; height: 4px; border-radius: 999px; overflow: hidden;
+  background: rgba(140, 170, 210, 0.2);
+}
+.citycard__covfill { display: block; height: 100%; background: #58b7ff; border-radius: 999px; }
+.citycard__go { font-size: 0.72rem; font-weight: 650; color: #7fd0ff; margin-left: auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  .citycard { transition: none; }
+  .citycard:hover { transform: none; }
+  .dial__arc { transition: none; }
+}
+
+@media (prefers-contrast: more) {
+  .citycard { border-width: 2px; }
+  .dial__track { stroke: rgba(140, 170, 210, 0.5); }
+}

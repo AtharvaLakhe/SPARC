@@ -13,6 +13,7 @@ import { Callout, QualityPill, StatusPill, Value } from './Primitives';
 import { QualityPanel, ProvenancePanel } from './Disclosure';
 import { BoundaryProvenancePanel } from './BoundaryProvenance';
 import { LayerView } from './LayerView';
+import { EvidenceViz } from './EvidenceViz';
 
 /* Which SDG target this proxy speaks to — and, just as prominently, the official
    indicator it is not. Stating the relevance without stating the limit is how a
@@ -129,9 +130,10 @@ export function DetailScreen({
         </p>
       </section>
 
+      <EvidenceViz detail={detail} />
       <SdgPanel indicatorId={detail.indicatorId} />
       <QualityPanel quality={detail.quality} />
-      <LayerView layers={detail.layers} />
+      <LayerView layers={detail.layers} regionId={detail.region.id} />
       <ProvenancePanel provenance={detail.provenance} />
       <BoundaryProvenancePanel />
     </>

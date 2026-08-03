@@ -1,0 +1,75 @@
+/* Evidence-at-a-glance visuals.
+ *
+ * Three panels that answer, in order: how big is the change, how much of the
+ * district was actually seen, and how much does the answer wobble. Each one
+ * prints its own numbers, so the graphics are a way in rather than the only
+ * way to read it. */
+
+.viz-panel { padding: 1rem 1.1rem; }
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
+  gap: 1.1rem;
+}
+
+.viz { display: flex; flex-direction: column; gap: 0.45rem; min-width: 0; }
+.viz__title {
+  margin: 0;
+  font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--dim);
+}
+.viz__note { margin: 0.1rem 0 0; font-size: 0.74rem; line-height: 1.5; color: var(--dim); }
+.viz__note b { color: var(--ink); }
+
+/* ── stacked coverage ────────────────────────────────────────────────────── */
+.viz__stack {
+  display: flex; width: 100%; height: 12px; border-radius: 999px; overflow: hidden;
+  background: color-mix(in srgb, var(--line) 60%, transparent);
+}
+.viz__seg { display: block; height: 100%; }
+.viz__seg--valid { background: linear-gradient(90deg, #58b7ff, #7fd0ff); }
+.viz__seg--cloud { background: color-mix(in srgb, var(--ink) 45%, transparent); }
+.viz__seg--nodata { background: color-mix(in srgb, var(--dim) 40%, transparent); }
+
+.viz__key { list-style: none; margin: 0.2rem 0 0; padding: 0; display: grid; gap: 0.18rem; }
+.viz__key li { display: flex; align-items: center; gap: 0.4rem; font-size: 0.74rem; color: var(--dim); }
+.viz__key b { margin-left: auto; color: var(--ink); font-variant-numeric: tabular-nums; }
+.viz__dot { width: 8px; height: 8px; border-radius: 2px; flex: none; }
+.viz__dot--valid { background: #58b7ff; }
+.viz__dot--cloud { background: color-mix(in srgb, var(--ink) 45%, transparent); }
+.viz__dot--nodata { background: color-mix(in srgb, var(--dim) 40%, transparent); }
+
+/* ── baseline vs comparison ──────────────────────────────────────────────── */
+.viz__pair { display: flex; align-items: center; gap: 0.5rem; }
+.viz__ptag {
+  flex: none; width: 2.1rem;
+  font-size: 0.63rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim);
+}
+.viz__ptrack {
+  flex: 1; min-width: 0; height: 10px; border-radius: 999px; overflow: hidden;
+  background: color-mix(in srgb, var(--line) 60%, transparent);
+}
+.viz__pfill {
+  display: block; height: 100%; border-radius: 999px;
+  transition: width 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.viz__pfill--base { background: color-mix(in srgb, var(--dim) 60%, transparent); }
+.viz__pval {
+  flex: none; font-size: 0.78rem; font-weight: 650; font-variant-numeric: tabular-nums;
+  min-width: 3.6rem; text-align: right;
+}
+
+/* ── sensitivity band ────────────────────────────────────────────────────── */
+.viz__sens {
+  position: relative; width: 100%; height: 12px; border-radius: 999px;
+  background: color-mix(in srgb, var(--line) 60%, transparent); overflow: hidden;
+}
+.viz__sensfill { display: block; height: 100%; border-radius: 999px; opacity: 0.85; }
+.viz__sensmark {
+  position: absolute; left: 0; top: -3px; bottom: -3px; width: 2px;
+  background: var(--ink); opacity: 0.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .viz__pfill { transition: none; }
+}

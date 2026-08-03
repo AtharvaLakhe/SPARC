@@ -14,6 +14,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 import type { LayerDescriptor } from '../contract/types';
+import { shapeForRegion } from '../globe/overlay';
 import { Callout } from './Primitives';
 
 function webglAvailable(): boolean {
@@ -86,9 +87,10 @@ function Legend({ layer }: { layer: LayerDescriptor }) {
   );
 }
 
-function MapCanvas({ layer }: { layer: LayerDescriptor }) {
+function MapCanvas({ layer, regionId }: { layer: LayerDescriptor; regionId: string }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
+  const [rasterMissing, setRasterMissing] = useState(false);
 
   useEffect(() => {
     let disposed = false;
@@ -117,27 +119,74 @@ function MapCanvas({ layer }: { layer: LayerDescriptor }) {
         map = instance;
 
         instance.on('load', () => {
-          if (disposed || !isSafeAppHref(layer.href)) return;
-          if (layer.representation === 'image') {
-            const [w, s, e, n] = layer.bounds;
-            instance.addSource('sparc-layer', {
-              type: 'image',
-              url: layer.href,
-              coordinates: [[w, n], [e, n], [e, s], [w, s]],
+          if (disposed) return;
+
+          /* The district boundary, drawn from the validated geometry we already
+             hold. This is the part that is always real — the raster below is a
+             demo asset that may not be packaged, and a map showing nothing at
+             all because one image 404'd was worse than useless. */
+          const shape = shapeForRegion(regionId, layer.bounds);
+          if (shape) {
+            instance.addSource('sparc-district', {
+              type: 'geojson',
+              data: {
+                type: 'Feature',
+                properties: {},
+                geometry: { type: 'Polygon', coordinates: shape.rings },
+              },
             });
             instance.addLayer({
-              id: 'sparc-layer',
-              type: 'raster',
-              source: 'sparc-layer',
-              paint: { 'raster-opacity': layer.opacity ?? 1 },
+              id: 'sparc-district-fill',
+              type: 'fill',
+              source: 'sparc-district',
+              paint: { 'fill-color': '#58b7ff', 'fill-opacity': 0.16 },
             });
+            instance.addLayer({
+              id: 'sparc-district-line',
+              type: 'line',
+              source: 'sparc-district',
+              paint: {
+                'line-color': '#7fd0ff',
+                'line-width': 1.6,
+                // Dashed when the outline is a bounding box rather than a
+                // surveyed boundary, so the two never look alike.
+                ...(shape.approximate ? { 'line-dasharray': [2, 2] } : {}),
+              },
+            });
+          }
+
+          // The analytical raster is optional and often absent in a demo build.
+          if (isSafeAppHref(layer.href) && layer.representation === 'image') {
+            const [w, s, e, n] = layer.bounds;
+            fetch(layer.href, { method: 'HEAD' })
+              .then((r) => {
+                if (disposed || !r.ok) {
+                  if (!r.ok) setRasterMissing(true);
+                  return;
+                }
+                instance.addSource('sparc-layer', {
+                  type: 'image',
+                  url: layer.href,
+                  coordinates: [[w, n], [e, n], [e, s], [w, s]],
+                });
+                instance.addLayer({
+                  id: 'sparc-layer',
+                  type: 'raster',
+                  source: 'sparc-layer',
+                  paint: { 'raster-opacity': layer.opacity ?? 1 },
+                });
+              })
+              .catch(() => setRasterMissing(true));
           }
         });
 
         instance.on('error', (event: { error?: { message?: string } }) => {
-          // A missing image is expected in the mock pack — the fixture points at
-          // a demo asset that is not committed. Say so instead of looking broken.
-          setFailed(event?.error?.message ?? 'The layer asset could not be loaded.');
+          const msg = event?.error?.message ?? '';
+          // A missing raster is expected and already reported separately; do not
+          // escalate it into "the map is broken", because the map is fine and
+          // the boundary on it is real.
+          if (/404|Not Found/i.test(msg)) { setRasterMissing(true); return; }
+          setFailed(msg || 'The map could not be drawn.');
         });
       } catch (err) {
         setFailed(`The map renderer failed to load: ${String((err as Error)?.message ?? err)}`);
@@ -153,6 +202,15 @@ function MapCanvas({ layer }: { layer: LayerDescriptor }) {
   return (
     <>
       <div ref={ref} className="map" role="img" aria-label={`Map preview of ${layer.id}. The table below carries the same information.`} />
+      {rasterMissing ? (
+        <Callout tone="info" title="Analytical raster not packaged in this build">
+          <p>
+            The district boundary above is the validated geometry. The
+            change-detection image it would be draped with is a demo asset that
+            is not committed, so only the boundary is drawn.
+          </p>
+        </Callout>
+      ) : null}
       {failed ? (
         <Callout tone="warn" title="Map preview unavailable">
           <p>{failed}</p>
@@ -163,7 +221,7 @@ function MapCanvas({ layer }: { layer: LayerDescriptor }) {
   );
 }
 
-export function LayerView({ layers }: { layers: LayerDescriptor[] }) {
+export function LayerView({ layers, regionId }: { layers: LayerDescriptor[]; regionId: string }) {
   const headingId = useId();
   const [webgl] = useState(webglAvailable);
   const [showMap, setShowMap] = useState(false);
@@ -197,7 +255,7 @@ export function LayerView({ layers }: { layers: LayerDescriptor[] }) {
           {webgl ? (
             <div className="layer__map">
               {showMap ? (
-                <MapCanvas layer={layer} />
+                <MapCanvas layer={layer} regionId={regionId} />
               ) : (
                 <button type="button" className="btn" onClick={() => setShowMap(true)}>
                   Load map preview
