@@ -33,6 +33,12 @@ export interface ModeBadge {
 }
 
 export interface MetricView {
+  /* Raw numbers alongside the formatted strings. The bars need magnitudes, and
+     parsing them back out of a localised string would be both fragile and a
+     second place for the null handling to go wrong. */
+  baselineRaw: number | null;
+  comparisonRaw: number | null;
+  percentRaw: number | null;
   baseline: Formatted;
   comparison: Formatted;
   absoluteChange: Formatted;
@@ -161,6 +167,9 @@ export function mapMetric(metric: Metric): MetricView {
   const reason = metric.unavailableReason;
   const changeUnavailable = metric.absoluteChange === null || metric.absoluteChange === undefined;
   return {
+    baselineRaw: metric.baselineValue,
+    comparisonRaw: metric.comparisonValue,
+    percentRaw: metric.percentChange,
     baseline: formatNumber(metric.baselineValue, { unit: metric.unit, reason }),
     comparison: formatNumber(metric.comparisonValue, { unit: metric.unit, reason }),
     absoluteChange: formatNumber(metric.absoluteChange, { unit: metric.unit, reason, signed: true }),

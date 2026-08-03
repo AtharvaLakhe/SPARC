@@ -66,7 +66,7 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
      touch location.hash — the globe owns the URL. So navigation is local
      state. Standalone keeps the hash router for shareable deep links. */
   const [panelNav, setPanelNav] = useState<{ stage: Stage; route: Route }>(
-    { stage: 'period', route: { name: 'summary' } },
+    { stage: 'locate', route: { name: 'summary' } },
   );
   const [hashNav, setNav] = useState(() => parseHash(location.hash));
   const { stage, route } = panel ? panelNav : hashNav;
@@ -146,23 +146,11 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
   }, [panel, go]);
   const retry = useCallback(() => setReloadToken((n) => n + 1), []);
 
-  /* Panel mode: the globe handed over coordinates, so resolve them to a
-     district the moment the region list lands, and go straight to the period
-     question. If nothing covers the point, fall back to the location step so
-     the refusal is shown rather than swallowed. */
-  const resolved = useRef(false);
-  useEffect(() => {
-    if (!panel || resolved.current || !regions.length) return;
-    resolved.current = true;
-    const { lat, lon } = panel.target;
-    const covering = regions.find((r) => {
-      const [w, s2, e, n] = r.bbox;
-      return lon >= w && lon <= e && lat >= s2 && lat <= n;
-    });
-    if (covering) { setRegionId(covering.id); setPanelNav({ stage: 'period', route: { name: 'summary' } }); }
-    else setPanelNav({ stage: 'locate', route: { name: 'summary' } });
-  }, [panel, regions]);
-
+  /* Resolution lives in LocationConsole and nowhere else. It previously also
+     happened here, and the two disagreed: this one silently switched to the
+     location step while the console — which owns the explanation — never
+     learned a target had been rejected. Targeting Mumbai therefore re-asked
+     "where?" with no reason given. */
   const regionName = regions.find((r) => r.id === regionId)?.name ?? 'this district';
 
   /* ── stages before the dashboard ───────────────────────────────────────── */
@@ -177,7 +165,7 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
               const next = { stage: 'period' as Stage, route: { name: 'summary' as const } };
               if (panel) setPanelNav(next); else setNav(next);
             }}
-            handoff={handoffFromHash(location.hash)}
+            handoff={panel ? panel.target : handoffFromHash(location.hash)}
             onCancel={() => { location.href = ORBIT_URL; }}
           />
         ) : (

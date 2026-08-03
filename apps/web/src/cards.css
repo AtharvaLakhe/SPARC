@@ -1,0 +1,121 @@
+/* Indicator cards.
+ *
+ * Each card carries its indicator's accent via a --accent custom property set
+ * inline from src/indicators.ts, which is also where the globe's marker colours
+ * come from — so the card and the marker on the planet agree.
+ *
+ * Colour is never load-bearing here. Direction is an arrow *and* the word
+ * "higher"/"lower"; an unavailable value is the word "Unavailable" with its
+ * reason; the bars are aria-hidden decoration over numbers already printed. */
+
+.card2 {
+  position: relative;
+  overflow: hidden;
+  padding: 1.15rem 1.2rem 1.2rem;
+  border-radius: 12px;
+  background:
+    radial-gradient(120% 100% at 0% 0%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 62%),
+    var(--panel-2);
+  border: 1px solid var(--line);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+.card2:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+/* Accent rail — decorative, and duplicated by the glyph and the title. */
+.card2::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--accent), transparent 85%);
+}
+
+.card2__head { display: flex; gap: 0.7rem; align-items: flex-start; }
+.card2__glyph {
+  flex: none;
+  width: 2.1rem; height: 2.1rem;
+  display: grid; place-items: center;
+  font-size: 1rem;
+  border-radius: 8px;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.card2__title { margin: 0; font-size: 1rem; line-height: 1.25; }
+.card2__proxy { margin: 0.15rem 0 0; font-size: 0.76rem; color: var(--dim); }
+.card2__pills { margin: 0.8rem 0 0; display: flex; flex-wrap: wrap; gap: 0.35rem; }
+
+/* ── the headline change ─────────────────────────────────────────────────── */
+.card2__hero {
+  margin: 0.9rem 0 0.2rem;
+  padding: 0.7rem 0 0.55rem;
+  border-top: 1px solid var(--line);
+}
+.card2__delta {
+  margin: 0;
+  display: flex; align-items: baseline; gap: 0.4rem;
+  font-size: clamp(1.5rem, 4.5vw, 1.95rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  color: var(--ink);
+}
+.card2__arrow { font-size: 0.8em; color: var(--accent); }
+.card2__pct { margin: 0.25rem 0 0; font-size: 0.85rem; color: var(--dim); }
+.card2__word { color: var(--dim); }
+.card2__nochange { margin: 0; display: flex; flex-direction: column; gap: 0.15rem; }
+.card2__nochange-word {
+  font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--warn);
+}
+
+/* ── magnitude bars ──────────────────────────────────────────────────────── */
+.bars { display: grid; gap: 0.35rem; margin: 0.5rem 0 0.9rem; }
+.bars__row { display: flex; align-items: center; gap: 0.5rem; }
+.bars__tag {
+  flex: none; width: 2.2rem;
+  font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim);
+}
+.bars__track {
+  flex: 1; height: 7px; border-radius: 999px;
+  background: color-mix(in srgb, var(--line) 70%, transparent);
+  overflow: hidden;
+}
+.bars__fill {
+  display: block; height: 100%; border-radius: 999px;
+  background: var(--accent);
+  transition: width 520ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.bars__fill--base { background: color-mix(in srgb, var(--dim) 65%, transparent); }
+
+/* ── the working ─────────────────────────────────────────────────────────── */
+.card2__figures {
+  margin: 0;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(7rem, 100%), 1fr));
+  gap: 0.6rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--line);
+}
+.card2__figures dt {
+  font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim);
+}
+.card2__figures dd { margin: 0.1rem 0 0; font-size: 0.98rem; font-weight: 600; }
+
+/* Wider cards than the old grid — the hero number needs the room. */
+.cards { grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr)); }
+
+@media (max-width: 30rem) {
+  .card2__delta { font-size: 1.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card2, .bars__fill { transition: none; }
+  .card2:hover { transform: none; }
+}
+
+@media (prefers-contrast: more) {
+  .card2 { border-width: 2px; }
+  .card2::before { width: 5px; }
+}
