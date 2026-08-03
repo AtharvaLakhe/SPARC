@@ -143,9 +143,9 @@ For GHS-BUILT-S R2023A include:
 
 Sources: *GHSL use conditions and citation*, European Commission Joint Research Centre, undated living page, accessed 2026-08-02, https://human-settlement.emergency.copernicus.eu/GHSLhowToCite.php; and [GHSL-2023](research/source-register.md#ghsl-2023).
 
-### Survey of India boundary
+### geoBoundaries India ADM2 boundary
 
-The Survey of India ABDB is the preferred authoritative boundary source, but the source pages used in planning do not establish a blanket public-redistribution license for the exact file SPARC will select. Do not commit or redistribute it until the downloaded product's terms are captured and reviewed. ([SOI-ABDB](research/source-register.md#soi-abdb), [SOI-CATALOG](research/source-register.md#soi-catalog))
+SPARC’s prototype district geometry comes from the pinned geoBoundaries gbOpen India ADM2 release `IND-ADM2-76128533`. Although geoBoundaries describes gbOpen generally as CC BY 4.0, the selected release's source metadata records ODbL 1.0. Treat the selected geometry as ODbL: preserve its attribution and applicable share-alike obligations, and do not label it CC BY-only. Include the boundary disclaimer in every release: “This boundary is suitable for prototype analysis but is not an authoritative legal or cadastral boundary.” No Survey of India ABDB geometry is used or redistributed. ([GBOPEN-IND-ADM2](research/source-register.md#gbopen-ind-adm2))
 
 ## Reference-imagery licensing
 
@@ -210,4 +210,4 @@ Validation references
 - Treating public domain as permission to omit scientific provenance.
 - Adding a Google Earth Engine service-account key to the repository or making Dynamic World required.
 - Copying paper/notebook code without verifying its license and origin.
-- Redistributing a Survey of India boundary before reviewing the exact product terms.
+- Redistributing the selected geoBoundaries geometry without ODbL attribution and applicable share-alike treatment.

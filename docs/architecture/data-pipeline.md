@@ -18,8 +18,9 @@ flowchart TD
     Boundary["Versioned administrative boundary"]
 
     subgraph Discovery["Discovery and acquisition metadata"]
-        Adapter["Provider-neutral STAC adapter"]
-        CDSE["Primary: Copernicus Data Space STAC"]
+        Adapter["Provider-neutral discovery adapter"]
+        GEE["Primary: Google Earth Engine Sentinel-2 SR"]
+        CDSE["Fallback: Copernicus Data Space STAC"]
         EarthSearch["Fallback: Earth Search COG catalog"]
         Planetary["Fallback: Planetary Computer"]
         USGS["Sensor fallback: USGS Landsat"]
@@ -52,11 +53,13 @@ flowchart TD
 
     Request --> Adapter
     Boundary --> Align
-    Adapter --> CDSE
+    Adapter --> GEE
+    Adapter -.-> CDSE
     Adapter -.-> EarthSearch
     Adapter -.-> Planetary
     Adapter -.-> USGS
-    CDSE --> Selection
+    GEE --> Selection
+    CDSE -.-> Selection
     EarthSearch --> Selection
     Planetary --> Selection
     USGS --> Selection

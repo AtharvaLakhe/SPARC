@@ -52,7 +52,7 @@ Evidence labels used across the documentation:
 
 **DECISION:** Nagpur is primary and Bengaluru Urban is backup. Pune and Gurugram were considered. Selection is conditional on a direct catalog and QA dry run; no district-specific imagery inventory has yet been created. See [ADR-007](../decisions/ADR-007-pilot-district.md).
 
-The intended authoritative geometry source is the Survey of India Administrative Boundary Database, which supplies district-level administrative vectors. The exact selected file and redistribution terms remain to be reviewed after acquisition. ([SOI-ABDB](source-register.md#soi-abdb), [SOI-CATALOG](source-register.md#soi-catalog))
+The prototype district geometry source is the pinned geoBoundaries gbOpen India ADM2 release `IND-ADM2-76128533`. The source-specific India release metadata records ODbL 1.0, despite the collection-level gbOpen CC BY 4.0 description, so SPARC follows ODbL attribution and applicable share-alike obligations. It is suitable for prototype analysis but is not an authoritative legal or cadastral boundary. No Survey of India geometry is used or redistributed. ([GBOPEN-IND-ADM2](source-register.md#gbopen-ind-adm2))
 
 ### Periods
 
@@ -214,7 +214,7 @@ The following cannot be confirmed from the current codebase or from planning res
 
 - actual Sentinel-2 item counts and AOI-level clear coverage for all four districts;
 - actual Landsat clear-scene counts and ASTER GED gap pattern for the proposed rural/urban zones;
-- stable district codes and exact boundary redistribution terms in the chosen ABDB file;
+- stable district/subdistrict codes and current-boundary review before any expansion beyond the two validated prototype district AOIs;
 - locally defensible thresholds and minimum mapping units;
 - independent reference imagery availability and license;
 - local user's/producer's accuracy and adjusted areas;

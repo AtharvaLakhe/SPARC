@@ -101,7 +101,7 @@ The planned browser is a React/TypeScript/Vite client. It may consume the same s
 ### Built-up area
 
 - **FR-BUILT-001:** The P0 system shall report baseline, comparison, gain, loss, net, and percentage change for a satellite-derived built-up-area proxy.
-- **FR-BUILT-002:** The no-Earth-Engine P0 method shall use a documented Sentinel-2 spectral consensus with NDBI/IBI diagnostics and vegetation/water exclusions.
+- **FR-BUILT-002:** The P0 method shall use a documented Sentinel-2 spectral consensus with NDBI/IBI diagnostics and vegetation/water exclusions, calculated by the offline Earth Engine worker.
 - **FR-BUILT-003:** Thresholds and cleanup rules shall be calibrated or pooled once and then kept fixed across periods.
 - **FR-BUILT-004:** Results shall disclose bare soil, dry vegetation, construction, reflective roofs, mixed pixels, and minimum-mapping-unit limitations.
 - **FR-BUILT-005:** Dynamic World, WorldCover, or GHSL agreement shall be identified as corroboration and not represented as independent ground truth.

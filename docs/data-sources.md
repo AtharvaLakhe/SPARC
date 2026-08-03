@@ -1,7 +1,7 @@
 # SPARC data sources and acquisition policy
 
-**Status:** source-selection plan plus completed metadata-only pilot discovery; no imagery has been downloaded
-**Evidence cut-off:** 2026-08-02  
+**Status:** source-selection policy plus validated district AOIs and pre-publication Earth Engine P0 runs; no public imagery pack is released
+**Evidence cut-off:** 2026-08-03
 **Primary processing platform:** Google Earth Engine; the released demo remains provider-independent
 
 ## Decisions
@@ -13,13 +13,13 @@
 - **DECISION:** primary P0 data are Earth Engine `COPERNICUS/S2_SR_HARMONIZED` Sentinel-2 Level-2A surface-reflectance images, with direct CDSE STAC retained as a fallback discovery path.
 - **DECISION:** primary P1 heat data are USGS Landsat 8/9 Collection 2 Tier 1 Level-2 Surface Temperature products.
 - **DECISION:** Dynamic World is optional comparison material, never a production or demo runtime dependency.
-- **FACT:** the 2026-08-02 metadata-only discovery found candidate Sentinel-2 L2A products with all required assets in every fixed pilot window. Exact polygon overlap, common-valid coverage and scientific suitability remain unconfirmed until boundary and per-pixel QA gates pass. See the [pilot source gate](research/pilot-source-gate.md).
+- **FACT:** the 2026-08-02 metadata-only discovery found candidate Sentinel-2 L2A products with all required assets in every fixed pilot window. The geoBoundaries ADM2 district gate has passed for Nagpur and the Bengaluru Urban backup. Initial P0 water and built-candidate computations have common-valid coverage above 99.8% for both districts; they remain pre-publication pending sensitivity and independent validation. The 10 m vegetation reduction timed out in the interactive worker, then completed as a full-resolution Google Earth Engine CSV batch task in the approved Drive folder on 2026-08-03. Its local import verified the approved boundary checksum, CRS, method settings, coverage, and area arithmetic; it still requires sensitivity testing and independent validation before reporting. See the [pilot source gate](research/pilot-source-gate.md).
 
 ## Source matrix
 
 | Priority | Source | SPARC use | Direct access path | Runtime role |
 |---|---|---|---|---|
-| Required | Survey of India Administrative Boundary Database | District AOI | Survey of India ABDB/download portal | pre-acquired, versioned boundary |
+| Required | geoBoundaries gbOpen India ADM2 `IND-ADM2-76128533` | District AOI | pinned geoBoundaries archive | validated prototype boundary; source raw file, output GeoJSON, and metadata are stored separately |
 | Required | Earth Engine `COPERNICUS/S2_SR_HARMONIZED` Sentinel-2 Level-2A | MNDWI, NDVI, NDBI and optional AWEI/EVI | Earth Engine worker; direct CDSE STAC fallback | server-side/offline processing; exported immutable demo assets |
 | Required for P1 | USGS Landsat 8/9 Collection 2 Level-2 ST | LST and surface UHI | USGS STAC/AWS or EarthExplorer | pre-acquired/cache; server-side processing |
 | Conditional | Copernicus Sentinel-1 IW GRD | cloudy-period water corroboration/fallback | CDSE STAC/download | offline fallback only for P0 |
@@ -28,7 +28,7 @@
 | Optional | GHSL GHS-BUILT-S R2023A | dated built-up plausibility | JRC direct product download | validation/context |
 | Optional only | Dynamic World V1 | one-off probability/label comparison | Google-hosted catalog/export path | no live dependency; omit if not pre-acquired |
 
-The access and product facts in this matrix are documented by the source owners. ([SOI-ABDB](research/source-register.md#soi-abdb), [CDSE-STAC](research/source-register.md#cdse-stac), [LANDSAT-STAC](research/source-register.md#landsat-stac), [GSW-2024](research/source-register.md#gsw-2024), [WORLDCOVER-DATA](research/source-register.md#worldcover-data), [GHSL-2023](research/source-register.md#ghsl-2023), [DW-CATALOG](research/source-register.md#dw-catalog))
+The access and product facts in this matrix are documented by the source owners. ([GBOPEN-IND-ADM2](research/source-register.md#gbopen-ind-adm2), [CDSE-STAC](research/source-register.md#cdse-stac), [LANDSAT-STAC](research/source-register.md#landsat-stac), [GSW-2024](research/source-register.md#gsw-2024), [WORLDCOVER-DATA](research/source-register.md#worldcover-data), [GHSL-2023](research/source-register.md#ghsl-2023), [DW-CATALOG](research/source-register.md#dw-catalog))
 
 ### Reuse decision details
 
@@ -36,7 +36,7 @@ The access and product facts in this matrix are documented by the source owners.
 
 | Resource | Purpose/component | License and attribution | Maintenance/current evidence | Advantages | Limitations | Prototype/production position | Alternative or fallback |
 |---|---|---|---|---|---|---|---|
-| Survey of India ABDB | Processing AOI and published district/subdistrict geometry | Exact acquired-product terms unresolved; do not redistribute until recorded ([SOI-ABDB](research/source-register.md#soi-abdb)) | Official product/catalog available at cut-off | Authoritative national mapping agency and subdistrict coverage | File not acquired; version, codes, topology, and redistribution permission unconfirmed | P0 only after geometry/license gate; production needs an update/version policy | Another authority-, version-, code-, and license-verified source; otherwise retain a non-redistributed local boundary or district-only result |
+| geoBoundaries gbOpen India ADM2 `IND-ADM2-76128533` | Prototype processing AOI and published district geometry | Release page presents gbOpen as CC BY 4.0, but the selected India ADM2 source metadata records ODbL 1.0; follow ODbL attribution and share-alike obligations ([GBOPEN-IND-ADM2](research/source-register.md#gbopen-ind-adm2)) | Pinned 2021 boundary-year, 2023-12-12 build and repository commit | Exact feature IDs, WGS84 CRS, raw archive and per-feature validation manifests recorded | Not an authoritative legal/cadastral boundary; source count metadata says 736 but archive contains 735 features; no Nagpur child geometry is approved | Prototype district AOIs are permitted only subject to ODbL conditions; production needs a current-boundary and legal review | Use another authority-, version-, code-, and license-verified source; otherwise omit published geometry |
 | Copernicus Sentinel-2 L2A | P0 processing input for water, vegetation, and built-up spectral proxies | Sentinel legal notice; derived output uses the modified-Copernicus attribution ([SENTINEL-LEGAL](research/source-register.md#sentinel-legal), [CDSE-ATTRIBUTION](research/source-register.md#cdse-attribution)) | Current mission specifications, quality reports, and CDSE STAC at cut-off ([S2-PSD](research/source-register.md#s2-psd), [CDSE-STAC](research/source-register.md#cdse-stac)) | Suitable visible/NIR/SWIR bands at 10/20 m and repeat coverage | Optical clouds/shadows; metadata-aware offsets/baselines; no thermal band | Required P0 and production-capable through a provider adapter | Approved alternate STAC/access host for the same Copernicus products; locally retained inputs and precomputed outputs |
 | Landsat 8/9 C2 L2 ST | P1 offline processing for LST and surface-UHI | U.S. public-domain data; preserve USGS citation/credit ([LANDSAT-PUBLIC-DOMAIN](research/source-register.md#landsat-public-domain), [LANDSAT-ST](research/source-register.md#landsat-st)) | Current Collection 2 product/access documentation at cut-off | Official surface-temperature product with QA and stable scaling | Cloud/ASTER GED gaps, limited clear dates, coarse effective thermal support, daytime surface—not air—temperature | P1 precomputed prototype; production-capable with scene/uncertainty gates | EarthExplorer if STAC/cloud access fails; omit heat rather than substitute Sentinel-2 |
 | Copernicus Sentinel-1 IW GRD | Conditional water corroboration when optical coverage fails | Copernicus Sentinel legal notice/attribution applies ([SENTINEL-LEGAL](research/source-register.md#sentinel-legal)) | Current official CDSE processing documentation at cut-off ([S1-GRD](research/source-register.md#s1-grd)) | Radar observations are not blocked by optical cloud | Calibration, terrain, speckle, orbit, and threshold choices add a separate method; no approved universal cutoff | Conditional fallback, not a silent substitute; production only after local validation | Expand equal optical windows symmetrically, switch whole pilot, or use the offline water pack |
@@ -51,7 +51,7 @@ The access and product facts in this matrix are documented by the source owners.
 
 ### Primary source
 
-Use the Survey of India Administrative Boundary Database district layer. The official product provides Indian administrative boundaries through district/sub-district levels in vector formats including Shapefile. ([SOI-ABDB](research/source-register.md#soi-abdb), [SOI-CATALOG](research/source-register.md#soi-catalog))
+Use geoBoundaries gbOpen India ADM2 release `IND-ADM2-76128533`, pinned at repository commit `9469f09`. The selected feature is exactly `Nagpur` / `76128533B3026318797185`; the selected backup is `Bangalore` / `76128533B76927648517269`, a distinct feature from `Bangalore Rural`. Its representative point is contained by the geoBoundaries ADM1 Karnataka feature, and SPARC displays it as Bengaluru Urban with the legacy-source-name note. ([GBOPEN-IND-ADM2](research/source-register.md#gbopen-ind-adm2), [GBOPEN-IND-ADM1](research/source-register.md#gbopen-ind-adm1))
 
 Before analysis, store:
 
@@ -71,11 +71,11 @@ normalizedGeoJsonHash
 licenseOrAccessTerms
 ```
 
-**DECISION:** the same versioned Nagpur geometry must clip both 2019 and 2024. Administrative-boundary change must not be confused with land-cover change.
+**DECISION:** the same validated Nagpur geometry must clip both 2019 and 2024. Administrative-boundary change must not be confused with land-cover change. Raw source archives are under Git-ignored `data/raw/boundaries/`; validated one-feature GeoJSON files are under `data/validated/boundaries/`; release and feature provenance/gate manifests are under `data/metadata/boundaries/`.
 
 **RECOMMENDATION:** retain the original vector, create a normalized analysis copy without changing topology, and compute area before and after repair. A material area difference is a stop condition.
 
-**LEGAL RISK:** free access is not the same as unrestricted redistribution. The exact terms shipped with the selected Survey of India product must be recorded before embedding the boundary in a public repository or downloadable artifact. The current source establishes official availability but is not treated here as a blanket redistribution license. ([SOI-ABDB](research/source-register.md#soi-abdb))
+**LEGAL RISK:** geoBoundaries’ collection-level CC BY 4.0 statement does not override the India ADM2 feature metadata declaring ODbL 1.0. The selected GeoJSON may be redistributed only with the required ODbL attribution and applicable share-alike obligations; SPARC must not claim it is CC BY-only. No Survey of India ABDB geometry is used or redistributed. Every boundary display must include: “This boundary is suitable for prototype analysis but is not an authoritative legal or cadastral boundary.” ([GBOPEN-IND-ADM2](research/source-register.md#gbopen-ind-adm2))
 
 ## 2. Sentinel-2 Level-2A
 
@@ -220,7 +220,7 @@ Create one immutable manifest per acquisition run:
   "createdAt": "ISO-8601 UTC",
   "aoi": {
     "name": "Nagpur",
-    "source": "Survey of India ABDB",
+    "source": "geoBoundaries gbOpen India ADM2 IND-ADM2-76128533",
     "geometryHash": "sha256:..."
   },
   "period": {
@@ -265,7 +265,7 @@ Never store bearer tokens, refresh tokens, AWS keys, usernames, passwords, or si
 | ESA WorldCover | CC BY 4.0 | ESA WorldCover's published-map wording, license link, modification statement, and dataset DOI ([WORLDCOVER-DATA](research/source-register.md#worldcover-data)) |
 | JRC Global Surface Water | Copernicus/JRC free-use terms | cite dataset and Pekel et al.; map wording `Source: EC JRC/Google` ([GSW-2024](research/source-register.md#gsw-2024)) |
 | GHSL | CC BY 4.0 | cite both the latest GHSL release paper and specific dataset; generic website citation alone is insufficient ([GHSL-2023](research/source-register.md#ghsl-2023)) |
-| Survey of India ABDB | exact selected-product terms pending review | do not redistribute until the acquired terms are recorded ([SOI-ABDB](research/source-register.md#soi-abdb)) |
+| geoBoundaries gbOpen India ADM2 | India ADM2 release metadata: ODbL 1.0; collection-level gbOpen is described as CC BY 4.0 | Preserve ODbL attribution and applicable share-alike obligations; do not call selected geometry CC BY-only; include the prototype/non-authoritative boundary disclaimer ([GBOPEN-IND-ADM2](research/source-register.md#gbopen-ind-adm2)) |
 
 The exact wording and software-notice obligations are maintained in [open-source-reuse.md](open-source-reuse.md).
 
@@ -281,7 +281,7 @@ The exact wording and software-notice obligations are maintained in [open-source
 
 Before the hackathon presentation, prepare a small, licensed, provenance-complete Nagpur package containing:
 
-- normalized district boundary or a non-redistributed local reference to it, depending on Survey of India terms;
+- validated district boundary only where the release bundle carries the required ODbL attribution, applicable share-alike treatment, and prototype/non-authoritative disclaimer;
 - selected source item manifests;
 - clipped/derived indicator COGs;
 - valid-observation counts and common-valid masks;
@@ -295,7 +295,7 @@ The demo may read these immutable outputs without calling CDSE, USGS, AWS, Googl
 
 Before implementation claims data feasibility, confirm and record:
 
-1. Official Nagpur geometry obtained and legally usable for the intended artifact.
+1. Validated Nagpur geoBoundaries geometry, exact source archive hash, feature provenance, source-specific ODbL terms, and required attribution/disclaimer are present.
 2. Sentinel-2 L2A item counts for both fixed windows.
 3. AOI-level common-valid coverage after SCL masking—not scene-level cloud metadata alone.
 4. At least two valid observations per period for most target pixels, or a documented downgrade.

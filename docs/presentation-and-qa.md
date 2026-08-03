@@ -124,13 +124,13 @@ A: No. Sentinel-2 has no thermal band suitable for this. Optional P1 LST uses US
 ### Data and provenance
 
 **Q: Which external data sources are required?**  
-A: P0 plans official Sentinel-2 L2A discovery through Copernicus Data Space STAC with approved equivalent catalog adapters as contingency. Optional LST uses Landsat Collection 2 Level-2. Boundaries require a dataset-specific source/version/license decision; Survey of India ABDB can be used only after exact terms are recorded. See [data sources](data-sources.md).
+A: P0 uses geoBoundaries gbOpen India ADM2 `IND-ADM2-76128533` as a validated prototype boundary and Earth Engine Sentinel-2 L2A for offline processing, with Copernicus Data Space STAC as a fallback. The selected boundary follows its source-specific ODbL 1.0 record, including attribution and applicable share-alike obligations; it is not a legal/cadastral boundary. Optional LST uses Landsat Collection 2 Level-2. No Survey of India geometry is used. See [data sources](data-sources.md).
 
 **Q: Do you depend on Google Earth Engine or Dynamic World?**  
 A: Google Earth Engine is the offline processing platform for the current build. The judged demo uses already-exported local results, so it does not require Earth Engine or internet access. Dynamic World may be optional corroboration but is not the primary built-up method or ground truth.
 
 **Q: Can someone reproduce a number?**  
-A: The design requires source product/item IDs, acquisition dates, processing baseline where known, bands/assets, AOI/grid/CRS, method/parameters hash, software version, generation time and output checksum. Reproducibility is a release gate; the current repository has only the specification, not reproduced pilot output.
+A: The boundary inputs are pinned by source/archive/output hashes and the current water and built-candidate pre-publication runs record image IDs, acquisition dates, processing baseline, AOI/grid/CRS, parameters, and output metadata. Reproducibility is still a release gate: vegetation requires batch processing and every indicator requires sensitivity and independent validation before publication.
 
 **Q: Are the numbers in the repository real findings?**  
 A: No. Files under `contracts/examples/` are explicitly synthetic mocks. A judged evidence demo must use processed release data marked `mock: false`; otherwise it must be presented only as a contract/UI prototype.

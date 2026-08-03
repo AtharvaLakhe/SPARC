@@ -1,8 +1,8 @@
 # Pilot source and boundary gate
 
-**Run date:** 2026-08-02  
+**Run date:** 2026-08-03
 **Task:** D0-C-001  
-**Status:** Earth Engine catalogue pass; boundary redistribution and polygon QA blocked
+**Status:** district boundary gate passed; controlled P0 processing started; publication gate remains blocked on sensitivity and independent validation
 
 ## Google Earth Engine Sentinel-2 metadata discovery
 
@@ -28,9 +28,9 @@ Raw reports are stored under the Git-ignored `data/raw/earth-engine-discovery/` 
 | `bengaluru-urban-2019-01-15-2019-03-15.json` | `89661ac48e9eb724c5f55185b12c46a43fb3c2e1ab741fbb494be279ee83ca97` |
 | `bengaluru-urban-2024-01-15-2024-03-15.json` | `fdb4b83080a9f58fb3ff41e4dee4c4033a61f18a05b88b8879d8b87e00038d46` |
 
-## Survey of India boundary metadata
+## Historical Survey of India research (rejected for geometry)
 
-The official 38,879-byte `Metadata_ABDB.zip` was downloaded from the Survey of India ABDB page and inspected without modifying the four workbooks. Archive SHA-256: `1a14716b73f00fc8391f2708a7975c2f2c1ad4a4e91aafb6dce6546a039e9514`.
+This section documents the earlier research only. It is not an approved source: no Survey of India ABDB geometry was downloaded, used, redistributed, or included in SPARC.
 
 Confirmed district/subdistrict metadata:
 
@@ -42,9 +42,39 @@ Confirmed district/subdistrict metadata:
 - owner and required credit: Survey of India;
 - access and use constraints both recorded as `copyright`, with Geospatial Guidelines 2021 required.
 
-The pan-India geometry archive is 202,524,438 bytes and was not downloaded. Free access is not permission to redistribute it. No SOI geometry may enter a public repository or release bundle until the applicable product terms explicitly permit that use.
+The pan-India geometry archive was not downloaded. Free access is not permission to redistribute it. No SOI geometry may enter a SPARC repository or release bundle.
 
 The official OGD Platform India `Admin Boundaries` catalog was also checked as a fallback. It describes state, district and block boundaries and identifies the publishing department, but its catalog API and ZIP download were disabled at inspection time. Without an accessible versioned resource, fields, checksum and geometry cannot be verified, so it is not yet an approved substitute.
+
+## geoBoundaries gbOpen India ADM2 boundary evidence
+
+**Selected release:** `IND-ADM2-76128533`, ADM2, represented year 2021, build 2023-12-12, pinned geoBoundaries repository commit `9469f09`.
+
+- Release API: https://www.geoboundaries.org/api/current/gbOpen/IND/ADM2/
+- Pinned raw archive: https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/IND/ADM2/geoBoundaries-IND-ADM2-all.zip
+- Raw archive SHA-256: `ce028c89b89b62558f52c35c820710ab8a7084fd4cbce46e913e8a78413e6021`
+- Release-source attribution: Pathways Data Pvt. Ltd. and `lgdirectory.gov.in`.
+- License decision: geoBoundaries presents gbOpen generally as CC BY 4.0, but this release’s own source metadata records Open Data Commons Open Database License 1.0. SPARC follows the source-specific ODbL record and its applicable attribution/share-alike obligations; the selected geometry is not described as CC BY-only.
+
+| SPARC region | Exact ADM2 feature | Geometry / CRS | State-location validation | Validated GeoJSON SHA-256 |
+|---|---|---|---|---|
+| Nagpur district | `Nagpur`, `shapeID` `76128533B3026318797185` | `Polygon`, EPSG:4326 | Representative point `79.08797740597822, 21.176853476440222` contained by geoBoundaries ADM1 `Mahārāshtra` | `f811022adbe26c7634ba4d884db3251c53bd2d23b8d55e18f6d24fe3cb3b2b33` |
+| Bengaluru Urban backup | Legacy provider name `Bangalore`, `shapeID` `76128533B76927648517269`; distinct from `Bangalore Rural` | `Polygon`, EPSG:4326 | Representative point `77.58283692418445, 12.949137851366181` contained by geoBoundaries ADM1 `Karnātaka` | `613c9f5da9e207d2acec5796488754abf0d2e48a6b341f5c0de25cbdc3ffa67a` |
+
+The raw archive is retained under Git-ignored `data/raw/boundaries/`; one-feature validated GeoJSON files are under `data/validated/boundaries/`; provenance, release metadata, and existing boundary-validator manifests are under `data/metadata/boundaries/`. The release metadata declares 736 ADM2 features while the downloaded GeoJSON contains 735; this discrepancy is recorded as a warning and the two selected features were individually verified.
+
+Every use must display this disclaimer: **This boundary is suitable for prototype analysis but is not an authoritative legal or cadastral boundary.**
+
+## P0 common-valid coverage and processing start
+
+The worker `scripts/data.process_earth_engine_p0` validates the local boundary gate and SHA-256 before querying `COPERNICUS/S2_SR_HARMONIZED`. It accepts SCL classes 4/5/6, requires two valid observations per period, calculates each index per observation before a per-period median, and compares only the common-valid footprint. It uses UTM EPSG:32644 for Nagpur and EPSG:32643 for Bengaluru Urban.
+
+| Region / indicator | Result | Common-valid fraction | Status |
+|---|---:|---:|---|
+| Nagpur / surface water | completed | 0.9996252842573716 | Pre-publication; sensitivity and independent validation pending |
+| Bengaluru Urban / surface water | completed | 0.9980801049781208 | Pre-publication; sensitivity and independent validation pending |
+| Nagpur / built candidate | completed | 0.9996252842573716 | Pre-publication; sensitivity and independent validation pending |
+| Nagpur / vegetation | completed through guarded 10 m full-resolution CSV batch export; imported into the local pre-publication manifest | 0.9996252931776228 | Threshold sensitivity and independent validation remain required; method and scale were not relaxed |
 
 ## Gate result
 
@@ -52,18 +82,21 @@ The official OGD Platform India `Admin Boundaries` catalog was also checked as a
 |---|---|---|
 | Candidate Sentinel-2 products exist for all four fixed windows | Pass | Continue metadata and acquisition design |
 | Every discovered product exposes required P0 assets | Pass | Asset-key mapping can be frozen |
-| Exact district intersection and common-valid coverage | Pending | Requires approved district polygons and per-pixel SCL analysis |
-| Boundary version and technical metadata | Pass | 2025 SOI ABDB is the current candidate |
-| Boundary redistribution basis | Blocked | Do not download/package geometry as a distributable project asset |
-| OGD boundary fallback artifact | Blocked | Catalog exists, but no downloadable/API resource was available to validate |
+| Exact district intersection and common-valid coverage | Pass for completed water/built/vegetation runs | Validated AOIs, per-pixel SCL analysis, and a checksum/CRS/method/area-math validated vegetation batch import |
+| Boundary version and technical metadata | Pass | Pinned geoBoundaries `IND-ADM2-76128533`; selected features, CRS, state containment, provenance, and checksums verified |
+| Boundary redistribution basis | Conditional pass | ODbL attribution and applicable share-alike obligations must accompany any committed, redistributed, or deployed geometry; not CC BY-only |
+| OGD boundary fallback artifact | Not used | geoBoundaries release resolves the district-boundary blocker |
 | Nagpur child-region identity and geometry QA | Pending | Hingna remains provisional; district-only fallback remains active |
 
-D0-C-001 remains incomplete until the redistribution basis and exact geometry checks are resolved. D1 raster processing must not substitute a search envelope for the district polygon.
+D0-C-001 passes for the two district AOIs. D1 raster processing has begun against validated district polygons, never search envelopes. P0 publication remains blocked until threshold sensitivity and independent validation pass. The 10 m vegetation result was produced with controlled batch/export processing and imported only after its boundary checksum, CRS, method settings, and area arithmetic matched the approved request.
 
 ## Sources
 
 - Google Earth Engine Sentinel-2 L2A collection: https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S2_SR_HARMONIZED
 - Google Earth Engine access: https://developers.google.com/earth-engine/guides/access
+- geoBoundaries India ADM2 release API: https://www.geoboundaries.org/api/current/gbOpen/IND/ADM2/
+- geoBoundaries gbOpen collection: https://www.geoboundaries.org/
+- Open Data Commons Open Database License 1.0: https://opendatacommons.org/licenses/odbl/1.0/
 - CDSE STAC fallback: https://stac.dataspace.copernicus.eu/v1/
 - Nagpur government coordinate extent: https://gsda.maharashtra.gov.in/en-nagpur-district/
 - Bengaluru Urban Government of India district profile: https://dcmsme.gov.in/dips/Bangalore%20Urban%20District.pdf

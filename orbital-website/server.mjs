@@ -7,6 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
+const ROOT_PREFIX = `${ROOT}${path.sep}`;
 const PORT = Number(process.env.PORT) || 8123;
 
 const TYPES = {
@@ -22,11 +23,22 @@ const TYPES = {
 };
 
 http.createServer((req, res) => {
-  let rel = decodeURIComponent(req.url.split('?')[0]);
-  if (rel === '/') rel = '/index.html';
+  let pathname;
+  try {
+    pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+  } catch {
+    res.writeHead(400, { 'Content-Type': 'text/plain' }).end('400 invalid request path');
+    return;
+  }
+  if (pathname.includes('\0')) {
+    res.writeHead(400, { 'Content-Type': 'text/plain' }).end('400 invalid request path');
+    return;
+  }
 
-  const file = path.join(ROOT, rel);
-  if (!file.startsWith(ROOT)) {           // no climbing out of the web root
+  const rel = pathname === '/' ? 'index.html' : pathname.replace(/^[/\\]+/, '');
+  const file = path.resolve(ROOT, rel);
+
+  if (!file.startsWith(ROOT_PREFIX)) {    // no climbing out of the web root
     res.writeHead(403).end('forbidden');
     return;
   }

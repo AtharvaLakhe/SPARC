@@ -1,7 +1,7 @@
 # SPARC indicator methodology
 
-**Status:** implementation-ready planning specification; no imagery has been downloaded or processed  
-**Evidence cut-off:** 2026-08-02  
+**Status:** implementation-ready specification; initial Earth Engine water and built-candidate reductions are pre-publication
+**Evidence cut-off:** 2026-08-03
 **Primary pilot:** Nagpur district  
 **P0 optical periods:** 2019-10-15 through 2019-12-15 and 2024-10-15 through 2024-12-15, both endpoints inclusive  
 **P1 heat periods:** 2019-03-01 through 2019-05-15 and 2024-03-01 through 2024-05-15, both endpoints inclusive
@@ -30,25 +30,27 @@ The surface-temperature distinction is a documented physical distinction, not wo
 
 ### Shared processing rules
 
-1. **DECISION — primary data path:** use Google Earth Engine `COPERNICUS/S2_SR_HARMONIZED` for offline Sentinel-2 L2A discovery and processing. Direct CDSE STAC remains the fallback. Earth Engine access is worker-only; the released demo requires no provider connection. ([GEE-S2-SR](research/source-register.md#gee-s2-sr), [CDSE-STAC](research/source-register.md#cdse-stac))
-2. **DECISION — same season:** use the fixed periods above. Do not replace missing dates with another season without issuing a new methodology version.
-3. **RECOMMENDATION — product level:** use Sentinel-2 Level-2A surface reflectance, not Level-1C top-of-atmosphere reflectance. The Level-2A structure and bands are defined by the current product specification. ([S2-PSD](research/source-register.md#s2-psd))
-4. **FACT — direct reflectance decoding:** for Level-2A pixels with `DN != 0`, decode surface reflectance per band as:
+1. **DECISION — boundary:** use the separately validated one-feature geoBoundaries India ADM2 GeoJSON for each district. Nagpur is `76128533B3026318797185`; the backup source feature is legacy `Bangalore` / `76128533B76927648517269`, displayed as Bengaluru Urban. The raw archive, validated geometry, and provenance are separate artifacts and their SHA-256 values are checked before processing. This boundary is suitable for prototype analysis but is not an authoritative legal or cadastral boundary. ([GBOPEN-IND-ADM2](research/source-register.md#gbopen-ind-adm2), [GBOPEN-IND-ADM1](research/source-register.md#gbopen-ind-adm1))
+2. **DECISION — primary data path:** use Google Earth Engine `COPERNICUS/S2_SR_HARMONIZED` for offline Sentinel-2 L2A discovery and processing. Direct CDSE STAC remains the fallback. Earth Engine access is worker-only; the released demo requires no provider connection. ([GEE-S2-SR](research/source-register.md#gee-s2-sr), [CDSE-STAC](research/source-register.md#cdse-stac))
+3. **DECISION — same season:** use the fixed periods above. Do not replace missing dates with another season without issuing a new methodology version.
+4. **RECOMMENDATION — product level:** use Sentinel-2 Level-2A surface reflectance, not Level-1C top-of-atmosphere reflectance. The Level-2A structure and bands are defined by the current product specification. ([S2-PSD](research/source-register.md#s2-psd))
+5. **FACT — direct reflectance decoding:** for Level-2A pixels with `DN != 0`, decode surface reflectance per band as:
 
    \[
    \rho_i=(DN_i+BOA\_ADD\_OFFSET_i)/QUANTIFICATION\_VALUE_i
    \]
 
    Read both values from product metadata. `DN = 0` remains nodata. Processing baseline 04.00 introduced the offset, and the reprocessed historical collection carries the newer representation. ([S2-DQR](research/source-register.md#s2-dqr), [S2-PROCESSING](research/source-register.md#s2-processing))
-5. **RECOMMENDATION — per-pixel mask:** exclude Sentinel-2 SCL values `0` nodata, `1` saturated/defective, `2` cast shadow, `3` cloud shadow, `7` unclassified, `8` medium-probability cloud, `9` high-probability cloud, `10` cirrus, and `11` snow/ice. Retain values `4` vegetation, `5` bare/not-vegetated, and `6` water as observable input. Do not use SCL `6` as the indicator answer. Current class definitions come from the Level-2A specification. ([S2-PSD](research/source-register.md#s2-psd), [CDSE-S2-L2A](research/source-register.md#cdse-s2-l2a))
+6. **IMPLEMENTATION NOTE — Earth Engine scaling:** the `COPERNICUS/S2_SR_HARMONIZED` worker applies the collection’s documented `0.0001` optical scaling. The direct-CDSE fallback must instead use the product metadata formula above; do not transfer this implementation shortcut to raw downloaded products. ([GEE-S2-SR](research/source-register.md#gee-s2-sr), [S2-DQR](research/source-register.md#s2-dqr))
+7. **RECOMMENDATION — per-pixel mask:** exclude Sentinel-2 SCL values `0` nodata, `1` saturated/defective, `2` cast shadow, `3` cloud shadow, `7` unclassified, `8` medium-probability cloud, `9` high-probability cloud, `10` cirrus, and `11` snow/ice. Retain values `4` vegetation, `5` bare/not-vegetated, and `6` water as observable input. Do not use SCL `6` as the indicator answer. Current class definitions come from the Level-2A specification. ([S2-PSD](research/source-register.md#s2-psd), [CDSE-S2-L2A](research/source-register.md#cdse-s2-l2a))
    - **HEURISTIC — cloud edge:** run a sensitivity case that dilates SCL cloud/cloud-shadow/cirrus exclusions by one target-grid pixel. If adopted, freeze the dilation across periods and publish its effect on common-valid coverage and indicator area.
-6. **RECOMMENDATION — composite:** calculate each index on each clear observation, then take the per-period pixel median. This preserves the nonlinear index calculation and reduces one-scene outliers.
-7. **HEURISTIC — evidence floor:** a period pixel is valid when it has at least two clear observations. Store its exact observation count; do not convert a missing pixel into non-target land.
-8. **DECISION — common support:** compare only pixels valid in both periods. Publish common-valid area and percentage. Never interpret cloud-covered or otherwise unknown area as land, water loss, vegetation loss, or built gain.
-9. **DECISION — grid:** use one explicitly versioned target grid per indicator. Use nearest-neighbor resampling for categorical masks and class rasters. The analytical resolution is the coarsest native input band, regardless of display upsampling.
-10. **DECISION — area:** calculate area from pixel-area in a locally appropriate projected/equal-area CRS. Do not count pixels in geographic degrees. Record CRS, transform, pixel size, resampling, and AOI geometry hash.
-11. **DECISION — one decision rule:** tune a threshold on independent or pooled calibration data, then freeze it across both comparison periods. Independently optimizing a threshold for each period changes the classifier as well as the landscape and can create artificial change.
-12. **DECISION — reproducibility:** retain product IDs, sensing times, processing baselines, source URLs, content hashes where possible, mask settings, threshold values, software versions, and intermediate evidence rasters.
+8. **RECOMMENDATION — composite:** calculate each index on each clear observation, then take the per-period pixel median. This preserves the nonlinear index calculation and reduces one-scene outliers.
+9. **HEURISTIC — evidence floor:** a period pixel is valid when it has at least two clear observations. Store its exact observation count; do not convert a missing pixel into non-target land.
+10. **DECISION — common support:** compare only pixels valid in both periods. Publish common-valid area and percentage. Never interpret cloud-covered or otherwise unknown area as land, water loss, vegetation loss, or built gain.
+11. **DECISION — grid:** use one explicitly versioned target grid per indicator. Use nearest-neighbor resampling for categorical masks and class rasters. The analytical resolution is the coarsest native input band, regardless of display upsampling.
+12. **DECISION — area:** calculate area from pixel-area in a locally appropriate projected/equal-area CRS. Do not count pixels in geographic degrees. Record CRS, transform, pixel size, resampling, and AOI geometry hash.
+13. **DECISION — one decision rule:** tune a threshold on independent or pooled calibration data, then freeze it across both comparison periods. Independently optimizing a threshold for each period changes the classifier as well as the landscape and can create artificial change.
+14. **DECISION — reproducibility:** retain product IDs, sensing times, processing baselines, source URLs, content hashes where possible, mask settings, threshold values, software versions, and intermediate evidence rasters.
 
 ### Shared area and change formulas
 

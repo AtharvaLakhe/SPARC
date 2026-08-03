@@ -78,7 +78,7 @@ Quality is categorical and evidence-based. A high grade requires independent val
 1. Discover and process Sentinel-2 L2A surface reflectance through Google Earth Engine using `COPERNICUS/S2_SR_HARMONIZED`.
 2. Keep the direct Copernicus Data Space STAC path as a documented fallback for metadata discovery and future export recovery; retain underlying Copernicus attribution and provider limitations.
 3. Keep Dynamic World off the critical path.
-4. Evaluate the official Survey of India ABDB for the district/subdistrict geometry, and record the exact acquired-product access and redistribution terms before bundling it. If those terms or geometry fail the gate, use only another source whose authority, version, license, codes, and redistribution rights have been verified.
+4. Use the validated geoBoundaries gbOpen India ADM2 release `IND-ADM2-76128533` for the two prototype district AOIs. Preserve its source-specific ODbL 1.0 attribution and applicable share-alike obligations; the collection-level CC BY 4.0 description must not be represented as a CC-BY-only grant. No Survey of India ABDB geometry is used or redistributed.
 5. Use JRC Global Surface Water, ESA WorldCover, GHSL, and approved local records for context/corroboration, not automatic ground truth.
 6. Reuse GDAL, Rasterio, GeoPandas, Shapely, NumPy, pystac-client, and narrowly scoped scikit-image. Do not rebuild projection, raster IO, geometry, STAC, or Otsu functionality.
 7. Pin a tested geospatial binary matrix before implementation and retain all required notices and data attributions.
@@ -164,7 +164,7 @@ Research/license gates
   - Expected output: Metadata-only catalog inventory for Nagpur/backup, boundary version/license record, and attribution text
   - Acceptance condition: Both regions have documented identifiers, candidate scenes/windows, boundary source, redistribution basis, and fallback
   - Fallback: Use the next approved catalog/boundary source or retain only licensed precomputed artifacts
-  - Progress 2026-08-02: CDSE metadata availability and required assets passed for both pilots; SOI 2025 technical metadata verified; geometry redistribution and polygon QA remain blocked/pending. See `docs/research/pilot-source-gate.md`.
+  - Progress 2026-08-03: Passed for district AOIs. The pinned geoBoundaries India ADM2 archive, feature IDs/names, WGS84 CRS, state containment, polygon geometry, provenance, and SHA-256 values were validated for Nagpur and the Bengaluru Urban backup. The source-specific metadata is ODbL 1.0, so any commit, distribution, or deployment must preserve its attribution and applicable share-alike obligations. No Survey of India geometry was acquired or used. See `docs/research/pilot-source-gate.md`.
 
 - [ ] **D0-S-002 — Freeze P0 scope, terminology, and methodology**
   - Owner: Shared
@@ -209,6 +209,7 @@ Research/license gates
   - Expected output: Pinned environment, validated Nagpur grid/boundaries, common-valid composites, and provenance manifest
   - Acceptance condition: A clean run reproduces checksums and records scenes, masks, CRS, parameters, and valid coverage
   - Fallback: Use the approved preselected scenes and locally retained inputs
+  - Progress 2026-08-03: `scripts.data.extract_geoboundaries_adm2` produces separate raw-source, validated GeoJSON, and metadata/gate artifacts. `scripts.data.process_earth_engine_p0` checks the gate/hash before Earth Engine processing. Nagpur water and built-candidate computations completed on the validated polygon. The 10 m vegetation computation exceeded the interactive-worker timeout, then completed through a guarded full-resolution Google Earth Engine CSV batch export to the approved Drive folder; its local importer verified the approved boundary checksum, CRS, method settings, coverage, and area arithmetic. Method and scale remain unchanged.
 
 - [ ] **D1-C-002 — Produce representative water, vegetation, and built-up outputs**
   - Owner: Codex
@@ -217,6 +218,7 @@ Research/license gates
   - Expected output: One representative result per P0 method plus formula/schema tests
   - Acceptance condition: Results validate, use fixed cross-period rules, and expose raw/cleaned/sensitivity evidence
   - Fallback: Mark an unstable indicator low-quality and use the documented simpler fixed method
+  - Progress 2026-08-03: Pre-publication water runs completed for Nagpur and Bengaluru Urban; Nagpur built-candidate and 10 m vegetation runs completed. The vegetation batch CSV was imported only after it matched the approved boundary checksum, CRS, method settings, coverage, and area arithmetic. All results remain `quality: unknown` until threshold sensitivity and independent validation.
 
 - [x] **D1-C-003 — Build API/result-repository skeleton to the contract**
   - Owner: Codex
@@ -371,7 +373,7 @@ Research/license gates
 |---|---|---|
 | Provider/auth/quota outage | Preselect and cache exact inputs/results | Static offline pack |
 | Cloud-heavy or incomparable periods | Same-season multi-scene composite and coverage gate | Symmetric window expansion or approved alternate window |
-| Boundary/license failure | Record exact Survey of India ABDB product terms and geometry version before bundling | Another authority/version/license-verified source, or district-only local evidence that is not redistributed |
+| Boundary/license failure | Preserve the selected geoBoundaries India ADM2 ODbL provenance, attribution, and applicable share-alike obligations; include the prototype/non-authoritative disclaimer | Another authority/version/license-verified source, or omit public geometry |
 | Spectral misclassification | Frozen thresholds, sensitivity, local validation, visible quality | Low-grade result or remove unstable enhancement |
 | Tile/API/cloud failure | Static images/GeoJSON and local transport | Accessible tables and screenshots |
 | Contract drift | Day 0 freeze, canonical schemas, CI validation | Freeze frontend on committed mocks until fixed |

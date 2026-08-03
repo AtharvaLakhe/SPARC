@@ -6,6 +6,9 @@
 
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 const URL_BASE = process.argv[2] || 'http://localhost:8123/';
 const PORT = 9333;
@@ -25,14 +28,8 @@ const ok = (name, cond, extra = '') => {
 };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-const chrome = spawn(chromePath, [
-  '--headless=new', '--no-sandbox', '--disable-gpu',
-  '--use-angle=swiftshader', '--enable-unsafe-swiftshader',
-  '--disable-features=Translate,MediaRouter,OptimizationHints',
-  '--disable-background-networking', '--no-first-run',
-  `--remote-debugging-port=${PORT}`, '--window-size=1200,800',
-  'about:blank',
-], { stdio: 'ignore' });
+let chrome;
+let profileDir;
 
 let ws, msgId = 0;
 const pending = new Map();
@@ -82,6 +79,19 @@ async function connect() {
 const consoleErrors = [];
 
 try {
+  // Chrome 136+ ignores remote-debugging switches for the user's default
+  // profile. An isolated profile both enables CDP and avoids test access to
+  // personal browser data.
+  profileDir = await mkdtemp(join(tmpdir(), 'sparc-orbital-e2e-'));
+  chrome = spawn(chromePath, [
+    '--headless=new', '--no-sandbox', '--disable-gpu',
+    '--use-angle=swiftshader', '--enable-unsafe-swiftshader',
+    '--disable-features=Translate,MediaRouter,OptimizationHints',
+    '--disable-background-networking', '--no-first-run',
+    `--remote-debugging-port=${PORT}`, `--user-data-dir=${profileDir}`,
+    '--window-size=1200,800', 'about:blank',
+  ], { stdio: 'ignore' });
+
   const wsUrl = await connect();
   ws = new WebSocket(wsUrl);
   await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej; });
@@ -219,7 +229,8 @@ try {
   console.log(`\n  FATAL  ${err.message}`);
 } finally {
   try { ws?.close(); } catch {}
-  chrome.kill();
+  chrome?.kill();
+  if (profileDir) await rm(profileDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
 }
 
 if (consoleErrors.length) {

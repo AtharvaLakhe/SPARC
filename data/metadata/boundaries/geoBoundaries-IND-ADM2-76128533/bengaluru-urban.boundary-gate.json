@@ -1,0 +1,24 @@
+{
+  "manifestVersion": "1",
+  "boundary": {
+    "fileName": "bengaluru-urban.geojson",
+    "sha256": "613c9f5da9e207d2acec5796488754abf0d2e48a6b341f5c0de25cbdc3ffa67a",
+    "geometryType": "Polygon",
+    "featureCount": 1,
+    "crs": "EPSG:4326",
+    "bbox": [
+      77.32755,
+      12.65818,
+      77.82026,
+      13.23257
+    ]
+  },
+  "provenance": {
+    "sourceName": "geoBoundaries gbOpen India ADM2; source: Pathways Data Pvt. Ltd., lgdirectory.gov.in",
+    "sourceUrl": "https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/IND/ADM2/geoBoundaries-IND-ADM2-all.zip",
+    "version": "IND-ADM2-76128533; build Dec 12, 2023; commit 9469f09",
+    "license": "Open Data Commons Open Database License 1.0 (source-specific boundary metadata)",
+    "attribution": "Contains modified geoBoundaries data (Runfola et al., 2020, https://doi.org/10.1371/journal.pone.0231866), sourced from Pathways Data Pvt. Ltd. and lgdirectory.gov.in; boundary source terms: ODbL 1.0.",
+    "redistributionPermitted": true
+  }
+}

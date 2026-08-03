@@ -1,12 +1,38 @@
 # SPARC source register
 
 **Status:** planning baseline  
-**Evidence cut-off:** 2026-08-02  
-**Last access check:** 2026-08-02
+**Evidence cut-off:** 2026-08-03
+**Last access check:** 2026-08-03
 
 This register is the bibliography and provenance ledger for SPARC's research documents. The short source IDs are used as citations throughout `docs/`. A source is included only when it is a product-owner specification, government data page, legal notice, or original peer-reviewed method paper. A living web page with no displayed publication date is recorded as **undated living documentation** rather than assigned an invented date.
 
-The register does not imply that SPARC has downloaded, tested, or redistributed a dataset. Dataset acquisition remains a later implementation step.
+Entries identify source evidence and license records. The pinned geoBoundaries India ADM2 release is the exception: its raw archive, selected district features, gate manifests, and checksums are recorded under `data/`.
+
+## Administrative-boundary sources
+
+<a id="gbopen-ind-adm2"></a>
+### GBOPEN-IND-ADM2
+
+- **Title:** *geoBoundaries gbOpen India ADM2 — IND-ADM2-76128533*
+- **Author/owner:** geoBoundaries / William & Mary geoLab; source metadata: Pathways Data Pvt. Ltd. and `lgdirectory.gov.in`
+- **Version and date:** boundary year 2021; build 2023-12-12; pinned repository commit `9469f09`
+- **Release API:** https://www.geoboundaries.org/api/current/gbOpen/IND/ADM2/
+- **Pinned archive:** https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/IND/ADM2/geoBoundaries-IND-ADM2-all.zip
+- **Accessed:** 2026-08-03
+- **Used for:** prototype Nagpur and Bengaluru Urban district AOIs; feature IDs, CRS, source/provenance record and attribution.
+- **License fact:** geoBoundaries’ collection pages describe gbOpen as CC BY 4.0, but this India ADM2 release's own metadata declares **Open Data Commons Open Database License 1.0 (ODbL)** for the boundary source. SPARC follows the source-specific ODbL record for the selected geometry; it does not describe the geometry as CC BY-only.
+- **Prototype limitation:** the boundary is suitable for prototype analysis but is not an authoritative legal or cadastral boundary.
+
+<a id="gbopen-ind-adm1"></a>
+### GBOPEN-IND-ADM1
+
+- **Title:** *geoBoundaries gbOpen India ADM1 — IND-ADM1-1811400*
+- **Author/owner:** geoBoundaries / William & Mary geoLab; source metadata: DataMeet India community and Election Commission of India
+- **Version and date:** boundary year 2011; build 2023-12-12; pinned repository commit `9469f09`
+- **Release API:** https://www.geoboundaries.org/api/current/gbOpen/IND/ADM1/
+- **Pinned archive:** https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/IND/ADM1/geoBoundaries-IND-ADM1-all.zip
+- **Accessed:** 2026-08-03
+- **Used for:** independent state-location check only: Nagpur's representative point resolves to Maharashtra and the selected Bangalore feature resolves to Karnataka. It is not clipped, redistributed, or used for analysis.
 
 ## Copernicus Sentinel sources
 

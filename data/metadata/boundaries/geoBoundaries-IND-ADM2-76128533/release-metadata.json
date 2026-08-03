@@ -1,0 +1,92 @@
+{
+  "metadataVersion": "1",
+  "disclaimer": "This boundary is suitable for prototype analysis but is not an authoritative legal or cadastral boundary.",
+  "release": {
+    "provider": "geoBoundaries gbOpen",
+    "boundaryId": "IND-ADM2-76128533",
+    "boundaryYear": "2021",
+    "boundaryType": "ADM2",
+    "buildDate": "Dec 12, 2023",
+    "commit": "9469f09",
+    "apiUrl": "https://www.geoboundaries.org/api/current/gbOpen/IND/ADM2/",
+    "archiveUrl": "https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/IND/ADM2/geoBoundaries-IND-ADM2-all.zip",
+    "archiveSha256": "ce028c89b89b62558f52c35c820710ab8a7084fd4cbce46e913e8a78413e6021",
+    "metadataFeatureCountDeclared": "736",
+    "geojsonFeatureCountActual": 735,
+    "featureCountWarning": "The release metadata declares 736 ADM2 units; the downloaded GeoJSON contains 735 features. The selected features below were individually verified.",
+    "source": "Pathways Data Pvt. Ltd., lgdirectory.gov.in",
+    "sourceLicense": "Open Data Commons Open Database License 1.0",
+    "sourceLicenseTermsUrl": "https://opendatacommons.org/licenses/odbl/1.0/",
+    "geoBoundariesDerivativeLicenseNotice": "The included geoBoundaries citation file says geoBoundaries code and derivative works are CC BY 4.0; the India ADM2 metadata labels the boundary source itself ODbL 1.0. SPARC follows the source-specific ODbL record for boundary redistribution."
+  },
+  "stateReference": {
+    "provider": "geoBoundaries gbOpen",
+    "boundaryId": "IND-ADM1-1811400",
+    "apiUrl": "https://www.geoboundaries.org/api/current/gbOpen/IND/ADM1/",
+    "archiveUrl": "https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/IND/ADM1/geoBoundaries-IND-ADM1-all.zip",
+    "archiveSha256": "a99ce06fc0de239aafe701be6ec3b2bcba6d4fab269a6125f1f3bfe3d722a666",
+    "crs": "EPSG:4326"
+  },
+  "districts": {
+    "nagpur": {
+      "displayName": "Nagpur district",
+      "providerProperties": {
+        "shapeName": "Nagpur",
+        "shapeISO": "",
+        "shapeID": "76128533B3026318797185",
+        "shapeGroup": "IND",
+        "shapeType": "ADM2"
+      },
+      "validatedGeoJson": "data/validated/boundaries/geoBoundaries-IND-ADM2-76128533/nagpur.geojson",
+      "provenance": "data/metadata/boundaries/geoBoundaries-IND-ADM2-76128533/nagpur.provenance.json",
+      "boundaryGate": "data/metadata/boundaries/geoBoundaries-IND-ADM2-76128533/nagpur.boundary-gate.json",
+      "geometryType": "Polygon",
+      "bbox": [
+        78.25182,
+        20.58121,
+        79.66161,
+        21.72314
+      ],
+      "crs": "EPSG:4326",
+      "stateValidation": {
+        "expectedState": "Maharashtra",
+        "providerStateName": "Mahārāshtra",
+        "representativePoint": {
+          "longitude": 79.08797740597822,
+          "latitude": 21.176853476440222
+        }
+      },
+      "sha256": "f811022adbe26c7634ba4d884db3251c53bd2d23b8d55e18f6d24fe3cb3b2b33"
+    },
+    "bengaluru-urban": {
+      "displayName": "Bengaluru Urban district",
+      "providerProperties": {
+        "shapeName": "Bangalore",
+        "shapeISO": "",
+        "shapeID": "76128533B76927648517269",
+        "shapeGroup": "IND",
+        "shapeType": "ADM2"
+      },
+      "validatedGeoJson": "data/validated/boundaries/geoBoundaries-IND-ADM2-76128533/bengaluru-urban.geojson",
+      "provenance": "data/metadata/boundaries/geoBoundaries-IND-ADM2-76128533/bengaluru-urban.provenance.json",
+      "boundaryGate": "data/metadata/boundaries/geoBoundaries-IND-ADM2-76128533/bengaluru-urban.boundary-gate.json",
+      "geometryType": "Polygon",
+      "bbox": [
+        77.32755,
+        12.65818,
+        77.82026,
+        13.23257
+      ],
+      "crs": "EPSG:4326",
+      "stateValidation": {
+        "expectedState": "Karnataka",
+        "providerStateName": "Karnātaka",
+        "representativePoint": {
+          "longitude": 77.58283692418445,
+          "latitude": 12.949137851366181
+        }
+      },
+      "sha256": "613c9f5da9e207d2acec5796488754abf0d2e48a6b341f5c0de25cbdc3ffa67a"
+    }
+  }
+}

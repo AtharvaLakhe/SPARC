@@ -41,6 +41,12 @@ class ApiTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(set(response.json()), {"status", "version", "dataMode"})
         self.assertEqual(response.headers["x-content-type-options"], "nosniff")
 
+    async def test_root_redirects_to_interactive_api_docs(self) -> None:
+        response = await self.client.get("/")
+        self.assertEqual(response.status_code, 307)
+        self.assertEqual(response.headers["location"], "/docs")
+        self.assertEqual(response.headers["x-content-type-options"], "nosniff")
+
     async def test_region_and_summary_success_flow(self) -> None:
         regions = await self.client.get("/api/v1/regions")
         self.assertEqual(regions.status_code, 200)

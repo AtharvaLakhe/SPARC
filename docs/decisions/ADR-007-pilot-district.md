@@ -1,6 +1,6 @@
 # ADR-007: Select Nagpur as the pilot district
 
-- **Status:** Accepted, conditional on discovery gate
+- **Status:** Accepted for district AOIs; composite publication remains conditional
 - **Decision date:** 2026-08-02
 - **Primary pilot:** Nagpur district, Maharashtra
 - **Prepared backup:** Bengaluru Urban district, Karnataka
@@ -13,9 +13,9 @@ SPARC needs one district that can demonstrate all P0 indicators—open surface-w
 
 The project has fixed the primary optical comparison periods to 2019-10-15 through 2019-12-15 and 2024-10-15 through 2024-12-15, inclusive. The P1 heat comparison uses March 1–May 15 in 2019 and 2024.
 
-Official district geometry is intended to come from the Survey of India Administrative Boundary Database. Survey of India provides district-level administrative vector products, but the exact chosen file and redistribution terms have not yet been acquired or reviewed. ([SOI-ABDB](../research/source-register.md#soi-abdb), [SOI-CATALOG](../research/source-register.md#soi-catalog))
+SPARC uses the pinned geoBoundaries gbOpen India ADM2 release `IND-ADM2-76128533` (boundary year 2021, build 2023-12-12, repository commit `9469f09`) for its prototype district AOIs. The exact selected Nagpur feature is `shapeID` `76128533B3026318797185`; the backup is the legacy provider label `Bangalore`, `shapeID` `76128533B76927648517269`, independently located in Karnataka and presented as Bengaluru Urban. No Survey of India ABDB geometry is used or redistributed. The source-specific release metadata records ODbL 1.0, which is stricter than the collection-level gbOpen CC BY 4.0 description, so the selected geometry is governed and attributed as ODbL rather than described as CC BY-only. ([GBOPEN-IND-ADM2](../research/source-register.md#gbopen-ind-adm2), [GBOPEN-IND-ADM1](../research/source-register.md#gbopen-ind-adm1))
 
-Sentinel-2 Level-2A is now discovered and processed through the offline Google Earth Engine worker, with direct official STAC/data services retained as fallback. Landsat Collection 2 Level-2 remains a direct-source P1 path. District-specific per-pixel common-valid coverage still has not been queried because the approved district polygon is blocked. ([GEE-S2-SR](../research/source-register.md#gee-s2-sr), [CDSE-STAC](../research/source-register.md#cdse-stac), [LANDSAT-STAC](../research/source-register.md#landsat-stac))
+The validated AOIs are suitable for prototype analysis but are not authoritative legal or cadastral boundaries. Sentinel-2 Level-2A is discovered and processed through the offline Google Earth Engine worker, with direct official STAC/data services retained as fallback. The first common-valid coverage and indicator runs are pre-publication evidence only; threshold sensitivity and independent validation remain required before release. ([GEE-S2-SR](../research/source-register.md#gee-s2-sr), [CDSE-STAC](../research/source-register.md#cdse-stac), [LANDSAT-STAC](../research/source-register.md#landsat-stac))
 
 ## Decision drivers
 
@@ -158,4 +158,4 @@ Rejected as a core path because Dynamic World temporal products still require lo
 
 ## Follow-up evidence required
 
-The owner of data acquisition must attach the discovery manifest and gate result described in [data-sources.md](../data-sources.md). Until then, pilot feasibility is **conditionally accepted**, not empirically confirmed.
+The data-acquisition owner has attached the boundary manifests and initial processing evidence described in [data-sources.md](../data-sources.md). The district-boundary gate passes; child-region identity, threshold sensitivity, independent validation, and publishable P0 output quality remain separate gates.
