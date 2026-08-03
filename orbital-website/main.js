@@ -840,27 +840,184 @@ function aimSatellite(position, orbitNormal) {
   satAnchor.quaternion.setFromRotationMatrix(_basis);
 }
 
-/* ── target marker ──────────────────────────────────────────────────────── */
+/* ── target marker ──────────────────────────────────────────────────────────
+   The marker group's local +Z is the outward surface normal (see goTo), so the
+   ring lies flat in local XY and the mast rises along +Z.
+
+   This was a stack of additive pieces — halo disc, ring, expanding ping, glowing
+   tip sphere. Two things went wrong with that. Additively they summed past the
+   1.20 bloom threshold, so the bloom pass turned the whole marker into a
+   four-point starburst; and at a grazing angle near the limb every flat piece
+   foreshortens into the same spot, concentrating all of it into one sparkle.
+   The result read as a particle effect stuck on the planet.
+
+   So: alpha-blended, not additive, which keeps it under the bloom threshold and
+   crisp; and the designator itself is a billboard at fixed pixel size, so it is
+   the same legible instrument whether the target faces you or sits on the limb. */
+const MARK = 0xffb454;
+// ~570 km. Tall enough that the HTML panel hanging off the tip clears the
+// designator instead of sitting on top of it.
+const MAST_H = 0.09;
+
+const ringMat = new THREE.MeshBasicMaterial({
+  color: MARK, transparent: true, opacity: 0.5, side: THREE.DoubleSide,
+  depthWrite: false,
+});
+const mastMat = new THREE.MeshBasicMaterial({
+  color: MARK, transparent: true, opacity: 0.38, side: THREE.DoubleSide,
+  depthWrite: false,
+});
+
 const marker = new THREE.Group();
 marker.visible = false;
 earthSpin.add(marker);
 
-const pinMat = new THREE.MeshBasicMaterial({ color: 0xffb454, transparent: true, opacity: 0.95 });
-const pinDot = new THREE.Mesh(new THREE.SphereGeometry(0.012, 16, 12), pinMat);
-marker.add(pinDot);
-
-const ringMat = new THREE.MeshBasicMaterial({
-  color: 0xffb454, transparent: true, opacity: 0.7, side: THREE.DoubleSide, depthWrite: false,
-});
-const ring = new THREE.Mesh(new THREE.RingGeometry(0.026, 0.032, 48), ringMat);
+// a thin footprint on the ground — this one *should* foreshorten, because it
+// says "this is a patch of surface" and perspective is how you read that
+const ring = new THREE.Mesh(new THREE.RingGeometry(0.0235, 0.0255, 72), ringMat);
+ring.position.z = 0.001;
 marker.add(ring);
-const ring2 = new THREE.Mesh(new THREE.RingGeometry(0.05, 0.054, 48), ringMat.clone());
-marker.add(ring2);
 
-const beamMat = new THREE.MeshBasicMaterial({
-  color: 0xffb454, transparent: true, opacity: 0.18, depthWrite: false, side: THREE.DoubleSide,
+/* The mast carries the label clear of the designator and gives the target a
+   vertical to read against at a graze. Thin and dim on purpose: it is structure,
+   not signal. */
+const mastGeo = new THREE.CylinderGeometry(0.0008, 0.0008, MAST_H, 6, 1, true);
+mastGeo.translate(0, MAST_H * 0.5, 0);
+mastGeo.rotateX(Math.PI * 0.5);            // cylinder runs +Y; the normal is +Z
+const mast = new THREE.Mesh(mastGeo, mastMat);
+marker.add(mast);
+
+/* ── target designator ──────────────────────────────────────────────────────
+   Corner brackets and a centre dot on a camera-facing quad, held at a constant
+   pixel size so it neither balloons on zoom-in nor shrinks to a speck at
+   distance — the behaviour of an instrument overlay rather than a decal.
+
+   Drawn in the shader instead of built from geometry: the arms stay one crisp
+   antialiased width at every scale, and it is a single quad rather than eight
+   slivers. It lives on the scene, not under the marker, so billboarding does
+   not have to undo the earth's rotation first. */
+const DESIGNATOR_PX = 54;
+
+const designatorMat = new THREE.ShaderMaterial({
+  uniforms: {
+    uColor: { value: new THREE.Color(MARK) },
+    uSpread: { value: 1 },      // >1 while acquiring, eases to 1 on lock
+    uOpacity: { value: 0.92 },
+  },
+  transparent: true,
+  depthWrite: false,
+  depthTest: false,             // always on top; far-side hiding is done on the CPU
+  vertexShader: /* glsl */`
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }`,
+  fragmentShader: /* glsl */`
+    uniform vec3 uColor; uniform float uSpread, uOpacity;
+    varying vec2 vUv;
+
+    void main() {
+      vec2 p = vUv * 2.0 - 1.0;
+      vec2 a = abs(p);
+      float aa = fwidth(p.x) * 0.9;
+
+      float s = 0.66 * uSpread;   // bracket half-extent
+      float len = 0.30;           // arm length
+      float th = 0.035;           // arm half-thickness
+
+      // an arm is: near the bracket line in one axis, within the arm span in the
+      // other. Both edges are smoothstepped so the ends do not crawl.
+      float onY = 1.0 - smoothstep(th - aa, th + aa, abs(a.y - s));
+      float inX = smoothstep(s - len - aa, s - len + aa, a.x)
+                * (1.0 - smoothstep(s + th - aa, s + th + aa, a.x));
+
+      float onX = 1.0 - smoothstep(th - aa, th + aa, abs(a.x - s));
+      float inY = smoothstep(s - len - aa, s - len + aa, a.y)
+                * (1.0 - smoothstep(s + th - aa, s + th + aa, a.y));
+
+      float brackets = max(onY * inX, onX * inY);
+      float dot = 1.0 - smoothstep(0.035 - aa, 0.035 + aa, length(p));
+
+      float m = max(brackets, dot);
+      if (m < 0.004) discard;
+      gl_FragColor = vec4(uColor, m * uOpacity);
+      #include <tonemapping_fragment>
+      #include <colorspace_fragment>
+    }`,
 });
-const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.05, 1, 20, 1, true), beamMat);
+const designator = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), designatorMat);
+designator.visible = false;
+designator.renderOrder = 10;
+scene.add(designator);
+
+// when the current target was acquired, for the one-shot settle below
+let acquiredAt = -1e9;
+
+// where the HTML label pins itself
+const labelAnchor = new THREE.Object3D();
+labelAnchor.position.z = MAST_H;
+marker.add(labelAnchor);
+
+/* ── downlink beam ──────────────────────────────────────────────────────────
+   Built spanning y 0→1 with the narrow end at the origin, so it can be placed
+   at the craft and scaled by the distance to the target — no centre-point
+   arithmetic, and the shader gets the position along the beam for free.
+
+   Additive with a rim falloff makes it read as a volume of light: the walls
+   brighten where they turn away from the eye, which is what a real shaft of
+   lit air does, and the middle stays clear so the planet shows through it. */
+const BEAM_R_CRAFT = 0.004;
+const BEAM_R_GROUND = 0.030;
+const beamGeo = new THREE.CylinderGeometry(BEAM_R_GROUND, BEAM_R_CRAFT, 1, 48, 1, true);
+beamGeo.translate(0, 0.5, 0);
+
+const beamMat = new THREE.ShaderMaterial({
+  uniforms: {
+    uColor: { value: new THREE.Color(MARK) },
+    uTime: { value: 0 },
+    uGain: { value: 1.0 },
+  },
+  transparent: true,
+  depthWrite: false,
+  side: THREE.DoubleSide,
+  blending: THREE.AdditiveBlending,
+  vertexShader: /* glsl */`
+    varying float vT; varying vec3 vNv; varying vec3 vPv;
+    void main() {
+      vT = position.y;                       // 0 at the craft, 1 at the ground
+      // normalMatrix is the inverse transpose, so the rim survives the heavy
+      // non-uniform y scale this mesh gets stretched by every frame
+      vNv = normalize(normalMatrix * normal);
+      vec4 mv = modelViewMatrix * vec4(position, 1.0);
+      vPv = mv.xyz;
+      gl_Position = projectionMatrix * mv;
+    }`,
+  fragmentShader: /* glsl */`
+    uniform vec3 uColor; uniform float uTime, uGain;
+    varying float vT; varying vec3 vNv; varying vec3 vPv;
+    void main() {
+      float rim = pow(1.0 - abs(dot(normalize(vNv), normalize(-vPv))), 1.7);
+      // Rim alone draws the two silhouette walls and nothing between them, which
+      // reads as a wireframe cone rather than lit air. A base fill under the rim
+      // gives the shaft body while the rim still defines its edges.
+      float body = 0.30 + 0.70 * rim;
+
+      // ease on at the dish and off before the footprint, so neither end
+      // terminates in a hard cut disc
+      float ends = smoothstep(0.0, 0.16, vT) * (1.0 - 0.45 * smoothstep(0.70, 1.0, vT));
+
+      // energy travelling down the beam — direction of travel is the whole
+      // reason this reads as a downlink and not a traffic cone
+      float pulse = 0.78 + 0.22 * sin(vT * 24.0 - uTime * 3.2);
+
+      float a = body * ends * pulse * uGain;
+      gl_FragColor = vec4(uColor * a, a);
+      #include <tonemapping_fragment>
+      #include <colorspace_fragment>
+    }`,
+});
+const beam = new THREE.Mesh(beamGeo, beamMat);
 beam.visible = false;
 scene.add(beam);
 
@@ -1055,9 +1212,13 @@ function goTo(lat, lon, name, { instant = false } = {}) {
   const localDir = latLonToVec3(lat, lon, 1).normalize();
   state.target = { lat, lon, name, localDir };
 
-  marker.position.copy(localDir).multiplyScalar(EARTH_R * 1.002);
+  // Clear the *displaced* surface, not the sphere. At 1.002 the ring sat below
+  // the peaks — terrain is pushed out by up to Q.displacement — so high ground
+  // near the target sliced the ring into a crescent.
+  marker.position.copy(localDir).multiplyScalar(EARTH_R + Q.displacement + 0.0015);
   marker.lookAt(marker.position.clone().multiplyScalar(2));
   marker.visible = true;
+  acquiredAt = performance.now();
 
   // satellite slews from wherever it is onto the point above the target
   const from = satAnchor.position.clone().normalize();
@@ -1090,6 +1251,7 @@ function releaseTarget() {
   state.slew = null;
   marker.visible = false;
   beam.visible = false;
+  designator.visible = false;
   $('target-label').hidden = true;
   $('hint').innerHTML = 'Drag to orbit · scroll to zoom · <b>click the satellite</b> to target a location';
 }
@@ -1120,6 +1282,7 @@ addEventListener('resize', onResize);
 const clock = new THREE.Clock();
 let fpsAcc = performance.now(), fpsFrames = 0;
 const tmpV = new THREE.Vector3();
+const _UP = new THREE.Vector3(0, 1, 0);
 const AXIS = new THREE.Vector3(0, 1, 0).applyAxisAngle(new THREE.Vector3(0, 0, 1), AXIAL_TILT);
 
 function tick() {
@@ -1190,15 +1353,32 @@ function tick() {
     const a = satAnchor.position;
     marker.updateWorldMatrix(true, false);
     const b = new THREE.Vector3().setFromMatrixPosition(marker.matrixWorld);
-    const mid = a.clone().add(b).multiplyScalar(0.5);
     const len = a.distanceTo(b);
-    beam.position.copy(mid);
+    // the geometry starts at its own origin, so it anchors at the craft and
+    // stretches to the footprint — nothing to centre
+    beam.position.copy(a);
     beam.scale.set(1, len, 1);
-    beam.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), b.clone().sub(a).normalize());
+    beam.quaternion.setFromUnitVectors(_UP, b.clone().sub(a).normalize());
     beam.visible = true;
-    beamMat.opacity = 0.10 + 0.07 * Math.sin(t * 3.2);
-    ring2.scale.setScalar(1 + 0.14 * Math.sin(t * 2.4));
-    ringMat.opacity = 0.55 + 0.25 * Math.sin(t * 2.4);
+    beamMat.uniforms.uTime.value = REDUCED ? 0 : t;
+
+    /* Designator: parked on the ground point, facing the camera, held at a
+       constant pixel size. Scaling by the world size that subtends
+       DESIGNATOR_PX at this depth is what keeps it an instrument rather than
+       something glued to the terrain. */
+    const dist = camera.position.distanceTo(b);
+    const worldPerPx = (2 * dist * Math.tan(THREE.MathUtils.degToRad(camera.fov * 0.5))) / innerHeight;
+    designator.position.copy(b);
+    designator.quaternion.copy(camera.quaternion);
+    designator.scale.setScalar(DESIGNATOR_PX * worldPerPx);
+
+    // One-shot settle on acquisition — the brackets close in and stop. A loop
+    // here is what made the old marker read as a gimmick: continuous motion
+    // with nothing to say keeps asking for attention it does not need.
+    const since = (performance.now() - acquiredAt) / 1000;
+    designatorMat.uniforms.uSpread.value = REDUCED
+      ? 1
+      : 1 + 0.85 * (1 - easeInOut(clamp(since / 0.55, 0, 1)));
   }
 
   /* pointer picking */
@@ -1247,12 +1427,19 @@ function tick() {
 
   /* pinned target label */
   if (state.target && marker.visible) {
-    marker.updateWorldMatrix(true, false);
-    tmpV.setFromMatrixPosition(marker.matrixWorld);
+    marker.updateWorldMatrix(true, true);
+    // hang off the top of the mast, not the ground point, so the panel sits at
+    // the end of the pin rather than floating next to a ring
+    tmpV.setFromMatrixPosition(labelAnchor.matrixWorld);
     const facing = tmpV.clone().normalize().dot(camera.position.clone().normalize());
     tmpV.project(camera);
     const label = $('target-label');
-    if (facing > 0.02 && tmpV.z < 1) {
+    // The designator draws with depthTest off so terrain never clips it, which
+    // means the globe cannot hide it either — cull it here when the target has
+    // rotated round the back, or it shows through the planet.
+    const onNearSide = facing > 0.02 && tmpV.z < 1;
+    designator.visible = onNearSide;
+    if (onNearSide) {
       label.hidden = false;
       label.style.left = `${(tmpV.x * 0.5 + 0.5) * innerWidth}px`;
       label.style.top = `${(-tmpV.y * 0.5 + 0.5) * innerHeight}px`;
@@ -1346,6 +1533,6 @@ manager.onLoad = () => { bootedAt(); applyDeepLink(); };
 // expose a little surface for the smoke test
 window.__orbital = {
   state, latLonToVec3, vec3ToLatLon, parseQuery, PLACES, THREE,
-  scene, camera, controls, satAnchor, goTo, releaseTarget,
+  scene, camera, controls, satAnchor, marker, beam, designator, goTo, releaseTarget,
   get satellite() { return satellite; },
 };

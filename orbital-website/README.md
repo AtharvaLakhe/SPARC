@@ -139,6 +139,29 @@ machine wrong.
   previously not tappable at all on a phone.
 - The satellite reproduces the Blender rig — the dish stays locked on nadir and the
   solar wings rotate on their spar to track the sun. One revolution takes ~101 s.
+- The target designator is **corner brackets on a camera-facing quad held at a
+  constant 54 px**, drawn procedurally so the arms stay one crisp antialiased
+  width at any zoom. It reads as an instrument overlay rather than a decal, and
+  it is equally legible whether the target faces you or sits on the limb.
+  Underneath it are a thin ground ring — which *should* foreshorten, since that
+  is how you read a patch of surface — and a dim mast carrying the HTML label
+  clear of the brackets.
+- That replaced a stack of additive pieces (halo disc, ring, expanding ping,
+  glowing tip). Additively they summed past the 1.20 bloom threshold, so bloom
+  turned the marker into a four-point starburst; and at a graze every flat piece
+  foreshortens into the same spot, concentrating all of it into one sparkle. It
+  read as a particle effect stuck on the planet. The designator is alpha-blended
+  to stay under the threshold, and its only animation is a one-shot settle on
+  acquisition — a loop with nothing to say keeps asking for attention.
+- The designator draws with `depthTest: false` so terrain never clips it, which
+  means the globe cannot hide it either; far-side culling is done on the CPU
+  against the same facing test the label uses.
+- The ground ring sits above `Q.displacement`, not on the ideal sphere — at the
+  old 1.002 the displaced terrain cut it into a crescent.
+- The beam is additive, a rim falloff over a base fill: rim alone draws the two
+  silhouette walls and nothing between them, which looks like a wireframe cone
+  rather than lit air. It stays exactly nadir on station — any slant you see is
+  the projection of a 2,900 km vertical column viewed off-axis.
 - Stars are three shells at different distances, mostly concentrated toward one
   great circle with a procedural Milky Way painted on the same plane. Orbiting
   parallaxes the shells against each other, which is what sells the depth.
