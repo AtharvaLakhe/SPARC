@@ -8,6 +8,7 @@ from unittest.mock import patch
 
 from scripts.data.build_prepublication_result_pack import (
     BOUNDARY_DISCLAIMER,
+    PROXY_SENSITIVITY_DISCLAIMER,
     SENSITIVITY_DISCLAIMER,
     assemble_pack,
     build_pack,
@@ -82,6 +83,49 @@ class PrepublicationResultPackTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "same approved region"):
             assemble_pack([water, vegetation])
+
+    def test_does_not_apply_nagpur_label_frame_to_bengaluru_vegetation(self) -> None:
+        report = self._report("vegetation")
+        report["region"] = {
+            "key": "bengaluru-urban",
+            "name": "Bengaluru Urban",
+            "boundarySha256": "b" * 64,
+        }
+        report["periods"] = {
+            "baseline": {"start": "2019-01-15", "end": "2019-03-15", "endInclusive": True},
+            "comparison": {"start": "2024-01-15", "end": "2024-03-15", "endInclusive": True},
+        }
+        report["indicators"][0]["analysis"]["crs"] = "EPSG:32643"
+
+        pack = assemble_pack([(Path("bengaluru-urban-vegetation.json"), report, "b" * 64)])
+
+        self.assertEqual(pack["validation"]["vegetationLabelFrame"], "NOT_APPLICABLE")
+
+    def test_preserves_validated_built_proxy_sensitivity_without_relaxing_pack_schema(self) -> None:
+        built = self._assembly_input("built-up")
+        built[1]["indicators"][0]["sensitivity"] = {
+            "status": "completed-pre-publication",
+            "batchExport": {"rawCsvSha256": RAW_CSV_SHA},
+            "method": {
+                "indicatorId": "built-up",
+                "defaultMethodVersion": "p0-constrained-ndbi-v1",
+                "sensitivity": {
+                    "id": "built-ibi",
+                    "indicatorId": "built-up",
+                    "methodVersion": "p0-ibi-l0.5-positive-sensitivity-v2",
+                    "threshold": "IBI > 0 (SAVI L = 0.5)",
+                    "thresholdNumeric": 0.0,
+                },
+            },
+            "row": {"areaSqKm": {"net": -1.0, "percentChange": -10.0}, "commonValidFraction": 11 / 12},
+            "disclaimer": PROXY_SENSITIVITY_DISCLAIMER,
+        }
+
+        pack = assemble_pack([built])
+
+        sensitivity = pack["indicators"][0]["sensitivity"]
+        self.assertEqual(sensitivity["method"]["id"], "built-ibi")
+        self.assertEqual(sensitivity["row"]["netAreaSqKm"], -1.0)
 
     def test_rejects_credential_like_key_and_never_overwrites(self) -> None:
         water = self._assembly_input("surface-water")

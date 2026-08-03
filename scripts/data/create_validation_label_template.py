@@ -14,6 +14,7 @@ MAX_INPUT_BYTES = 1_000_000
 EXPECTED_SAMPLE_COUNT = 100
 REQUIRED_SAMPLE_COLUMNS = {"sampleId", "referenceStatus", ".geo"}
 FORBIDDEN_SAMPLE_COLUMNS = {"stratum", "ndvi", "baselineClass", "comparisonClass"}
+METHOD_COLUMNS = ("indicatorId", "mapMethodId", "mapMethodVersion")
 LABEL_COLUMNS = (
     "sampleId",
     "referencePeriod0Class",
@@ -71,8 +72,61 @@ def read_blinded_sample_frame(path: Path) -> list[dict[str, str]]:
     return rows
 
 
-def create_label_template(sample_csv: Path, output_csv: Path, metadata_json: Path) -> dict[str, Any]:
+def _frame_method_identity(
+    rows: list[dict[str, str]],
+    *,
+    expected_indicator_id: str | None,
+    expected_map_method_id: str | None,
+    expected_map_method_version: str | None,
+) -> dict[str, str] | None:
+    """Ensure optional frozen method metadata is complete and not swapped.
+
+    The method identity is safe to retain: it tells reviewers which public
+    concept to label, but never reveals a sampled point's mapped class, score,
+    stratum, or threshold distance.
+    """
+
+    expected = (expected_indicator_id, expected_map_method_id, expected_map_method_version)
+    if any(value is not None for value in expected) and any(value is None for value in expected):
+        raise ValueError("Expected frame identity requires indicator, method id, and method version together")
+    columns = set(rows[0])
+    present = [column in columns for column in METHOD_COLUMNS]
+    if any(present) and not all(present):
+        raise ValueError("Sample frame has incomplete method identity columns")
+    if not any(present):
+        if all(value is not None for value in expected):
+            raise ValueError("Sample frame does not declare the expected method identity")
+        return None
+
+    identity: dict[str, str] = {}
+    for column in METHOD_COLUMNS:
+        values = {row.get(column) for row in rows}
+        if "" in values or None in values or len(values) != 1:
+            raise ValueError(f"Sample frame must have one non-empty {column} value")
+        identity[column] = values.pop()  # type: ignore[assignment]
+    if all(value is not None for value in expected):
+        expected_identity = dict(zip(METHOD_COLUMNS, expected, strict=True))
+        if identity != expected_identity:
+            raise ValueError("Sample frame method identity does not match the expected frozen rule")
+    return identity
+
+
+def create_label_template(
+    sample_csv: Path,
+    output_csv: Path,
+    metadata_json: Path,
+    *,
+    expected_indicator_id: str | None = None,
+    expected_map_method_id: str | None = None,
+    expected_map_method_version: str | None = None,
+) -> dict[str, Any]:
     rows = read_blinded_sample_frame(sample_csv)
+    method_identity = _frame_method_identity(
+        rows,
+        expected_indicator_id=expected_indicator_id,
+        expected_map_method_id=expected_map_method_id,
+        expected_map_method_version=expected_map_method_version,
+    )
     output_csv.parent.mkdir(parents=True, exist_ok=True)
     with output_csv.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=LABEL_COLUMNS)
@@ -86,6 +140,7 @@ def create_label_template(sample_csv: Path, output_csv: Path, metadata_json: Pat
             "sha256": _sha256_file(sample_csv),
             "count": len(rows),
             "blinded": True,
+            "mapMethod": method_identity,
         },
         "labelTemplate": {
             "path": output_csv.as_posix(),
@@ -108,8 +163,18 @@ def main() -> int:
     parser.add_argument("--sample-csv", type=Path, required=True)
     parser.add_argument("--output-csv", type=Path, required=True)
     parser.add_argument("--metadata-json", type=Path, required=True)
+    parser.add_argument("--indicator-id", choices=("vegetation", "built-up"))
+    parser.add_argument("--map-method-id")
+    parser.add_argument("--map-method-version")
     args = parser.parse_args()
-    metadata = create_label_template(args.sample_csv, args.output_csv, args.metadata_json)
+    metadata = create_label_template(
+        args.sample_csv,
+        args.output_csv,
+        args.metadata_json,
+        expected_indicator_id=args.indicator_id,
+        expected_map_method_id=args.map_method_id,
+        expected_map_method_version=args.map_method_version,
+    )
     print(f"Created {metadata['status']} label template with {metadata['sampleFrame']['count']} samples")
     return 0
 

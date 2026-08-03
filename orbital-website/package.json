@@ -4,7 +4,7 @@
     "description":  "Orbital - earth observation terminal",
     "main":  "index.js",
     "scripts":  {
-                    "serve":  "node server.mjs",
+                    "serve":  "node ../apps/web/serve.mjs 8123",
                     "test":  "node test-geo.mjs",
                     "test:e2e":  "node test-e2e.mjs"
                 },

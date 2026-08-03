@@ -70,7 +70,7 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
   );
   const [hashNav, setNav] = useState(() => parseHash(location.hash));
   const { stage, route } = panel ? panelNav : hashNav;
-  const [dataMode] = useState<DataMode>(config.dataMode);
+  const [dataMode, setDataMode] = useState<DataMode>(config.dataMode);
   const [regionId, setRegionId] = useState<string>(DEFAULT_REGION);
   const [period, setPeriod] = useState<FrozenPeriod>(FROZEN_PERIODS[0]);
   const [regions, setRegions] = useState<RegionRef[]>([]);
@@ -224,7 +224,8 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
             <ErrorView
               error={summary.error} onRetry={retry}
               onResetPeriods={() => setPeriod(FROZEN_PERIODS[0])}
-              canUseOffline={false}
+              canUseOffline={dataMode === 'api'}
+              onUseOffline={() => setDataMode('demo')}
             />
           ) : (
             <SummaryScreen summary={summary.value} onOpenIndicator={openIndicator} />
@@ -241,7 +242,8 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
             <ErrorView
               error={detail.error} onRetry={retry}
               onResetPeriods={() => setPeriod(FROZEN_PERIODS[0])}
-              canUseOffline={false}
+              canUseOffline={dataMode === 'api'}
+              onUseOffline={() => setDataMode('demo')}
             />
           </>
         ) : (

@@ -27,10 +27,26 @@ python -m uvicorn apps.api.app.main:app --port 8000   # from the repo root
 
 ```bash
 npm run build                              # typecheck + production bundle
-node ../../tests/frontend/dashboard-e2e.mjs
+node ../../tests/frontend/dashboard-e2e.mjs http://localhost:5173/
 ```
 
-The e2e run needs the dev server up; the API steps additionally need the API.
+The default e2e run needs the dev server up. To exercise API mode and the
+automatic fallback to the offline pack, start FastAPI with an explicit test
+origin and a second Vite server:
+
+```powershell
+$env:SPARC_ALLOWED_ORIGINS='http://127.0.0.1:5174'
+python -m uvicorn apps.api.app.main:app --host 127.0.0.1 --port 8000
+
+$env:VITE_DATA_MODE='api'
+npm run dev -- --host 127.0.0.1 --port 5174
+node ../../tests/frontend/dashboard-e2e.mjs http://127.0.0.1:5174/ --api
+```
+
+The dashboard test covers the implemented location → period → result flow,
+failure recovery, 360 px, 200% text zoom, keyboard path and non-colour status
+encoding. It does not yet cover a real/pre-publication pack or the full
+Orbit-to-panel handoff.
 It covers the analytical journey, the failure states, 360 px, 200% text zoom,
 the keyboard path and non-colour status encoding, and fails on any console error.
 

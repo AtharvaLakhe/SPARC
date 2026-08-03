@@ -30,7 +30,7 @@ export function ModeBanner({ badge, warnings }: { badge: ModeBadge; warnings: st
   return (
     <div className={`prov prov--${badge.grade}`}>
       <span className="prov__dot" aria-hidden="true" />
-      <span className="prov__grade">{badge.grade === 'synthetic' ? 'Demo data' : 'Pre-publication'}</span>
+      <span className="prov__grade">{badge.grade === 'synthetic' ? 'Synthetic demo data' : 'Pre-publication'}</span>
       <span className="prov__sep" aria-hidden="true">·</span>
       <span className="prov__src">{badge.transportLabel}</span>
       {warnings.length ? (
@@ -57,6 +57,10 @@ export function LimitationsPanel() {
         <li>
           Pixels that were cloudy or invalid are <em>unknown</em>, not unchanged.
           Read common-valid coverage before reading the change value.
+        </li>
+        <li>
+          Scope is district-only. No subdistrict boundary has passed its approval
+          gate, so no child-region result is offered.
         </li>
       </ul>
       {/* Attribution sits inside the limitations block so it travels with any

@@ -129,6 +129,36 @@
         "disclaimer": { "const": "Sensitivity evidence does not calibrate or replace the default green-cover proxy." }
       }
     },
+    "ProxySensitivity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "rawCsvSha256", "method", "row", "disclaimer"],
+      "properties": {
+        "status": { "const": "completed-pre-publication" },
+        "rawCsvSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "method": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "threshold", "thresholdNumeric"],
+          "properties": {
+            "id": { "type": "string", "enum": ["water-pooled-otsu", "built-ibi"] },
+            "threshold": { "type": "string", "minLength": 1, "maxLength": 120 },
+            "thresholdNumeric": { "type": "number" }
+          }
+        },
+        "row": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["netAreaSqKm", "percentChange", "commonValidFraction"],
+          "properties": {
+            "netAreaSqKm": { "type": "number" },
+            "percentChange": { "type": "number" },
+            "commonValidFraction": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        },
+        "disclaimer": { "const": "Sensitivity evidence does not calibrate or replace the default district proxy." }
+      }
+    },
     "Indicator": {
       "type": "object",
       "additionalProperties": false,
@@ -159,7 +189,7 @@
             "warnings": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 300 }, "minItems": 2, "maxItems": 20 }
           }
         },
-        "sensitivity": { "oneOf": [{ "$ref": "#/$defs/Sensitivity" }, { "type": "null" }] }
+        "sensitivity": { "oneOf": [{ "$ref": "#/$defs/Sensitivity" }, { "$ref": "#/$defs/ProxySensitivity" }, { "type": "null" }] }
       }
     },
     "ReportDigest": {

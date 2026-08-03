@@ -1,6 +1,6 @@
 # SPARC validation and uncertainty plan
 
-**Status:** exploratory blinded Nagpur vegetation sample frame created; no independent reference labels or formal validation result
+**Status:** exploratory blinded Nagpur vegetation and built-up frames created; Bengaluru Urban has complete sensitivity evidence but no independent reference labels or formal validation result
 **Evidence cut-off:** 2026-08-03
 **Primary methodological authority:** Olofsson et al., “Good practices for estimating area and assessing accuracy of land change.” ([OLOFSSON-2014](research/source-register.md#olofsson-2014))
 
@@ -27,9 +27,11 @@ The reference label must match the public claim. A “green” label cannot sile
 
 ## Current implementation status
 
-On 2026-08-03, SPARC exported a deterministic, blinded Nagpur vegetation frame with up to 25 points from each mapped stable non-target, stable target, gain, and loss stratum (100 points total). The raw export is retained under Git-ignored `data/raw/validation/`; `scripts.data.create_validation_label_template` produced the local label template and metadata record under `data/processed/validation/`.
+On 2026-08-03, SPARC exported deterministic, blinded Nagpur exploratory frames with 25 points from each mapped stable non-target, stable target, gain, and loss stratum (100 points per frame). The vegetation frame is retained alongside two separately frozen built-up frames: constrained-NDBI default (`2NYBB4IRDEHFGYEZQ4M4CY3A`) and IBI diagnostic (`T462S6Y47PNSZBLXRJ7HHGXH`). The raw CSVs are retained under Git-ignored `data/raw/validation/`; `scripts.data.create_validation_label_template` produced separate local label templates and SHA-256 metadata records under `data/processed/validation/`.
 
-The frame contains no mapped class or NDVI values and every point is `UNLABELLED`. It is therefore `EXPLORATORY_REVIEW_ONLY`: no independent reference evidence, temporal labels, inclusion-probability calculation, error matrix, accuracy value, error-adjusted area, or confidence interval exists yet. It does not pass the independent-validation release gate.
+Every frame contains no mapped class, stratum, score, or threshold-distance field and every point is `UNLABELLED`. The built frames retain only the static indicator/method identity needed to label the correct public concept; template creation rejects a method mismatch. They are therefore `EXPLORATORY_REVIEW_ONLY`: no independent reference evidence, temporal labels, inclusion-probability calculation, error matrix, accuracy value, error-adjusted area, or confidence interval exists yet. The equal 25-per-stratum allocation is a debugging/review design, not a probability design. None of these frames passes the independent-validation release gate or resolves the built-method blocker.
+
+The vegetation frame is Nagpur-specific. Bengaluru Urban's latest v2 pre-publication pack now has validated water pooled-Otsu, vegetation-threshold, and built-IBI sensitivity records, but it does not inherit the Nagpur frame; its pack records `vegetationLabelFrame: NOT_APPLICABLE` until a separate Bengaluru probability frame and reference-evidence plan exist. Directional agreement across a sensitivity run is not independent validation.
 
 ## Validation sequence
 

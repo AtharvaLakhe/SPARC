@@ -85,9 +85,69 @@ python -m scripts.data.process_earth_engine_p0 `
   --import-vegetation-sensitivity-csv data\raw\earth-engine-exports\sparc_nagpur_vegetation_p0_sensitivity_v1.csv
 ```
 
+### Water and built-proxy sensitivity
+
+Water sensitivity does not move the fixed `MNDWI > 0` method. It first exports
+one 256-bin fixed-range histogram over both common-valid period composites. The
+local importer validates every bin, the AOI checksum, CRS, scale and observation
+floor, then derives one deterministic pooled Otsu split. Only that recorded
+threshold can start the second area-summary export. This avoids a long,
+unbounded interactive reduction and prevents a per-period threshold from being
+introduced by accident.
+
+```powershell
+python -m scripts.data.process_earth_engine_p0 `
+  --region nagpur `
+  --indicator surface-water `
+  --mode water-otsu-histogram-export `
+  --drive-folder SPARC_EE_EXPORTS_20260803 `
+  --start-batch-export
+
+# Download the completed CSV into ignored data/raw/earth-engine-exports/.
+python -m scripts.data.process_earth_engine_p0 `
+  --region nagpur `
+  --indicator surface-water `
+  --import-water-otsu-histogram-csv data\raw\earth-engine-exports\sparc_nagpur_surface-water_p0_water-pooled-otsu_histogram_v1.csv
+
+# The imported JSON, rather than a user-supplied number, is required for the
+# area-summary export. Import that CSV with --import-sensitivity-csv afterwards.
+python -m scripts.data.process_earth_engine_p0 `
+  --region nagpur `
+  --indicator surface-water `
+  --mode batch-export `
+  --sensitivity water-pooled-otsu `
+  --water-otsu-result data\processed\earth-engine-p0\nagpur-surface-water-water-pooled-otsu-histogram.json `
+  --drive-folder SPARC_EE_EXPORTS_20260803 `
+  --start-batch-export
+```
+
+Built-proxy sensitivity uses only the already documented diagnostic alternative:
+`IBI > 0` with `SAVI L = 0.5`. It uses the same selected images, SCL mask,
+district AOI, UTM grid and observation floor as the constrained NDBI default.
+The report separately applies and exposes an IBI zero-denominator guard rather
+than silently treating undefined values as non-built. It is not a calibration
+or an impervious-area class.
+
+```powershell
+python -m scripts.data.process_earth_engine_p0 `
+  --region nagpur `
+  --indicator built-up `
+  --mode batch-export `
+  --sensitivity built-ibi `
+  --drive-folder SPARC_EE_EXPORTS_20260803 `
+  --start-batch-export
+
+# After download:
+python -m scripts.data.process_earth_engine_p0 `
+  --region nagpur `
+  --indicator built-up `
+  --sensitivity built-ibi `
+  --import-sensitivity-csv data\raw\earth-engine-exports\sparc_nagpur_built-up_p0_built-ibi_v2.csv
+```
+
 ### Exploratory reference-label frame
 
-Independent validation cannot be fabricated from another global satellite product. This export creates a blinded, deterministic frame of up to 25 points from each mapped stable non-target, stable target, gain, and loss stratum. It omits NDVI values and mapped classes so reviewers can make an initial reference judgement without seeing the candidate result.
+Independent validation cannot be fabricated from another global satellite product. This export creates a blinded, deterministic frame of 25 points from each mapped stable non-target, stable target, gain, and loss stratum (100 points total when every stratum can supply its allocation). It omits mapped classes and index values so reviewers can make an initial reference judgement without seeing the candidate result.
 
 ```powershell
 python -m scripts.data.process_earth_engine_p0 `
@@ -100,6 +160,29 @@ python -m scripts.data.process_earth_engine_p0 `
 
 This is explicitly `EXPLORATORY_REVIEW_ONLY`: the exported points still need temporally appropriate independent labels, a recorded inclusion-probability design, and a design-consistent accuracy analysis before any formal-validation claim is possible.
 
+The fixed vegetation sensitivity export and importer work for either approved district. The importer binds the downloaded CSV to the selected region's approved boundary checksum and CRS; it never applies a Nagpur label frame to Bengaluru.
+
+The Nagpur built-proxy reversal must be reviewed as two distinct frozen map rules. Do not combine their labels, samples, or results: the constrained-NDBI default and the IBI diagnostic have different classifications and the IBI frame additionally excludes zero-denominator pixels in both periods.
+
+```powershell
+# Default constrained-NDBI proxy
+python -m scripts.data.process_earth_engine_p0 `
+  --region nagpur `
+  --indicator built-up `
+  --mode validation-sample-export `
+  --drive-folder SPARC_EE_EXPORTS_20260803 `
+  --start-batch-export
+
+# IBI diagnostic proxy (L=0.5, IBI > 0)
+python -m scripts.data.process_earth_engine_p0 `
+  --region nagpur `
+  --indicator built-up `
+  --mode validation-sample-export `
+  --sensitivity built-ibi `
+  --drive-folder SPARC_EE_EXPORTS_20260803 `
+  --start-batch-export
+```
+
 Create the controlled local label template from the downloaded blinded CSV:
 
 ```powershell
@@ -107,6 +190,18 @@ python -m scripts.data.create_validation_label_template `
   --sample-csv data\raw\validation\sparc_nagpur_vegetation_validation_frame_v1.csv `
   --output-csv data\processed\validation\nagpur-vegetation-label-template.csv `
   --metadata-json data\processed\validation\nagpur-vegetation-label-template.metadata.json
+```
+
+Bind a built frame to the exact frozen method while creating its template. The check rejects a swapped or internally inconsistent CSV while preserving the blind to per-point map class.
+
+```powershell
+python -m scripts.data.create_validation_label_template `
+  --sample-csv data\raw\validation\sparc_nagpur_built-up_validation_frame_default_v1.csv `
+  --output-csv data\processed\validation\nagpur-built-up-default-label-template.csv `
+  --metadata-json data\processed\validation\nagpur-built-up-default-label-template.metadata.json `
+  --indicator-id built-up `
+  --map-method-id default `
+  --map-method-version p0-constrained-ndbi-v1
 ```
 
 ### Pre-publication result pack

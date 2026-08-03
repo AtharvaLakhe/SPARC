@@ -7,11 +7,18 @@ place by name or by latitude/longitude.
 ## Run
 
 ```bash
-npm install       # once - pulls three.js
-npm run serve     # http://localhost:8123/
+# From the repository root:
+cd orbital-website && npm install
+cd ../apps/web && npm install && npm run build
+cd ../../orbital-website && npm run serve
+# http://localhost:8123/       globe
+# http://localhost:8123/app/   analytical dashboard
 ```
 
+`npm run serve` starts the single combined SPARC server from `apps/web/serve.mjs`.
 It must be served over HTTP — the ES module import map won't resolve over `file://`.
+Do not run `node server.mjs` for the full SPARC experience: that legacy
+globe-only server intentionally has no `/app/` mount and will return `404 app/`.
 
 ## Test
 

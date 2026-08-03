@@ -7,12 +7,20 @@ import unittest
 from unittest.mock import patch
 
 from scripts.data.process_earth_engine_p0 import (
+    BUILT_IBI_SENSITIVITY_ID,
     EXPLORATORY_VALIDATION_POINTS_PER_STRATUM,
     EXPLORATORY_VALIDATION_SEED,
     VEGETATION_SENSITIVITY_THRESHOLDS,
+    WATER_OTSU_HISTOGRAM,
+    WATER_OTSU_SENSITIVITY_ID,
+    _pooled_otsu_threshold_from_histograms,
+    _validation_frame_method,
+    _validation_frame_task_description,
     _vegetation_threshold_label,
+    import_alternative_sensitivity,
     import_batch_export,
     import_vegetation_sensitivity,
+    import_water_otsu_histogram,
 )
 
 
@@ -70,6 +78,86 @@ class EarthEngineP0ImportTests(unittest.TestCase):
         row["threshold"] = f"NDVI >= {threshold:.2f}"
         return row
 
+    def _alternative_sensitivity_request(self, sensitivity_id: str) -> dict:
+        request = self._request()
+        if sensitivity_id == WATER_OTSU_SENSITIVITY_ID:
+            request["task"] = {"description": "sparc_nagpur_surface-water_p0_water-pooled-otsu_v1", "id": "task-water"}
+            request["indicatorIds"] = ["surface-water"]
+            request["method"] = {
+                "sensitivity": {
+                    "id": sensitivity_id,
+                    "indicatorId": "surface-water",
+                    "methodVersion": "p0-mndwi-pooled-otsu-sensitivity-v1",
+                    "threshold": "MNDWI > 0.00390645 (pooled Otsu)",
+                    "thresholdNumeric": 0.00390645,
+                    "histogram": WATER_OTSU_HISTOGRAM,
+                }
+            }
+        else:
+            request["task"] = {"description": "sparc_nagpur_built-up_p0_built-ibi_v1", "id": "task-built"}
+            request["indicatorIds"] = ["built-up"]
+            request["method"] = {
+                "sensitivity": {
+                    "id": BUILT_IBI_SENSITIVITY_ID,
+                    "indicatorId": "built-up",
+                    "methodVersion": "p0-ibi-l0.5-positive-sensitivity-v1",
+                    "threshold": "IBI > 0 (SAVI L = 0.5)",
+                    "thresholdNumeric": 0.0,
+                }
+            }
+        return request
+
+    def _alternative_sensitivity_row(self, sensitivity_id: str) -> dict[str, str]:
+        row = self._export_row()
+        if sensitivity_id == WATER_OTSU_SENSITIVITY_ID:
+            row.update({
+                "indicatorId": "surface-water",
+                "methodVersion": "p0-mndwi-fixed-zero-v1",
+                "pixelSizeMetres": "20",
+                "threshold": "MNDWI > 0.00390645 (pooled Otsu)",
+                "sensitivityId": sensitivity_id,
+                "sensitivityMethodVersion": "p0-mndwi-pooled-otsu-sensitivity-v1",
+                "sensitivityThresholdNumeric": "0.00390645",
+            })
+        else:
+            row.update({
+                "indicatorId": "built-up",
+                "methodVersion": "p0-constrained-ndbi-v1",
+                "pixelSizeMetres": "20",
+                "threshold": "IBI > 0 (SAVI L = 0.5)",
+                "sensitivityId": BUILT_IBI_SENSITIVITY_ID,
+                "sensitivityMethodVersion": "p0-ibi-l0.5-positive-sensitivity-v1",
+                "sensitivityThresholdNumeric": "0",
+            })
+        return row
+
+    def _water_histogram_request(self) -> dict:
+        request = self._alternative_sensitivity_request(WATER_OTSU_SENSITIVITY_ID)
+        request["task"] = {"description": "sparc_nagpur_surface-water_p0_water-pooled-otsu_histogram_v1", "id": "task-histogram"}
+        request["method"]["sensitivity"].pop("threshold")
+        request["method"]["sensitivity"].pop("thresholdNumeric")
+        return request
+
+    def _water_histogram_rows(self) -> list[dict[str, str]]:
+        minimum = WATER_OTSU_HISTOGRAM["minimum"]
+        width = (WATER_OTSU_HISTOGRAM["maximum"] - minimum) / WATER_OTSU_HISTOGRAM["buckets"]
+        rows = []
+        for bucket in range(WATER_OTSU_HISTOGRAM["buckets"]):
+            rows.append({
+                "bucket": str(bucket),
+                "lowerEdge": str(minimum + bucket * width),
+                "baselineCount": "10" if bucket == 100 else "0",
+                "comparisonCount": "10" if bucket == 150 else "0",
+                "boundarySha256": BOUNDARY_SHA,
+                "analysisCrs": "EPSG:32644",
+                "pixelSizeMetres": "20",
+                "minClearObservations": "2",
+                "histogramMinimum": str(minimum),
+                "histogramMaximum": str(WATER_OTSU_HISTOGRAM["maximum"]),
+                "histogramBuckets": str(WATER_OTSU_HISTOGRAM["buckets"]),
+            })
+        return rows
+
     def test_import_validates_and_converts_batch_summary(self) -> None:
         approved_manifest = {"boundary": {"sha256": BOUNDARY_SHA}}
         with (
@@ -123,9 +211,96 @@ class EarthEngineP0ImportTests(unittest.TestCase):
         self.assertEqual([row["threshold"] for row in report["rows"]], [0.2, 0.3, 0.4])
         self.assertEqual(report["batchExport"]["taskId"], "task-sensitivity")
 
+    def test_imports_vegetation_sensitivity_for_each_approved_region(self) -> None:
+        boundary_sha = "b" * 64
+        request = self._sensitivity_request()
+        request["region"] = {"key": "bengaluru-urban", "boundarySha256": boundary_sha}
+        rows = [self._sensitivity_row(threshold) for threshold in VEGETATION_SENSITIVITY_THRESHOLDS]
+        for row in rows:
+            row["boundarySha256"] = boundary_sha
+            row["analysisCrs"] = "EPSG:32643"
+        with (
+            patch("scripts.data.process_earth_engine_p0._read_export_rows", return_value=rows),
+            patch("scripts.data.process_earth_engine_p0._read_json", return_value=request),
+            patch("scripts.data.process_earth_engine_p0._load_region_geometry", return_value=({}, {"boundary": {"sha256": boundary_sha}})),
+            patch("scripts.data.process_earth_engine_p0._sha256_file", return_value="5" * 64),
+        ):
+            report = import_vegetation_sensitivity(
+                Path("sensitivity.csv"),
+                Path("request.json"),
+                region="bengaluru-urban",
+            )
+
+        self.assertEqual(report["region"]["key"], "bengaluru-urban")
+        self.assertEqual(report["method"]["fixedControls"]["analysisCrs"], "EPSG:32643")
+
     def test_exploratory_validation_frame_configuration_is_fixed(self) -> None:
         self.assertEqual(EXPLORATORY_VALIDATION_POINTS_PER_STRATUM, 25)
         self.assertEqual(EXPLORATORY_VALIDATION_SEED, 20_260_803)
+
+    def test_built_validation_frames_are_separate_and_frozen_to_one_rule(self) -> None:
+        default = _validation_frame_method("built-up", None)
+        ibi = _validation_frame_method("built-up", BUILT_IBI_SENSITIVITY_ID)
+
+        self.assertEqual(default["id"], "default")
+        self.assertEqual(default["methodVersion"], "p0-constrained-ndbi-v1")
+        self.assertEqual(ibi["id"], BUILT_IBI_SENSITIVITY_ID)
+        self.assertEqual(ibi["methodVersion"], "p0-ibi-l0.5-positive-sensitivity-v2")
+        self.assertIn("denominator", ibi["validityGuard"])
+        self.assertEqual(
+            _validation_frame_task_description("built-up", None),
+            "sparc_nagpur_built-up_validation_frame_default_v1",
+        )
+        self.assertEqual(
+            _validation_frame_task_description("built-up", BUILT_IBI_SENSITIVITY_ID),
+            "sparc_nagpur_built-up_validation_frame_built-ibi-v2_v1",
+        )
+        with self.assertRaisesRegex(ValueError, "Only the documented"):
+            _validation_frame_method("vegetation", BUILT_IBI_SENSITIVITY_ID)
+
+    def test_pooled_otsu_uses_locked_histogram_bins_and_both_periods(self) -> None:
+        minimum = WATER_OTSU_HISTOGRAM["minimum"]
+        width = (WATER_OTSU_HISTOGRAM["maximum"] - minimum) / WATER_OTSU_HISTOGRAM["buckets"]
+        baseline = [[minimum + index * width, 0] for index in range(WATER_OTSU_HISTOGRAM["buckets"])]
+        comparison = [[minimum + index * width, 0] for index in range(WATER_OTSU_HISTOGRAM["buckets"])]
+        baseline[100][1] = 10
+        comparison[150][1] = 10
+
+        threshold = _pooled_otsu_threshold_from_histograms(baseline, comparison)
+
+        self.assertAlmostEqual(threshold, minimum + (101.5 * width))
+        comparison[150][0] += width
+        with self.assertRaisesRegex(ValueError, "bucket edges"):
+            _pooled_otsu_threshold_from_histograms(baseline, comparison)
+
+    def test_imports_documented_water_sensitivity_only_when_request_and_csv_agree(self) -> None:
+        approved_manifest = {"boundary": {"sha256": BOUNDARY_SHA}}
+        request = self._alternative_sensitivity_request(WATER_OTSU_SENSITIVITY_ID)
+        with (
+            patch("scripts.data.process_earth_engine_p0._read_single_export_row", return_value=self._alternative_sensitivity_row(WATER_OTSU_SENSITIVITY_ID)),
+            patch("scripts.data.process_earth_engine_p0._read_json", return_value=request),
+            patch("scripts.data.process_earth_engine_p0._load_region_geometry", return_value=({}, approved_manifest)),
+            patch("scripts.data.process_earth_engine_p0._sha256_file", return_value="3" * 64),
+        ):
+            report = import_alternative_sensitivity(
+                "nagpur", "surface-water", WATER_OTSU_SENSITIVITY_ID, Path("water.csv"), Path("request.json")
+            )
+
+        self.assertEqual(report["method"]["sensitivity"]["id"], WATER_OTSU_SENSITIVITY_ID)
+        self.assertEqual(report["batchExport"]["taskId"], "task-water")
+
+    def test_imports_complete_locked_water_histogram_before_deriving_threshold(self) -> None:
+        approved_manifest = {"boundary": {"sha256": BOUNDARY_SHA}}
+        with (
+            patch("scripts.data.process_earth_engine_p0._read_export_rows", return_value=self._water_histogram_rows()),
+            patch("scripts.data.process_earth_engine_p0._read_json", return_value=self._water_histogram_request()),
+            patch("scripts.data.process_earth_engine_p0._load_region_geometry", return_value=({}, approved_manifest)),
+            patch("scripts.data.process_earth_engine_p0._sha256_file", return_value="4" * 64),
+        ):
+            evidence = import_water_otsu_histogram(Path("histogram.csv"), Path("request.json"))
+
+        self.assertEqual(evidence["method"]["id"], WATER_OTSU_SENSITIVITY_ID)
+        self.assertEqual(evidence["batchExport"]["taskId"], "task-histogram")
 
 
 if __name__ == "__main__":

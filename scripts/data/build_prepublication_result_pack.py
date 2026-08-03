@@ -26,6 +26,7 @@ MAX_REPORT_BYTES = 2 * 1024 * 1024
 P0_INDICATORS = ("surface-water", "vegetation", "built-up")
 BOUNDARY_DISCLAIMER = "This boundary is suitable for prototype analysis but is not an authoritative legal or cadastral boundary."
 SENSITIVITY_DISCLAIMER = "Sensitivity evidence does not calibrate or replace the default green-cover proxy."
+PROXY_SENSITIVITY_DISCLAIMER = "Sensitivity evidence does not calibrate or replace the default district proxy."
 SENSITIVE_KEY = re.compile(r"(?:api[_-]?key|authorization|bearer|cookie|password|secret|token|signed[_-]?url)", re.IGNORECASE)
 DATE_TIME = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,6})?Z$")
 
@@ -112,17 +113,47 @@ def _normalise_sensitivity(value: Any, indicator_id: str) -> dict[str, Any] | No
         if indicator_id == "vegetation":
             raise ValueError("Vegetation report is missing completed sensitivity evidence")
         return None
-    if indicator_id != "vegetation":
-        raise ValueError(f"Only vegetation may carry sensitivity evidence, not {indicator_id}")
     sensitivity = _require_dict(value, "indicators[].sensitivity")
     if sensitivity.get("status") != "completed-pre-publication":
-        raise ValueError("Vegetation sensitivity is not completed pre-publication evidence")
-    if sensitivity.get("disclaimer") != SENSITIVITY_DISCLAIMER:
-        raise ValueError("Vegetation sensitivity disclaimer is missing or changed")
+        raise ValueError(f"{indicator_id} sensitivity is not completed pre-publication evidence")
     batch = _require_dict(sensitivity.get("batchExport"), "sensitivity.batchExport")
     raw_csv_sha = _require_string(batch.get("rawCsvSha256"), "sensitivity.batchExport.rawCsvSha256", maximum=64)
     if not re.fullmatch(r"[a-f0-9]{64}", raw_csv_sha):
-        raise ValueError("Vegetation sensitivity raw CSV checksum is invalid")
+        raise ValueError(f"{indicator_id} sensitivity raw CSV checksum is invalid")
+
+    if indicator_id in ("surface-water", "built-up"):
+        if sensitivity.get("disclaimer") != PROXY_SENSITIVITY_DISCLAIMER:
+            raise ValueError(f"{indicator_id} sensitivity disclaimer is missing or changed")
+        method = _require_dict(sensitivity.get("method"), "sensitivity.method")
+        alternate = _require_dict(method.get("sensitivity"), "sensitivity.method.sensitivity")
+        expected_id = "water-pooled-otsu" if indicator_id == "surface-water" else "built-ibi"
+        if alternate.get("id") != expected_id or alternate.get("indicatorId") != indicator_id:
+            raise ValueError(f"{indicator_id} sensitivity method is not the documented alternative")
+        threshold = _require_string(alternate.get("threshold"), "sensitivity.method.sensitivity.threshold", maximum=120)
+        threshold_numeric = _finite_number(alternate.get("thresholdNumeric"), "sensitivity.method.sensitivity.thresholdNumeric")
+        row = _require_dict(sensitivity.get("row"), "sensitivity.row")
+        areas = _require_dict(row.get("areaSqKm"), "sensitivity.row.areaSqKm")
+        net_area = _finite_number(areas.get("net"), "sensitivity.row.areaSqKm.net")
+        percent_change = _finite_number(areas.get("percentChange"), "sensitivity.row.areaSqKm.percentChange")
+        common_valid_fraction = _finite_number(row.get("commonValidFraction"), "sensitivity.row.commonValidFraction", minimum=0)
+        if common_valid_fraction > 1:
+            raise ValueError(f"{indicator_id} sensitivity common-valid fraction exceeds 1")
+        return {
+            "status": "completed-pre-publication",
+            "rawCsvSha256": raw_csv_sha,
+            "method": {"id": expected_id, "threshold": threshold, "thresholdNumeric": threshold_numeric},
+            "row": {
+                "netAreaSqKm": net_area,
+                "percentChange": percent_change,
+                "commonValidFraction": common_valid_fraction,
+            },
+            "disclaimer": PROXY_SENSITIVITY_DISCLAIMER,
+        }
+
+    if indicator_id != "vegetation":
+        raise ValueError(f"Unsupported sensitivity-bearing indicator: {indicator_id}")
+    if sensitivity.get("disclaimer") != SENSITIVITY_DISCLAIMER:
+        raise ValueError("Vegetation sensitivity disclaimer is missing or changed")
     method = _require_dict(sensitivity.get("method"), "sensitivity.method")
     if method.get("indicatorId") != "vegetation" or method.get("thresholds") != [0.2, 0.3, 0.4]:
         raise ValueError("Vegetation sensitivity method does not use the fixed documented thresholds")
@@ -225,7 +256,10 @@ def _normalise_indicator(value: Any) -> dict[str, Any]:
         "commonValid": {"boundaryAreaSqKm": boundary_area, "areaSqKm": observed_area, "fraction": fraction},
         "medianIndex": normalized_median,
         "quality": {"level": "unknown", "warnings": normalized_warnings},
-        "sensitivity": _normalise_sensitivity(indicator.get("thresholdSensitivity"), indicator_id),
+        "sensitivity": _normalise_sensitivity(
+            indicator.get("thresholdSensitivity") if indicator_id == "vegetation" else indicator.get("sensitivity"),
+            indicator_id,
+        ),
     }
 
 
@@ -344,7 +378,13 @@ def assemble_pack(reports: list[tuple[Path, dict[str, Any], str]]) -> dict[str, 
         "indicators": sorted(indicators, key=lambda item: P0_INDICATORS.index(item["indicatorId"])),
         "validation": {
             "independentValidation": "NOT_COMPLETED",
-            "vegetationLabelFrame": "EXPLORATORY_REVIEW_ONLY" if "vegetation" in seen_indicators else "NOT_APPLICABLE",
+            # The sole exploratory label frame is Nagpur-specific. A vegetation
+            # report in another district must never inherit that evidence.
+            "vegetationLabelFrame": (
+                "EXPLORATORY_REVIEW_ONLY"
+                if first_region["key"] == "nagpur" and "vegetation" in seen_indicators
+                else "NOT_APPLICABLE"
+            ),
         },
         "provenance": {"sourceProvider": first_source[0], "sourceCollection": first_source[1], "reportDigests": digests},
         "disclaimer": BOUNDARY_DISCLAIMER,

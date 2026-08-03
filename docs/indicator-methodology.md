@@ -1,6 +1,6 @@
 # SPARC indicator methodology
 
-**Status:** implementation-ready specification; initial Earth Engine water and built-candidate reductions are pre-publication
+**Status:** implementation-ready specification; all documented Nagpur and Bengaluru Urban P0 sensitivity exports are imported, but all outputs remain pre-publication and `quality: unknown`
 **Evidence cut-off:** 2026-08-03
 **Primary pilot:** Nagpur district  
 **P0 optical periods:** 2019-10-15 through 2019-12-15 and 2024-10-15 through 2024-12-15, both endpoints inclusive  
@@ -99,6 +99,8 @@ MNDWI substitutes SWIR for the NIR channel used by McFeeters NDWI to suppress mu
 
 **HEURISTIC — P0 default:** `water = MNDWI > 0` after QA and period compositing. Also compute one pooled Otsu threshold over both periods as a sensitivity result; never apply separate Otsu thresholds per period. Otsu is a histogram-separation algorithm, not environmental validation. ([OTSU-1979](research/source-register.md#otsu-1979))
 
+**Observed 2026-08-03:** Bengaluru Urban's fixed-zero and pooled-Otsu water rules both have positive net change (+9.22 and +96.17 km²), but their materially different magnitudes are sensitivity evidence only. Neither rule has independent reference validation.
+
 Treat a denominator with absolute value below the numeric epsilon as nodata. Store the continuous MNDWI raster in addition to the binary result.
 
 ### Water sensitivity and fallback
@@ -145,6 +147,8 @@ NDVI=(\rho_{NIR}-\rho_{red})/(\rho_{NIR}+\rho_{red})
 The normalized red/NIR formulation is the standard NDVI definition. ([NDVI-USGS](research/source-register.md#ndvi-usgs), [S2-PSD](research/source-register.md#s2-psd)) The analytical output is 10 m.
 
 **HEURISTIC — P0 default:** `green = NDVI >= 0.30`; publish sensitivity at `0.20` and `0.40`. These values are not universal ecological thresholds. If local reference labels are available, tune on a separate calibration subset and freeze the selected value across both periods.
+
+**Observed 2026-08-03:** Bengaluru Urban's 0.20/0.30/0.40 vegetation thresholds are all positive (+30.51/+58.03/+51.76 km²). That directional consistency does not make the proxy a validated vegetation, forest, or land-cover finding.
 
 Publish:
 
@@ -218,6 +222,10 @@ IBI=\frac{NDBI-(SAVI+MNDWI)/2}{NDBI+(SAVI+MNDWI)/2}
 \]
 
 **HEURISTIC:** use `L = 0.5` and `IBI > 0` only as sensitivity settings, with 0–1 reflectance and denominator guards. The original IBI paper was a single-city Landsat ETM+ experiment; its performance cannot be transferred to Nagpur or Sentinel-2 without local validation. ([IBI-2008](research/source-register.md#ibi-2008))
+
+**Observed 2026-08-03:** Nagpur's constrained-NDBI default and IBI diagnostic produce opposite net-change directions. SPARC therefore exported separate blinded, `EXPLORATORY_REVIEW_ONLY` 100-point frames for each frozen rule. The IBI frame carries its two-period denominator-validity exclusion. These frames are inputs to independent review, not validation results; until temporally appropriate labels and a design-based analysis exist, neither method supports a built-change finding.
+
+**Observed 2026-08-03:** Bengaluru Urban's constrained-NDBI and IBI diagnostics are both negative (−79.18 and −5.08 km²), but the large magnitude difference and absent independent labels mean neither supports a built-change claim.
 
 ### Static corroboration
 

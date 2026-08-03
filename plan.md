@@ -59,7 +59,7 @@ SPARC addresses an access and interpretation problem: satellite data exists, but
 
 - Nagpur P0 windows: 2019-10-15–2019-12-15 versus 2024-10-15–2024-12-15.
 - Nagpur P1 LST windows: 2019-03-01–2019-05-15 versus 2024-03-01–2024-05-15.
-- Bengaluru backup candidate windows: 2019-01-15–2019-03-15 versus the same dates in 2024, subject to the same catalog, cloud, common-valid-area, and license gates before freeze.
+- Bengaluru Urban backup windows: 2019-01-15–2019-03-15 versus the same dates in 2024. The district-boundary, catalog, cloud/common-valid-area, and license gates passed on 2026-08-03; any later period change requires a new documented method/version.
 - Catalog metadata, common-valid coverage, and same-season suitability are Day 0 gates. Any expansion is symmetric across years and recorded; the demo never switches dates silently.
 
 ## Indicator Decisions
@@ -211,14 +211,14 @@ Research/license gates
   - Fallback: Use the approved preselected scenes and locally retained inputs
   - Progress 2026-08-03: `scripts.data.extract_geoboundaries_adm2` produces separate raw-source, validated GeoJSON, and metadata/gate artifacts. `scripts.data.process_earth_engine_p0` checks the gate/hash before Earth Engine processing. Nagpur water and built-candidate computations completed on the validated polygon. The 10 m vegetation computation exceeded the interactive-worker timeout, then completed through a guarded full-resolution Google Earth Engine CSV batch export to the approved Drive folder; its local importer verified the approved boundary checksum, CRS, method settings, coverage, and area arithmetic. Method and scale remain unchanged.
 
-- [ ] **D1-C-002 — Produce representative water, vegetation, and built-up outputs**
+- [x] **D1-C-002 — Produce representative water, vegetation, and built-up outputs**
   - Owner: Codex
   - Priority: P0
   - Dependency: D1-C-001
   - Expected output: One representative result per P0 method plus formula/schema tests
   - Acceptance condition: Results validate, use fixed cross-period rules, and expose raw/cleaned/sensitivity evidence
   - Fallback: Mark an unstable indicator low-quality and use the documented simpler fixed method
-  - Progress 2026-08-03: Pre-publication water runs completed for Nagpur and Bengaluru Urban; Nagpur built-candidate and 10 m vegetation runs completed. The vegetation default and fixed 0.20/0.30/0.40 sensitivity batch CSVs were imported only after each matched the approved boundary checksum, CRS, method settings, coverage, and area arithmetic. A deterministic blinded 100-point vegetation label frame and controlled local label template now exist, but no independent labels or formal accuracy analysis exist. The vegetation net change spans −27.03 to −487.10 km² across those thresholds, so it remains `quality: unknown`; water and built sensitivity are also pending.
+  - Progress 2026-08-03: Completed as pre-publication evidence only. Nagpur water, vegetation, and built-candidate reports now carry imported sensitivity records validated against the approved boundary checksum, CRS, method settings, coverage, and area arithmetic. Water's fixed-zero and pooled-Otsu runs both show net loss (−8.50 and −10.16 km²), but independent validation remains required. Vegetation's net proxy change spans −27.03 to −487.10 km² at the fixed 0.20/0.30/0.40 thresholds. The corrected built IBI (`L=0.5`, `>0`) v2 sensitivity reverses the constrained-NDBI default direction (+158.47 versus −361.52 km²), so the built-change finding is blocked and must be withheld or retained only as an explicitly unstable diagnostic. Separate 100-point blinded exploratory frames for the constrained-NDBI and IBI v2 rules completed in the approved Drive folder and were method-bound locally before template creation; they are not independent labels or a probability design. A previous IBI v1 CSV did not record the denominator-validity footprint and is explicitly excluded. All quality remains `unknown`; no formal accuracy analysis or independent labels exist.
 
 - [x] **D1-C-003 — Build API/result-repository skeleton to the contract**
   - Owner: Codex
@@ -228,21 +228,23 @@ Research/license gates
   - Acceptance condition: Contract tests pass without performing raster processing in request handlers
   - Fallback: Serve the exact immutable payloads through the demo transport while correcting the API
 
-- [ ] **D1-CL-004 — Build accessible dashboard shell against mock transport**
+- [x] **D1-CL-004 — Build accessible dashboard shell against mock transport**
   - Owner: Claude
   - Priority: P0
   - Dependency: D0-CL-005
   - Expected output: App shell, region/period controls, summary cards, map/chart shells, and loading/error/empty/partial states
   - Acceptance condition: Keyboard journey works at desktop and 360 px using only committed mocks
   - Fallback: Use static accessible result tables and image layers before adding map interactions
+  - Progress 2026-08-03: Completed in `apps/web/`. The browser flow is location → frozen period → district summary → indicator detail. It uses DemoTransport by default, repeats the contract boundary validation in the browser, and passed 36 headless-browser checks in demo/static mode for keyboard order, 360 px, 200% zoom, disclosures, deep links, and non-colour status text.
 
-- [ ] **D1-CL-005 — Add provenance, quality, and optional-showcase placeholders**
+- [x] **D1-CL-005 — Add provenance, quality, and optional-showcase placeholders**
   - Owner: Claude
   - Priority: P0
   - Dependency: D1-CL-004
   - Expected output: Provenance drawer, quality explanation, demo badge, 3D placeholder, no-WebGL fallback
   - Acceptance condition: Scientific caveats and data mode are visible without opening developer tools
   - Fallback: Keep 3D as a noninteractive poster and prioritize analytical disclosure
+  - Progress 2026-08-03: Completed for the dashboard. Synthetic-demo mode, provenance, quality, ODbL attribution/share-alike, SDG limitations, district-only scope, and non-WebGL disclosure are visible. API mode passed 40 headless-browser checks, including an intentionally blocked request followed by recovery to the bundled demo transport. Full Orbit-to-panel handoff remains a release test.
 
 **Checkpoint:** Representative scientific outputs and a usable mock dashboard exist; contract validation passes; no shared-file conflict exists.
 
@@ -255,7 +257,7 @@ Research/license gates
   - Expected output: Nagpur district/tahsil results, Bengaluru backup, layers, quality, provenance, manifests, and checksums
   - Acceptance condition: Primary and backup payloads validate and all referenced local assets resolve
   - Fallback: Preserve the district and whichever Nagpur subdistrict passes the gate; otherwise mark child results unavailable and keep the district-level backup
-  - Progress 2026-08-03: A schema-checked, non-overwritable local Nagpur pre-publication pack was generated from the three validated report files. It retains report checksums, `quality: unknown`, the boundary disclaimer, vegetation threshold sensitivity, and `NOT_COMPLETED` independent validation. It is not connected to the mock-only API, and Bengaluru Urban remains incomplete.
+  - Progress 2026-08-03: Schema-checked, non-overwritable local Nagpur pre-publication packs were generated from the three validated report files. The v2 pack retains report checksums, water/vegetation/built sensitivity records, `quality: unknown`, the boundary disclaimer, and `NOT_COMPLETED` independent validation. A separate Bengaluru Urban v2 pack now includes importer-validated water, vegetation, and built reports plus completed pooled-Otsu, 0.20/0.30/0.40 vegetation, and built-IBI sensitivity records. Its validation record is correctly `NOT_APPLICABLE` for the Nagpur-only vegetation label frame; a separate Bengaluru probability design and all independent validation remain open. The Nagpur built sensitivity reversal is an explicit method blocker; both packs are offline evidence only, not connected to the mock-only API.
 
 - [ ] **D2-C-002 — Complete comparison and contract behavior**
   - Owner: Codex
@@ -272,6 +274,7 @@ Research/license gates
   - Expected output: Before/after layers, district summary, indicator charts, tahsil drill-down, quality/provenance, and interpretations
   - Acceptance condition: A user can complete the exact demo journey without knowing remote-sensing terminology
   - Fallback: Use static overlay images and accessible tables rather than live tiles
+  - Progress 2026-08-03: The mock-backed district journey is implemented and browser-verified. This item remains open because accepted pre-publication packs, approved layer/static assets, the Bengaluru backup journey, and a permitted child-region result are not yet available.
 
 - [ ] **D2-S-004 — Perform first full integration**
   - Owner: Shared
