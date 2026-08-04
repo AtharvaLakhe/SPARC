@@ -55,7 +55,9 @@ export function LocationConsole({
      query gets, with the console already open to fix it. */
   const consumed = useRef(false);
   useEffect(() => {
-    if (!handoff || consumed.current || !regions.length) return;
+    // Wait for the list. Resolving against a partial one produces a confident
+    // "no packaged result covers X" for a district that is simply not loaded yet.
+    if (!handoff || consumed.current || regions.length === 0) return;
     consumed.current = true;
     setQuery(handoff.name);
     resolve(handoff.lat, handoff.lon, handoff.name);
@@ -140,6 +142,9 @@ export function LocationConsole({
         {message ? <p className="console__msg" role="status">{message}</p> : null}
 
         <div className="console__foot">
+          {regions.length === 0 ? (
+            <p className="console__note">Loading districts…</p>
+          ) : null}
           <CityPicker
             onPick={onResolved}
             realRegion={regions.find((r) => r.id.includes('nagpur')) ?? regions[0] ?? null}

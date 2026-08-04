@@ -87,7 +87,26 @@ function Legend({ layer }: { layer: LayerDescriptor }) {
   );
 }
 
-function MapCanvas({ layer, regionId }: { layer: LayerDescriptor; regionId: string }) {
+/** A descriptor carrying only what the map needs to frame a boundary. */
+function syntheticBoundaryLayer(regionId: string, rings: [number, number][][]): LayerDescriptor {
+  let w = 180, s = 90, e = -180, n = -90;
+  for (const ring of rings) {
+    for (const [lon, lat] of ring) {
+      w = Math.min(w, lon); e = Math.max(e, lon);
+      s = Math.min(s, lat); n = Math.max(n, lat);
+    }
+  }
+  return {
+    id: `${regionId}:extent`, kind: 'district extent', representation: 'geojson',
+    href: '', tileJsonHref: null, bounds: [w, s, e, n],
+    minZoom: null, maxZoom: null, opacity: 1, legend: [], attributions: [],
+    checksum: null, contentVersion: null, availableOffline: true,
+  };
+}
+
+function MapCanvas({ layer, regionId, syntheticLayers, accent }: {
+  layer: LayerDescriptor; regionId: string; syntheticLayers: boolean; accent?: string;
+}) {
   const ref = useRef<HTMLDivElement | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
   const [rasterMissing, setRasterMissing] = useState(false);
@@ -107,10 +126,10 @@ function MapCanvas({ layer, regionId }: { layer: LayerDescriptor; regionId: stri
         const instance = new maplibre.Map({
           container: ref.current,
           style: { version: 8, sources: {}, layers: [
-            { id: 'bg', type: 'background', paint: { 'background-color': '#0d1117' } },
+            { id: 'bg', type: 'background', paint: { 'background-color': '#0a1420' } },
           ] },
           bounds: layer.bounds,
-          fitBoundsOptions: { padding: 16 },
+          fitBoundsOptions: { padding: 26 },
           attributionControl: false,
           // The accessible table below is the keyboard path; leaving the canvas
           // in the tab order would trap users in a control with no equivalent.
@@ -121,10 +140,47 @@ function MapCanvas({ layer, regionId }: { layer: LayerDescriptor; regionId: stri
         instance.on('load', () => {
           if (disposed) return;
 
+          /* Land and coastline context. Without it the district floats on a flat
+             background and reads as a broken map rather than a located one.
+             Natural Earth is public domain and is bundled into the build, so
+             this costs no runtime network access — the offline gate holds.
+             Provenance: data/metadata/basemap/natural-earth.provenance.json */
+          instance.addSource('ne-land', { type: 'geojson', data: `${import.meta.env.BASE_URL}basemap/ne_110m_land.geojson` });
+          instance.addLayer({
+            id: 'ne-land-fill', type: 'fill', source: 'ne-land',
+            paint: { 'fill-color': '#16202c', 'fill-outline-color': '#243244' },
+          });
+          instance.addSource('ne-coast', { type: 'geojson', data: `${import.meta.env.BASE_URL}basemap/ne_50m_coastline.geojson` });
+          instance.addLayer({
+            id: 'ne-coast-line', type: 'line', source: 'ne-coast',
+            paint: { 'line-color': '#3d5a7a', 'line-width': 0.9 },
+          });
+
           /* The district boundary, drawn from the validated geometry we already
              hold. This is the part that is always real — the raster below is a
              demo asset that may not be packaged, and a map showing nothing at
              all because one image 404'd was worse than useless. */
+          // A one-degree graticule: at district scale the coastline may be off
+          // screen entirely, and a grid gives the extent a sense of size.
+          const [gw, gs, ge, gn] = layer.bounds;
+          const lines: { type: 'Feature'; properties: Record<string, never>;
+            geometry: { type: 'LineString'; coordinates: number[][] } }[] = [];
+          for (let lon = Math.floor(gw) - 1; lon <= Math.ceil(ge) + 1; lon += 1) {
+            lines.push({ type: 'Feature', properties: {}, geometry: {
+              type: 'LineString', coordinates: [[lon, gs - 2], [lon, gn + 2]] } } as never);
+          }
+          for (let lat = Math.floor(gs) - 1; lat <= Math.ceil(gn) + 1; lat += 1) {
+            lines.push({ type: 'Feature', properties: {}, geometry: {
+              type: 'LineString', coordinates: [[gw - 2, lat], [ge + 2, lat]] } } as never);
+          }
+          instance.addSource('graticule', {
+            type: 'geojson', data: { type: 'FeatureCollection', features: lines },
+          });
+          instance.addLayer({
+            id: 'graticule-line', type: 'line', source: 'graticule',
+            paint: { 'line-color': '#2b3a4d', 'line-width': 0.6 },
+          });
+
           const shape = shapeForRegion(regionId, layer.bounds);
           if (shape) {
             instance.addSource('sparc-district', {
@@ -139,14 +195,14 @@ function MapCanvas({ layer, regionId }: { layer: LayerDescriptor; regionId: stri
               id: 'sparc-district-fill',
               type: 'fill',
               source: 'sparc-district',
-              paint: { 'fill-color': '#58b7ff', 'fill-opacity': 0.16 },
+              paint: { 'fill-color': accent ?? '#58b7ff', 'fill-opacity': 0.22 },
             });
             instance.addLayer({
               id: 'sparc-district-line',
               type: 'line',
               source: 'sparc-district',
               paint: {
-                'line-color': '#7fd0ff',
+                'line-color': accent ?? '#7fd0ff',
                 'line-width': 1.6,
                 // Dashed when the outline is a bounding box rather than a
                 // surveyed boundary, so the two never look alike.
@@ -154,6 +210,14 @@ function MapCanvas({ layer, regionId }: { layer: LayerDescriptor; regionId: stri
               },
             });
           }
+
+          /* Synthetic descriptors point at demo assets that were never
+             committed. Probing for one produces a guaranteed 404 in the console
+             of every demo — an error that looks like a defect, caused by us
+             asking for something we already know is not there. So when the
+             payload is synthetic we state the absence instead of discovering
+             it. */
+          if (syntheticLayers) { setRasterMissing(true); return; }
 
           // The analytical raster is optional and often absent in a demo build.
           if (isSafeAppHref(layer.href) && layer.representation === 'image') {
@@ -197,7 +261,7 @@ function MapCanvas({ layer, regionId }: { layer: LayerDescriptor; regionId: stri
       disposed = true;
       map?.remove();
     };
-  }, [layer]);
+  }, [layer, regionId, syntheticLayers, accent]);
 
   return (
     <>
@@ -207,7 +271,8 @@ function MapCanvas({ layer, regionId }: { layer: LayerDescriptor; regionId: stri
           <p>
             The district boundary above is the validated geometry. The
             change-detection image it would be draped with is a demo asset that
-            is not committed, so only the boundary is drawn.
+            is not committed, so only the boundary is drawn — the extent, legend
+            and attribution below remain authoritative.
           </p>
         </Callout>
       ) : null}
@@ -221,20 +286,39 @@ function MapCanvas({ layer, regionId }: { layer: LayerDescriptor; regionId: stri
   );
 }
 
-export function LayerView({ layers, regionId }: { layers: LayerDescriptor[]; regionId: string }) {
+export function LayerView({ layers, regionId, syntheticLayers = false, accent }: {
+  layers: LayerDescriptor[]; regionId: string; syntheticLayers?: boolean; accent?: string;
+}) {
   const headingId = useId();
   const [webgl] = useState(webglAvailable);
-  const [showMap, setShowMap] = useState(false);
 
+  /* No analytical raster does not mean nothing to show. The district boundary
+     always exists, so the map renders regardless — previously an empty `layers`
+     array produced a text callout and no visual at all, which is what every
+     generated district got. */
   if (!layers.length) {
+    const shape = shapeForRegion(regionId);
     return (
       <section className="panel" aria-labelledby={headingId}>
-        <h3 id={headingId}>Spatial layer</h3>
-        <Callout tone="info" title="No layer is packaged for this result">
+        <h3 id={headingId}>Spatial extent</h3>
+        {webgl && shape ? (
+          <div className="layer__map">
+            <MapCanvas
+              layer={syntheticBoundaryLayer(regionId, shape.rings)}
+              regionId={regionId}
+              syntheticLayers
+              accent={accent}
+            />
+          </div>
+        ) : null}
+        <Callout tone="info" title="No analytical layer is packaged for this result">
           <p>
-            A result without a layer is still a valid result — the metric,
-            quality evidence and provenance below are unaffected. Layers are
-            omitted when a period fails its coverage gate.
+            {shape?.approximate
+              ? 'The outline is this district’s bounding box, drawn dashed because it is an approximation rather than a surveyed boundary.'
+              : 'The outline is the validated district boundary.'}{' '}
+            No change-detection raster exists for it, so there is nothing to drape
+            over the shape. The metric, quality evidence and provenance are
+            unaffected.
           </p>
         </Callout>
       </section>
@@ -254,13 +338,12 @@ export function LayerView({ layers, regionId }: { layers: LayerDescriptor[]; reg
 
           {webgl ? (
             <div className="layer__map">
-              {showMap ? (
-                <MapCanvas layer={layer} regionId={regionId} />
-              ) : (
-                <button type="button" className="btn" onClick={() => setShowMap(true)}>
-                  Load map preview
-                </button>
-              )}
+              <MapCanvas
+                layer={layer}
+                regionId={regionId}
+                syntheticLayers={syntheticLayers}
+                accent={accent}
+              />
               <p className="hint">
                 The map is an optional preview. Everything it shows is also in the
                 table below, which is the accessible and offline path.

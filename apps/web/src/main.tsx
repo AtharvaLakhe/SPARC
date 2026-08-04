@@ -45,6 +45,7 @@ export interface PanelTarget { lat: number; lon: number; name: string }
 
 let panelRoot: Root | null = null;
 let panelHost: HTMLElement | null = null;
+let panelWidth = Math.min(672, Math.round((typeof innerWidth === 'number' ? innerWidth : 1280) * 0.46));
 
 function ensureHost(): HTMLElement {
   if (panelHost) return panelHost;
@@ -52,7 +53,50 @@ function ensureHost(): HTMLElement {
   el.id = 'sparc-panel';
   el.className = 'sparc-panel';
   el.setAttribute('aria-label', 'SPARC district analysis');
+
+  /* Drag handle. The panel covers the globe, and how much of each you want to
+     see depends on what you are doing — reading provenance wants width, watching
+     the beam land wants the planet. Width persists for the session so it does
+     not reset every time the panel is reopened. */
+  const grip = document.createElement('div');
+  grip.className = 'sparc-panel__grip';
+  grip.setAttribute('role', 'separator');
+  grip.setAttribute('aria-orientation', 'vertical');
+  grip.setAttribute('aria-label', 'Resize panel');
+  grip.tabIndex = 0;
+
+  const MIN = 22 * 16;
+  const clampWidth = (px: number) =>
+    Math.max(MIN, Math.min(px, Math.round(innerWidth * 0.96)));
+  const applyWidth = (px: number) => {
+    panelWidth = clampWidth(px);
+    el.style.width = `${panelWidth}px`;
+  };
+
+  let dragging = false;
+  grip.addEventListener('pointerdown', (e) => {
+    dragging = true;
+    grip.setPointerCapture(e.pointerId);
+    document.body.classList.add('sparc-resizing');
+    e.preventDefault();
+  });
+  addEventListener('pointermove', (e) => {
+    if (dragging) applyWidth(innerWidth - e.clientX);
+  });
+  addEventListener('pointerup', () => {
+    dragging = false;
+    document.body.classList.remove('sparc-resizing');
+  });
+  // Keyboard equivalent: a drag handle reachable only by pointer is not a control.
+  grip.addEventListener('keydown', (e) => {
+    const step = e.shiftKey ? 96 : 24;
+    if (e.key === 'ArrowLeft') { applyWidth(panelWidth + step); e.preventDefault(); }
+    if (e.key === 'ArrowRight') { applyWidth(panelWidth - step); e.preventDefault(); }
+  });
+
+  el.appendChild(grip);
   document.body.appendChild(el);
+  applyWidth(panelWidth);
   panelHost = el;
   return el;
 }
@@ -62,7 +106,13 @@ function openPanel(target: PanelTarget) {
   const host = ensureHost();
   host.classList.add('sparc-panel--open');
   document.documentElement.classList.add('sparc-panel-open');
-  if (!panelRoot) panelRoot = createRoot(host);
+  let mount = host.querySelector<HTMLElement>('.sparc-panel__mount');
+  if (!mount) {
+    mount = document.createElement('div');
+    mount.className = 'sparc-panel__mount';
+    host.appendChild(mount);
+  }
+  if (!panelRoot) panelRoot = createRoot(mount);
   panelRoot.render(
     <StrictMode>
       <Boundary>

@@ -289,6 +289,16 @@ Research/license gates
 ## Day 3 — Reliability and Judging Readiness
 
 - [ ] **D3-S-001 — Run scientific, contract, security, and accessibility verification**
+  - Progress 2026-08-04: The Nagpur vegetation preregistration gate is implemented
+    (`scripts.data.create_probability_validation_plan`, 36 tests; full suite 80 passed).
+    It binds boundary checksum, raw ledger checksum, region, indicator, method id/version,
+    finite populations, sample sizes, seed, replacement policy, target precision, and the
+    exact rational inclusion probability, and produces a blinded reviewer CSV separately
+    from a restricted design-linkage CSV. **The gate does not pass**: the allocation
+    (target precision, per-stratum sample size, replacement policy, seed) is an undecided
+    scientific choice and was deliberately not defaulted. No Earth Engine or Drive export
+    was run. The imported v2 population ledger is not present in this repository. See
+    `docs/claude-handoff.md`.
   - Owner: Shared
   - Priority: P0
   - Dependency: D2-S-004

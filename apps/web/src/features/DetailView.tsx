@@ -14,6 +14,8 @@ import { QualityPanel, ProvenancePanel } from './Disclosure';
 import { BoundaryProvenancePanel } from './BoundaryProvenance';
 import { LayerView } from './LayerView';
 import { EvidenceViz } from './EvidenceViz';
+import { Choropleth } from './Choropleth';
+import { styleFor } from '../indicators';
 
 /* Which SDG target this proxy speaks to — and, just as prominently, the official
    indicator it is not. Stating the relevance without stating the limit is how a
@@ -52,10 +54,13 @@ export function DetailScreen({
 
   return (
     <>
-      <nav aria-label="Breadcrumb" className="crumb">
-        <button type="button" className="btn btn--link" onClick={onBack}>
-          ← Back to district summary
+      {/* Sticky: the detail view is long, and a back control that scrolls away
+          leaves the reader stranded at the bottom of a provenance table. */}
+      <nav aria-label="Breadcrumb" className="crumb crumb--sticky">
+        <button type="button" className="btn btn--back" onClick={onBack}>
+          <span aria-hidden="true">←</span> Back to {detail.region.name.replace(/ — .*$/, '')}
         </button>
+        <span className="crumb__here">{detail.indicatorName.replace(/ — .*$/, '')}</span>
       </nav>
 
       <section className="panel" aria-labelledby={headingId}>
@@ -133,7 +138,13 @@ export function DetailScreen({
       <EvidenceViz detail={detail} />
       <SdgPanel indicatorId={detail.indicatorId} />
       <QualityPanel quality={detail.quality} />
-      <LayerView layers={detail.layers} regionId={detail.region.id} />
+      <LayerView
+        layers={detail.layers}
+        regionId={detail.region.id}
+        syntheticLayers={detail.badge.grade === 'synthetic'}
+        accent={styleFor(detail.indicatorId).accent}
+      />
+      <Choropleth indicatorId={detail.indicatorId} />
       <ProvenancePanel provenance={detail.provenance} />
       <BoundaryProvenancePanel />
     </>

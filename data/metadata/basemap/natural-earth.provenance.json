@@ -1,0 +1,24 @@
+{
+  "asset": "Natural Earth vector basemap (bundled, offline)",
+  "purpose": "Land and coastline context for the district map. Without it the map renders a polygon on an empty background, which reads as a broken map rather than a located one.",
+  "provider": "Natural Earth",
+  "sourceUrl": "https://github.com/nvkelso/natural-earth-vector",
+  "version": "natural-earth-vector master @ 2026-08-04",
+  "license": "Public domain",
+  "licenseUrl": "https://www.naturalearthdata.com/about/terms-of-use/",
+  "licenseNote": "Natural Earth places all versions in the public domain; no permission, fee or attribution is required. Courtesy credit is given in the UI regardless.",
+  "redistributionPermitted": true,
+  "runtimeNetworkAccess": "none - bundled into the build and served from the same origin",
+  "files": [
+    {
+      "fileName": "ne_110m_land.geojson",
+      "bytes": 138160,
+      "sha256": "9e0729ee253ca7d7a5c4ae9395fb1902264c5377c52e224d13dd85010e2835d9"
+    },
+    {
+      "fileName": "ne_50m_coastline.geojson",
+      "bytes": 1640858,
+      "sha256": "271f1c4c1908312bac6b29d158ea1356544beafc129f260005300913aa5ea283"
+    }
+  ]
+}

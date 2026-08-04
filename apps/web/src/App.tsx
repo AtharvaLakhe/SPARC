@@ -198,7 +198,11 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
       <div className="handoff">
         {stage === 'locate' ? (
           <LocationConsole
-            regions={regions.length ? regions : [{ id: DEFAULT_REGION, name: 'Nagpur', centroid: [79.08, 21.15], bbox: [78.1, 20.5, 79.5, 21.8] } as RegionRef]}
+            /* The real list, never a stand-in. A one-element fallback here made
+               "still loading" indistinguishable from "only Nagpur exists", so the
+               console auto-resolved an incoming target against an incomplete list
+               and refused London — which it does have. The console waits instead. */
+            regions={regions}
             onResolved={(id) => {
               setRegionId(id);
               /* Straight to the numbers. There is exactly one processed

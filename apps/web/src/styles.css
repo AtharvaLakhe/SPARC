@@ -449,3 +449,42 @@ body {
   font-size: 0.68rem;
   color: var(--ink);
 }
+
+
+/* ── sticky breadcrumb ───────────────────────────────────────────────────── */
+.crumb--sticky {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin: 0 0 0.75rem;
+  padding: 0.55rem 0;
+  background: linear-gradient(180deg, var(--bg) 72%, transparent);
+  backdrop-filter: blur(10px);
+}
+.btn--back {
+  padding: 0.4rem 0.85rem;
+  min-height: 2.2rem;
+  font-size: 0.83rem;
+  border-radius: 999px;
+  background: var(--panel-2);
+}
+.btn--back:hover { border-color: var(--accent); }
+.crumb__here {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  color: var(--dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Inside the drawer the sticky offset has to clear the drawer's own header. */
+.sparc-panel .crumb--sticky {
+  top: 3.6rem;
+  margin-inline: -1.15rem;
+  padding-inline: 1.15rem;
+  background: linear-gradient(180deg, rgba(8, 12, 19, 0.94) 72%, transparent);
+}

@@ -138,3 +138,13 @@ This table makes every fallback requested for the prototype explicit. A later co
 Every released result must expose the limitations that remain after mitigation: common-valid coverage, scene counts, threshold sensitivity, validation status, source/product versions, seasonal comparability and known class confusion. The presentation must state that satellite-derived proxy changes do not establish cause and are not official UN SDG values.
 
 Related documents: [validation plan](validation-plan.md), [offline strategy](architecture/offline-demo-strategy.md), [3D integration](architecture/3d-asset-integration.md), [testing plan](testing-plan.md), [deployment guide](deployment-guide.md) and [demo script](demo-script.md).
+
+## Preregistration bypass (added 2026-08-04)
+
+| Risk | Rating | Control | Fallback |
+|---|---|---|---|
+| A formal accuracy sample is drawn against a design chosen, adjusted or reconstructed after the map was seen | High before control; Medium after | `scripts/data/create_probability_validation_plan.py` refuses any plan not explicitly marked `PREREGISTERED`, refuses null fields, and binds the plan to the boundary checksum, ledger checksum, method identity and exact per-stratum inclusion probability. There is no fallback allocation in the code path. | Leave the plan blocked and publish no accuracy figure. `quality: unknown` is the honest label until a preregistered sample is labelled and estimated. |
+| The exploratory 25-per-stratum frame is promoted into a probability design | Medium | The template ships `sampleSize: null` and a unit test asserts it stays null. The exploratory frames remain `EXPLORATORY_REVIEW_ONLY`. | Redraw under a preregistered design; do not reuse exploratory points as if they were a probability sample. |
+| A reviewer sees the mapped stratum and stops being an independent reference | High | The export writes a blinded reviewer CSV (id + geometry only) separately from a restricted design-linkage CSV, with a column allowlist and a pre-write assertion against forbidden columns. | Discard contaminated labels; relabel from a fresh blinded draw. |
+
+**Residual risk:** `planStatus: "PREREGISTERED"` is an assertion made by a person. The code verifies every field it can, but it cannot verify that the allocation was genuinely decided before the map was inspected. That remains a process control, not a technical one.

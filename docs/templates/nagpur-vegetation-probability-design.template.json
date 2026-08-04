@@ -1,0 +1,105 @@
+{
+  "_README": [
+    "Preregistration template for the Nagpur vegetation probability validation sample.",
+    "",
+    "This file is a TEMPLATE. It is deliberately incomplete: every field whose value",
+    "is a scientific decision is null, and the plan therefore cannot pass the",
+    "preregistration gate. Filling these in is a statistical decision that must be",
+    "made and recorded by a person, before any sample is drawn.",
+    "",
+    "docs/validation-plan.md is explicit on this point:",
+    "  'do not invent one universal sample count. Calculate allocation after the",
+    "   discovery map reveals stratum areas and expected precision. Record the",
+    "   calculation, finite population, design, replacement policy, seed, and",
+    "   inclusion probability.'",
+    "",
+    "The existing 25-per-stratum exploratory frames are EXPLORATORY_REVIEW_ONLY and",
+    "must never be promoted here. Copying 25 into sampleSize below would convert a",
+    "debugging exercise into an apparent probability design, which is precisely the",
+    "substitution the validation plan forbids.",
+    "",
+    "To preregister: copy this file, fill every null, set planStatus to",
+    "PREREGISTERED, then run scripts.data.create_probability_validation_plan."
+  ],
+
+  "planStatus": "BLOCKED_PENDING_SCIENTIFIC_DECISION",
+  "planVersion": "1.0.0",
+  "preregisteredAt": null,
+  "preregisteredBy": null,
+
+  "region": {
+    "regionId": "gbopen:district:nagpur",
+    "displayName": "Nagpur district",
+    "boundarySha256": null,
+    "_note": "boundarySha256 must equal the sha256 recorded in the boundary gate record for nagpur.geojson."
+  },
+
+  "indicator": {
+    "indicatorId": "vegetation",
+    "methodId": null,
+    "methodVersion": null,
+    "_note": "methodId/methodVersion must match the frozen rule that produced the population ledger."
+  },
+
+  "ledger": {
+    "rawCsvSha256": null,
+    "_note": "rawCsvSha256 must equal the sha256 of the imported v2 population ledger CSV."
+  },
+
+  "design": {
+    "samplingDesign": "STRATIFIED_RANDOM",
+    "replacementPolicy": null,
+    "randomSeed": null,
+    "targetPrecision": {
+      "metric": null,
+      "targetStandardError": null,
+      "confidenceLevel": null
+    },
+    "allocationRationale": null,
+    "_note": [
+      "replacementPolicy: WITH_REPLACEMENT | WITHOUT_REPLACEMENT.",
+      "randomSeed: integer, recorded so the draw is reproducible.",
+      "targetPrecision: the precision the allocation was computed to achieve.",
+      "allocationRationale: how sampleSize per stratum was derived from the target precision.",
+      "None of these may be guessed. They are the decision this plan is blocked on."
+    ]
+  },
+
+  "strata": [
+    {
+      "stratumId": "stable_non_target",
+      "populationPixels": 7371132,
+      "sampleSize": null,
+      "inclusionProbability": null
+    },
+    {
+      "stratumId": "stable_target",
+      "populationPixels": 82372144,
+      "sampleSize": null,
+      "inclusionProbability": null
+    },
+    {
+      "stratumId": "mapped_gain",
+      "populationPixels": 3350162,
+      "sampleSize": null,
+      "inclusionProbability": null
+    },
+    {
+      "stratumId": "mapped_loss",
+      "populationPixels": 6124575,
+      "sampleSize": null,
+      "inclusionProbability": null
+    }
+  ],
+
+  "_strataNote": [
+    "populationPixels are the finite populations imported from the corrected v2",
+    "ledger. They are pre-filled because they are an imported measurement, not a",
+    "decision. The validator re-checks them against the ledger and refuses on any",
+    "mismatch.",
+    "",
+    "inclusionProbability may be left null: the validator derives it as the exact",
+    "rational sampleSize / populationPixels. If a value is supplied it must match",
+    "that fraction exactly."
+  ]
+}

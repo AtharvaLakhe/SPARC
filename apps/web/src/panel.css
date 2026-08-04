@@ -14,19 +14,24 @@
   top: 0;
   right: 0;
   bottom: 0;
+  /* width is set inline by the drag handle; this is only the pre-script value */
   width: min(42rem, 100vw);
   z-index: 60;
   overflow-y: auto;
   overscroll-behavior: contain;
 
+  /* More of the planet shows through than before, but readability is held by
+     blur and saturation rather than opacity: heavy blur keeps text contrast
+     stable over both the daylit ocean and the night side, which plain alpha
+     does not. */
   background: linear-gradient(
     200deg,
-    rgba(11, 16, 24, 0.82),
-    rgba(6, 10, 17, 0.90) 40%,
-    rgba(4, 7, 12, 0.94)
+    rgba(11, 16, 24, 0.62),
+    rgba(6, 10, 17, 0.72) 40%,
+    rgba(4, 7, 12, 0.80)
   );
-  backdrop-filter: blur(22px) saturate(1.25);
-  -webkit-backdrop-filter: blur(22px) saturate(1.25);
+  backdrop-filter: blur(30px) saturate(1.4) brightness(0.72);
+  -webkit-backdrop-filter: blur(30px) saturate(1.4) brightness(0.72);
   border-left: 1px solid rgba(120, 170, 220, 0.24);
   box-shadow: -30px 0 80px rgba(0, 0, 0, 0.6);
 
@@ -84,4 +89,44 @@
 
 @media (prefers-reduced-motion: reduce) {
   .sparc-panel { transition: none; }
+}
+
+
+/* ── drag handle ─────────────────────────────────────────────────────────── */
+.sparc-panel__grip {
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 12px;
+  cursor: col-resize;
+  z-index: 5;
+  touch-action: none;
+}
+.sparc-panel__grip::after {
+  content: "";
+  position: absolute;
+  top: 50%; left: 4px;
+  width: 3px; height: 3.5rem;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  background: rgba(140, 190, 240, 0.45);
+  transition: background 160ms ease, height 160ms ease;
+}
+.sparc-panel__grip:hover::after,
+.sparc-panel__grip:focus-visible::after {
+  background: var(--accent);
+  height: 6rem;
+}
+.sparc-panel__grip:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.sparc-panel__mount { height: 100%; }
+
+/* Keep the pointer glued to the handle while dragging over the canvas. */
+body.sparc-resizing { cursor: col-resize; user-select: none; }
+body.sparc-resizing .sparc-panel { transition: none; }
+
+/* Panels need a touch more body now the drawer is more transparent. */
+.sparc-panel .panel { background: rgba(255, 255, 255, 0.055); }
+.sparc-panel .card, .sparc-panel .period { background: rgba(255, 255, 255, 0.06); }
+
+@media (max-width: 46rem) {
+  .sparc-panel__grip { display: none; }
 }

@@ -31,6 +31,33 @@ On 2026-08-03, SPARC exported deterministic, blinded Nagpur exploratory frames w
 
 Every frame contains no mapped class, stratum, score, or threshold-distance field and every point is `UNLABELLED`. The built frames retain only the static indicator/method identity needed to label the correct public concept; template creation rejects a method mismatch. They are therefore `EXPLORATORY_REVIEW_ONLY`: no independent reference evidence, temporal labels, inclusion-probability calculation, error matrix, accuracy value, error-adjusted area, or confidence interval exists yet. The equal 25-per-stratum allocation is a debugging/review design, not a probability design. None of these frames passes the independent-validation release gate or resolves the built-method blocker.
 
+### Preregistration gate (2026-08-04)
+
+`scripts/data/create_probability_validation_plan.py` implements the gate that must
+pass before any formal probability sample is drawn. It binds a plan to its evidence
+— boundary checksum, raw ledger checksum, region, indicator, method id and version,
+finite population per stratum, sample size, random seed, replacement policy, target
+precision — and derives the inclusion probability as the exact rational
+`sampleSize / populationPixels`. Float comparison is not used: the populations are
+large enough that a rounded probability silently biases the adjusted-area estimate.
+
+The guarded export writes two separate files: a blinded reviewer CSV carrying only
+sample id and geometry, and a restricted design-linkage CSV carrying stratum,
+population, sample size and inclusion probability. A reviewer who can see the mapped
+stratum is no longer an independent reference.
+
+**The gate does not currently pass, and that is the correct state.** The allocation
+is undecided: target precision, per-stratum sample size, replacement policy and
+random seed are null in
+`docs/templates/nagpur-vegetation-probability-design.template.json`. Per the
+**DECISION** below, none of these was defaulted, and the gate contains no fallback
+allocation. A test asserts the template ships `sampleSize: null` for every stratum
+so the 25-per-stratum exploratory number cannot later be promoted by accident.
+
+The imported v2 population ledger CSV is **not present in this repository**; the
+populations are currently carried only by the template and the tests, so the raw-CSV
+checksum binding has not yet been exercised against the real artifact.
+
 The vegetation frame is Nagpur-specific. Bengaluru Urban's latest v2 pre-publication pack now has validated water pooled-Otsu, vegetation-threshold, and built-IBI sensitivity records, but it does not inherit the Nagpur frame; its pack records `vegetationLabelFrame: NOT_APPLICABLE` until a separate Bengaluru probability frame and reference-evidence plan exist. Directional agreement across a sensitivity run is not independent validation.
 
 ## Validation sequence
