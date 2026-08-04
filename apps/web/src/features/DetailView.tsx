@@ -144,7 +144,11 @@ export function DetailScreen({
         syntheticLayers={detail.badge.grade === 'synthetic'}
         accent={styleFor(detail.indicatorId).accent}
       />
-      <Choropleth indicatorId={detail.indicatorId} />
+      <Choropleth
+        indicatorId={detail.indicatorId}
+        centroid={detail.region.centroid}
+        regionName={detail.region.name.replace(/ — .*$/, '')}
+      />
       <ProvenancePanel provenance={detail.provenance} />
       <BoundaryProvenancePanel />
     </>

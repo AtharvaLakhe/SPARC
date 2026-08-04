@@ -92,3 +92,11 @@
   font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim);
 }
 .choro__ramp { flex: 1; height: 8px; border-radius: 999px; border: 1px solid var(--line); }
+.choro__ramp--aurora {
+  background: linear-gradient(90deg, #04070d, #183a78, #16789e, #26c4ba, #78f0dc, #e8fffa);
+}
+.choro__map { height: clamp(18rem, 46vh, 30rem); background: #04070d; }
+.choro__pin {
+  display: inline-block; width: 9px; height: 9px; border-radius: 50%;
+  border: 1.4px solid var(--warn); vertical-align: -1px;
+}
