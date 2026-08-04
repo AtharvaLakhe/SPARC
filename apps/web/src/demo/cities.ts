@@ -11,9 +11,10 @@
  * ids — which is what makes them safe to ship: the view model reads that flag
  * and the UI labels the whole session "Synthetic demo data".
  *
- * The one real district (Nagpur) keeps its own pre-publication pack and is NOT
- * generated here. Confusing the two is the failure this project exists to
- * avoid, so they are deliberately kept in separate files with separate ids.
+ * Nagpur has local pre-publication processing evidence, but the browser does
+ * not load or serve it. The bundled Nagpur fixture remains synthetic, just
+ * like these generated cities. The evidence-only pack and UI fixture are kept
+ * separate so a browser label can never upgrade a pre-publication result.
  * ────────────────────────────────────────────────────────────────────────────
  *
  * Construction: clone a committed fixture and substitute. Building payloads

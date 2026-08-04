@@ -54,9 +54,13 @@ random seed are null in
 allocation. A test asserts the template ships `sampleSize: null` for every stratum
 so the 25-per-stratum exploratory number cannot later be promoted by accident.
 
-The imported v2 population ledger CSV is **not present in this repository**; the
-populations are currently carried only by the template and the tests, so the raw-CSV
-checksum binding has not yet been exercised against the real artifact.
+The imported v2 population ledger is retained locally under Git-ignored
+`data/raw/validation/` and its checksum binding has been exercised against the real
+artifact. The weighted v1 export remains rejected and must not be rounded or
+reused. The corrected v2 records 7,371,132 stable non-target, 82,372,144 stable
+target, 3,350,162 mapped-gain, and 6,124,575 mapped-loss finite pixel units. The
+gate therefore blocks only on the scientific allocation decision, not on missing
+population data.
 
 The vegetation frame is Nagpur-specific. Bengaluru Urban's latest v2 pre-publication pack now has validated water pooled-Otsu, vegetation-threshold, and built-IBI sensitivity records, but it does not inherit the Nagpur frame; its pack records `vegetationLabelFrame: NOT_APPLICABLE` until a separate Bengaluru probability frame and reference-evidence plan exist. Directional agreement across a sensitivity run is not independent validation.
 

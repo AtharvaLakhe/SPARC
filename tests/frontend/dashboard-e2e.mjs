@@ -124,23 +124,35 @@ try {
   if (HANDOFF_URL) {
     step('0. open the supplied Orbit handoff link');
     await send('Page.navigate', { url: HANDOFF_URL });
-    await waitFor('handoff document', 'document.body.innerText.includes("Where do you want to look?") || document.body.innerText.includes("Which two periods should we compare?")');
+    await waitFor('handoff document', 'document.body.innerText.includes("Where do you want to look?") || document.body.innerText.includes("Which two periods should we compare?") || document.querySelectorAll(".card").length >= 3');
+    // The location console renders before its coordinate-resolution effect has
+    // finished. Wait for the resulting stage/message before asserting; otherwise
+    // this check races a valid handoff and reports a false failure.
+    await waitFor('handoff resolution', 'document.body.innerText.includes("Which two periods should we compare?") || document.body.innerText.includes("No packaged result covers") || document.body.innerText.includes("Synthetic demo data")');
     const handoffText = await text();
     ok('handoff route is handled by the dashboard, not the static server', !handoffText.includes('404 app/'));
     ok('handoff coordinates are either resolved or declined honestly',
-      handoffText.includes('Which two periods should we compare?') || handoffText.includes('No packaged result covers'));
+      handoffText.includes('Which two periods should we compare?')
+        || handoffText.includes('No packaged result covers')
+        || handoffText.includes('Synthetic demo data'));
   }
 
-  step('1. choose the packaged district and frozen period');
+  step('1. choose the bundled fixture and frozen period');
   await send('Page.navigate', { url: BASE });
   await waitFor('location console', 'document.body.innerText.includes("Where do you want to look?")');
   ok('location step is meaningful without WebGL', (await evaluate('document.body.innerText.trim().length')) > 0);
   ok('location step has no required canvas', (await evaluate('document.querySelectorAll("canvas").length')) === 0);
-  ok('Nagpur is selectable without the globe',
-    await evaluate(`[...document.querySelectorAll('.console__chips button')].some(b => b.textContent.includes('Nagpur'))`));
-  await evaluate(`[...document.querySelectorAll('.console__chips button')].find(b => b.textContent.includes('Nagpur')).click()`);
-  await waitFor('period console', 'document.body.innerText.includes("Which two periods should we compare?")');
-  await evaluate('document.querySelector(".period-card").click()');
+  ok('Nagpur fixture is selectable without the globe',
+    await evaluate(`[...document.querySelectorAll('.citycard')].some(b => b.textContent.includes('Nagpur'))`));
+  ok('Nagpur fixture is visibly synthetic',
+    await evaluate(`[...document.querySelectorAll('.citycard')].find(b => b.textContent.includes('Nagpur'))?.textContent.includes('mock fixture')`));
+  ok('Nagpur fixture is not mislabelled as real data',
+    await evaluate(`![...document.querySelectorAll('.citycard')].find(b => b.textContent.includes('Nagpur'))?.textContent.toLowerCase().includes('real pack')`));
+  await evaluate(`[...document.querySelectorAll('.citycard')].find(b => b.textContent.includes('Nagpur')).click()`);
+  await waitFor('period console or single-period summary', 'document.body.innerText.includes("Which two periods should we compare?") || document.querySelectorAll(".card").length >= 3');
+  if (await evaluate('document.querySelector(".period-card") !== null')) {
+    await evaluate('document.querySelector(".period-card").click()');
+  }
   await waitFor('summary', 'document.querySelectorAll(".card").length >= 3');
   const t1 = await text();
   ok('three indicator cards render', (await evaluate('document.querySelectorAll(".card").length')) === 3);

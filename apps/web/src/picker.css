@@ -13,13 +13,13 @@
   font-size: 0.68rem; letter-spacing: 0.22em; text-transform: uppercase;
   color: #7d8a9e;
 }
-.picker__label--real { margin-top: 0.2rem; color: #7ee2b8; }
+.picker__label--fixture { margin-top: 0.2rem; color: #ffb454; }
 .picker__warn {
   letter-spacing: 0.08em; text-transform: none; font-size: 0.72rem;
   color: #ffb454;
 }
 
-.picker__real { list-style: none; margin: 0; padding: 0; }
+.picker__fixture { list-style: none; margin: 0; padding: 0; }
 .picker__grid {
   list-style: none; margin: 0; padding: 0;
   display: grid;
@@ -43,11 +43,11 @@
   border-color: rgba(88, 183, 255, 0.65);
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.42);
 }
-.citycard--real {
-  background: linear-gradient(150deg, rgba(126, 226, 184, 0.14), rgba(126, 226, 184, 0.03));
-  border-color: rgba(126, 226, 184, 0.42);
+.citycard--fixture {
+  background: linear-gradient(150deg, rgba(255, 180, 84, 0.14), rgba(255, 180, 84, 0.03));
+  border-color: rgba(255, 180, 84, 0.42);
 }
-.citycard--real:hover { border-color: rgba(126, 226, 184, 0.9); }
+.citycard--fixture:hover { border-color: rgba(255, 180, 84, 0.9); }
 
 .citycard__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.45rem; }
 .citycard__name { font-size: 1.02rem; font-weight: 650; letter-spacing: -0.01em; }
@@ -55,7 +55,7 @@
 .citycard__badge {
   font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase;
   padding: 0.1rem 0.4rem; border-radius: 999px;
-  color: #7ee2b8; border: 1px solid rgba(126, 226, 184, 0.5);
+  color: #ffcf8a; border: 1px solid rgba(255, 180, 84, 0.5);
 }
 .citycard__story { font-size: 0.74rem; line-height: 1.45; color: #93a4b8; }
 

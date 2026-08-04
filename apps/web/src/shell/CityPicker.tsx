@@ -85,26 +85,30 @@ function CityCard({ city, onPick }: { city: DemoCity; onPick: (regionId: string)
 
 export function CityPicker({
   onPick,
-  realRegion,
+  mockRegion,
+  showDemoCities = false,
 }: {
   onPick: (regionId: string) => void;
-  realRegion?: { id: string; name: string } | null;
+  /** The committed mock fixture available through either transport. */
+  mockRegion?: { id: string; name: string } | null;
+  /** Generated cities are only available from DemoTransport, never ApiTransport. */
+  showDemoCities?: boolean;
 }) {
   return (
     <div className="picker">
-      {realRegion ? (
+      {mockRegion ? (
         <>
-          <p className="picker__label picker__label--real">Processed district</p>
-          <ul className="picker__real">
+          <p className="picker__label picker__label--fixture">Bundled synthetic fixture</p>
+          <ul className="picker__fixture">
             <li>
-              <button type="button" className="citycard citycard--real" onClick={() => onPick(realRegion.id)}>
+              <button type="button" className="citycard citycard--fixture" onClick={() => onPick(mockRegion.id)}>
                 <span className="citycard__head">
-                  <span className="citycard__name">{realRegion.name}</span>
-                  <span className="citycard__badge">real pack</span>
+                  <span className="citycard__name">{mockRegion.name}</span>
+                  <span className="citycard__badge">mock fixture</span>
                 </span>
                 <span className="citycard__story">
-                  Sentinel-2 composites processed and gated. The only district here
-                  with observations behind it.
+                  Bundled synthetic values used to exercise the pilot interface.
+                  This does not render an accepted or deployable real-data pack.
                 </span>
                 <span className="citycard__go">Open →</span>
               </button>
@@ -113,13 +117,17 @@ export function CityPicker({
         </>
       ) : null}
 
-      <p className="picker__label">
-        Demonstration districts
-        <span className="picker__warn">generated values · not observations</span>
-      </p>
-      <ul className="picker__grid">
-        {DEMO_CITIES.map((c) => <CityCard key={c.slug} city={c} onPick={onPick} />)}
-      </ul>
+      {showDemoCities ? (
+        <>
+          <p className="picker__label">
+            Demonstration districts
+            <span className="picker__warn">generated values · not observations</span>
+          </p>
+          <ul className="picker__grid">
+            {DEMO_CITIES.map((c) => <CityCard key={c.slug} city={c} onPick={onPick} />)}
+          </ul>
+        </>
+      ) : null}
     </div>
   );
 }

@@ -10,15 +10,19 @@ from scripts.data.process_earth_engine_p0 import (
     BUILT_IBI_SENSITIVITY_ID,
     EXPLORATORY_VALIDATION_POINTS_PER_STRATUM,
     EXPLORATORY_VALIDATION_SEED,
+    VALIDATION_SAMPLING_UNIT,
+    VALIDATION_STRATA,
     VEGETATION_SENSITIVITY_THRESHOLDS,
     WATER_OTSU_HISTOGRAM,
     WATER_OTSU_SENSITIVITY_ID,
     _pooled_otsu_threshold_from_histograms,
     _validation_frame_method,
     _validation_frame_task_description,
+    _validation_population_task_description,
     _vegetation_threshold_label,
     import_alternative_sensitivity,
     import_batch_export,
+    import_validation_frame_populations,
     import_vegetation_sensitivity,
     import_water_otsu_histogram,
 )
@@ -158,6 +162,48 @@ class EarthEngineP0ImportTests(unittest.TestCase):
             })
         return rows
 
+    def _validation_population_request(self) -> dict:
+        return {
+            "task": {
+                "description": "sparc_nagpur_vegetation_validation_frame_populations_default_v2",
+                "id": "task-populations",
+            },
+            "region": {"key": "nagpur", "boundarySha256": BOUNDARY_SHA},
+            "method": {
+                "indicatorId": "vegetation",
+                "mapMethod": {
+                    "id": "default",
+                    "methodVersion": "p0-ndvi-green-cover-v1",
+                    "threshold": "NDVI >= 0.30",
+                },
+                "analysisCrs": "EPSG:32644",
+                "pixelSizeMetres": 10,
+                "minClearObservations": 2,
+                "samplingUnit": VALIDATION_SAMPLING_UNIT,
+                "strata": {str(code): name for code, name in VALIDATION_STRATA.items()},
+                "designStatus": "STRATA_DISCOVERY_ONLY",
+            },
+        }
+
+    def _validation_population_rows(self) -> list[dict[str, str]]:
+        return [
+            {
+                "stratum": str(code),
+                "stratumName": name,
+                "populationPixels": str(100 + code),
+                "indicatorId": "vegetation",
+                "mapMethodId": "default",
+                "mapMethodVersion": "p0-ndvi-green-cover-v1",
+                "boundarySha256": BOUNDARY_SHA,
+                "analysisCrs": "EPSG:32644",
+                "pixelSizeMetres": "10",
+                "minClearObservations": "2",
+                "samplingUnit": VALIDATION_SAMPLING_UNIT,
+                "designStatus": "STRATA_DISCOVERY_ONLY",
+            }
+            for code, name in VALIDATION_STRATA.items()
+        ]
+
     def test_import_validates_and_converts_batch_summary(self) -> None:
         approved_manifest = {"boundary": {"sha256": BOUNDARY_SHA}}
         with (
@@ -257,6 +303,47 @@ class EarthEngineP0ImportTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(ValueError, "Only the documented"):
             _validation_frame_method("vegetation", BUILT_IBI_SENSITIVITY_ID)
+
+    def test_validation_population_import_records_finite_stratum_counts(self) -> None:
+        approved_manifest = {"boundary": {"sha256": BOUNDARY_SHA}}
+        with (
+            patch("scripts.data.process_earth_engine_p0._read_export_rows", return_value=self._validation_population_rows()),
+            patch("scripts.data.process_earth_engine_p0._read_json", return_value=self._validation_population_request()),
+            patch("scripts.data.process_earth_engine_p0._load_region_geometry", return_value=({}, approved_manifest)),
+            patch("scripts.data.process_earth_engine_p0._sha256_file", return_value="6" * 64),
+        ):
+            evidence = import_validation_frame_populations(
+                "nagpur",
+                "vegetation",
+                Path("population.csv"),
+                Path("request.json"),
+            )
+
+        self.assertEqual(evidence["status"], "FRAME_DISCOVERED_NOT_SAMPLED")
+        self.assertEqual(evidence["batchExport"]["taskId"], "task-populations")
+        self.assertEqual([row["populationPixels"] for row in evidence["strata"]], [100, 101, 102, 103])
+        self.assertEqual(evidence["strata"][0]["populationAreaSqKm"], 0.01)
+        self.assertEqual(
+            _validation_population_task_description("nagpur", "vegetation", None),
+            "sparc_nagpur_vegetation_validation_frame_populations_default_v2",
+        )
+
+    def test_validation_population_import_rejects_non_integer_population(self) -> None:
+        approved_manifest = {"boundary": {"sha256": BOUNDARY_SHA}}
+        rows = self._validation_population_rows()
+        rows[0]["populationPixels"] = "100.5"
+        with (
+            patch("scripts.data.process_earth_engine_p0._read_export_rows", return_value=rows),
+            patch("scripts.data.process_earth_engine_p0._read_json", return_value=self._validation_population_request()),
+            patch("scripts.data.process_earth_engine_p0._load_region_geometry", return_value=({}, approved_manifest)),
+        ):
+            with self.assertRaisesRegex(ValueError, "non-negative integer"):
+                import_validation_frame_populations(
+                    "nagpur",
+                    "vegetation",
+                    Path("population.csv"),
+                    Path("request.json"),
+                )
 
     def test_pooled_otsu_uses_locked_histogram_bins_and_both_periods(self) -> None:
         minimum = WATER_OTSU_HISTOGRAM["minimum"]

@@ -1,6 +1,6 @@
 # SPARC delivery status
 
-**Assessed:** 2026-08-03
+**Assessed:** 2026-08-04
 **Current stage:** Stage 4 of 5 — the mock-backed analytical dashboard is implemented and browser-verified; real-data and release gates remain open
 
 This is an evidence-based delivery status, not a percentage derived from line count. A completed visual component does not substitute for a validated data result, and a completed data export does not substitute for a usable dashboard.
@@ -10,9 +10,9 @@ This is an evidence-based delivery status, not a percentage derived from line co
 | Stage | Status | Evidence | Exit condition |
 |---|---|---|---|
 | 1. Contract and safe mock API | Substantially complete | OpenAPI/schema tests pass; FastAPI serves only allowlisted synthetic fixtures with safe errors | Real immutable artifacts can be served through the same contract without weakening validation |
-| 2. Boundary and P0 evidence | In progress | geoBoundaries Nagpur and Bengaluru Urban district gates passed. All three Nagpur P0 indicators have imported sensitivity evidence, which confirms substantial threshold/method uncertainty: water retains a net-loss direction while built proxy reverses direction. Bengaluru has all three imported reports and all documented P0 sensitivity records, but no independent validation | Independent reference validation and a resolution/withholding decision exist for every public P0 result. **2026-08-04:** the preregistration gate is implemented and refuses; the formal sample remains blocked on an undecided allocation (see `docs/claude-handoff.md`) |
+| 2. Boundary and P0 evidence | In progress | geoBoundaries Nagpur and Bengaluru Urban district gates passed. All three Nagpur P0 indicators have imported sensitivity evidence, which confirms substantial threshold/method uncertainty: water retains a net-loss direction while built proxy reverses direction. Bengaluru has all three imported reports and all documented P0 sensitivity records, but no independent validation. The weighted v1 Nagpur vegetation population export is rejected; corrected unweighted v2 is imported and records finite strata. The preregistration gate is implemented and correctly refuses the still-undecided allocation | Independent reference validation and a resolution/withholding decision exist for every public P0 result |
 | 3. Result packaging and API integration | In progress | Schema-checked, non-overwritable local Nagpur and Bengaluru Urban pre-publication packs now exist; the API intentionally reads only synthetic fixtures | Contract-valid, immutable, attributable demo pack for Nagpur and Bengaluru Urban; no request-time raster work |
-| 4. Analytical dashboard | Substantially complete against synthetic fixtures | `apps/web/` provides the location → period → summary → indicator journey, DemoTransport, ApiTransport, disclosures, non-WebGL path, and API-to-demo recovery | Same journey renders accepted immutable packs for Nagpur and Bengaluru Urban, with approved layer assets and no unreviewed claims |
+| 4. Analytical dashboard | Substantially complete against synthetic fixtures | `apps/web/` provides the location → period → summary → indicator journey, synthetic city picker, optional globe overlay, DemoTransport, ApiTransport, disclosures, non-WebGL path, and API-to-demo recovery | Same journey renders accepted immutable packs for Nagpur and Bengaluru Urban, with approved layer assets and no unreviewed claims |
 | 5. Offline release and rehearsal | Started | The built bundle is served at `/app/` by `apps/web/serve.mjs`; demo, API recovery, viewport, keyboard, and static-server checks pass | Primary and backup journeys work from a frozen local HTTP release with offline, accessibility, security, and evidence checks |
 
 ## Delivery estimate
@@ -51,11 +51,11 @@ Roughly **50–55% remains** before an honest P0 demo candidate. A public or pro
 
 ### Analytical dashboard
 
-`apps/web/` is browser/client code. It runs a React/Vite dashboard over the committed synthetic fixtures by default, validates responses against the canonical JSON Schema, and has a separate `ApiTransport` for the FastAPI mock service. The implemented request flow is:
+`apps/web/` is browser/client code. It runs a React/Vite dashboard over committed synthetic fixtures by default, validates responses against the canonical JSON Schema, and has a separate `ApiTransport` for the FastAPI mock service. The city picker and globe overlay added on 2026-08-04 are presentation features only: DemoTransport may expose generated city fixtures, but each has `meta.mock: true`; ApiTransport does not expose those generated cities. The bundled Nagpur fixture is also synthetic. Local Nagpur/Bengaluru pre-publication packs are not browser inputs.
 
 ```text
-User chooses a packaged district
-→ user chooses the frozen same-season period pair
+User chooses a bundled synthetic fixture (or an accepted future district pack)
+→ user chooses the frozen same-season period pair when more than one exists
 → browser repository selects DemoTransport or ApiTransport
 → transport validates the contract-shaped response
 → view-model mapper applies unavailable/quality/provenance rules
@@ -63,7 +63,7 @@ User chooses a packaged district
 → an API failure can switch the browser back to the offline demo pack
 ```
 
-The dashboard's non-WebGL path is the default. `orbital-website/` remains a separate browser/client launch visual; under the combined static server it can open the dashboard panel, but no analytical result depends on a 3D canvas.
+The dashboard's non-WebGL path is the default. `orbital-website/` remains a separate browser/client launch visual; under the combined static server it can open the dashboard panel and display a district overlay, but no analytical result depends on a 3D canvas. The overlay must not imply a raster, a cadastral boundary, or real data for a generated fixture.
 
 ## Frontend work remaining for P0
 
@@ -80,16 +80,17 @@ The current dashboard is deliberately mock-labelled. It must not be switched to 
 
 ## Remaining data and release gates
 
-1. Obtain temporally appropriate independent reference labels for the vegetation sample frame, calculate known inclusion probabilities and stratum populations, and run the planned accuracy analysis. The current frame is exploratory only.
-2. Treat the Nagpur built-change result as blocked. Two separate exploratory frames now exist for the constrained-NDBI and IBI v2 rules; obtain temporally appropriate independent reference labels, record a probability design (the current equal allocation is not one), carry out the planned design-based validation, and decide whether the built proxy can be retained only as an unstable diagnostic or must be removed from the P0 journey. The earlier IBI v1 CSV is excluded because it did not record the required denominator-validity footprint.
-3. Create a separate Bengaluru Urban probability sample and independent reference-labelling plan before treating its directionally consistent sensitivity evidence as more than a pre-publication diagnostic. Its evidence-only pack has no applicable label frame.
-4. Resolve or remove the Nagpur child-region requirement. No unverified Hingna geometry may enter the demo.
-5. Convert accepted immutable result reports into contract-valid demo artifacts, layers/static alternatives, manifests, checksums, and attribution records. The current local pre-publication pack is a safe input boundary, not a response to serve. Do not serve ignored working reports or claim pre-publication evidence is final.
-6. Map accepted immutable packs to the frozen response contract, then test the existing dashboard against them without weakening the mock/pre-publication disclosure.
-7. Add the Bengaluru backup journey, approved local layer assets, the Orbit-to-panel test, and manual accessibility evidence; then run the integrated offline, security, and presentation gates.
+1. Complete and validate the Nagpur vegetation probability plan with the new preregistration validator. Version 1 remains rejected because its weighted histogram gave fractional counts. The ledger establishes finite populations only; it must stay separate from initial label reviewers and does not alter any quality status.
+2. Pre-register allocation, replacement policy, seed, and inclusion probability from that ledger; then create a **new** blinded probability frame. The existing 25-per-stratum Nagpur frames remain exploratory and cannot be promoted.
+3. Obtain temporally appropriate independent reference labels, compute the design-based accuracy/area analysis, and make a retain-or-withhold decision. The Nagpur built-change result remains blocked because constrained-NDBI and IBI v2 reverse direction. The earlier IBI v1 CSV is excluded because it did not record the required denominator-validity footprint.
+4. Create a separate Bengaluru Urban probability design and independent reference-labelling plan before treating its directionally consistent sensitivity evidence as more than a pre-publication diagnostic. Its evidence-only pack has no applicable label frame.
+5. Resolve or remove the Nagpur child-region requirement. No unverified Hingna geometry may enter the demo.
+6. Convert accepted immutable result reports into contract-valid demo artifacts, layers/static alternatives, manifests, checksums, and attribution records. The current local pre-publication pack is a safe input boundary, not a response to serve. Do not serve ignored working reports or claim pre-publication evidence is final.
+7. Map accepted immutable packs to the frozen response contract, then test the existing dashboard against them without weakening the mock/pre-publication disclosure.
+8. Add the Bengaluru backup journey, approved local layer assets, the Orbit-to-panel test, and manual accessibility evidence; then run the integrated offline, security, and presentation gates.
 
 ## Current next task
 
-The dashboard is ready for synthetic-fixture use and has passed 36 browser checks in demo/static mode plus 40 checks in API mode, including blocked-API recovery. The combined local server passed a 38-check suite using the supplied Orbit handoff link at `http://localhost:8123/app/#/locate?lat=19.0760&lon=72.8777`, after replacing the globe-only server that returned `404 app/`. All three Nagpur sensitivities are in the schema-checked v2 pre-publication pack. The latest Bengaluru v2 evidence pack now contains all three P0 reports and all three documented sensitivity records; it deliberately records no label frame and no independent validation. Nagpur water retains a net-loss direction while its built default and IBI v2 result reverse direction; the latter is a **method blocker**, not a numerical detail. Separate 100-point exploratory frames now exist for each Nagpur built rule. The next unblocked task is **independent reference labelling, a probability-sample design, and a retain-or-withhold decision for the Nagpur built-proxy indicator**. The input scenes, SCL mask, AOI, CRS and observation floor remain fixed; the IBI diagnostic separately reports zero-denominator exclusion. All results remain `quality: unknown` unless independent evidence supports a stronger conclusion.
+The dashboard is ready for synthetic-fixture use and has passed 40 current browser checks, including blocked-API recovery. The combined local server serves the supplied Orbit handoff link at `http://localhost:8123/app/#/locate?lat=19.0760&lon=72.8777`, after replacing the globe-only server that returned `404 app/`. The current city picker/browser additions are synthetic-interface work, not a real-time or national-data release; the browser suite checks that the bundled Nagpur card is explicitly a mock fixture. The Nagpur vegetation finite-population ledger is now imported, but no probability allocation or independent label exists. All three Nagpur sensitivities are in the schema-checked v2 pre-publication pack. The latest Bengaluru v2 evidence pack now contains all three P0 reports and all three documented sensitivity records; it deliberately records no label frame and no independent validation. Nagpur water retains a net-loss direction while its built default and IBI v2 result reverse direction; the latter is a **method blocker**, not a numerical detail. Separate 100-point exploratory frames now exist for each Nagpur built rule. The next unblocked task is to preregister a probability design, create a fresh blinded sample, and obtain independent labels. The input scenes, SCL mask, AOI, CRS and observation floor remain fixed; the IBI diagnostic separately reports zero-denominator exclusion. All results remain `quality: unknown` unless independent evidence supports a stronger conclusion.
 
 The API must remain mock-only while this work is underway. Do not remove mock labels, introduce a `live` route, or publish the vegetation result as a confirmed environmental finding. A reviewed server-side mapping is required before the dashboard receives any pre-publication pack.

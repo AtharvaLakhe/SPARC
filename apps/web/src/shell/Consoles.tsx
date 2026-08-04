@@ -36,12 +36,15 @@ export function LocationConsole({
   onResolved,
   onCancel,
   handoff,
+  showDemoCities = false,
 }: {
   regions: RegionRef[];
   onResolved: (regionId: string) => void;
   onCancel: () => void;
   /** Coordinates the globe already collected, if the user arrived that way. */
   handoff?: { lat: number; lon: number; name: string } | null;
+  /** Generated city fixtures only exist in DemoTransport. */
+  showDemoCities?: boolean;
 }) {
   const [query, setQuery] = useState('');
   const [message, setMessage] = useState<string | null>(null);
@@ -147,7 +150,8 @@ export function LocationConsole({
           ) : null}
           <CityPicker
             onPick={onResolved}
-            realRegion={regions.find((r) => r.id.includes('nagpur')) ?? regions[0] ?? null}
+            mockRegion={regions.find((r) => r.id.includes('nagpur')) ?? regions[0] ?? null}
+            showDemoCities={showDemoCities}
           />
         </div>
       </div>

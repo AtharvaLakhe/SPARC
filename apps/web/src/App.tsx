@@ -216,6 +216,7 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
               if (panel) setPanelNav(next); else setNav(next);
             }}
             handoff={panel ? panel.target : handoffFromHash(location.hash)}
+            showDemoCities={dataMode === 'demo'}
             onCancel={() => { location.href = ORBIT_URL; }}
           />
         ) : (

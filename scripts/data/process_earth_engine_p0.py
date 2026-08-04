@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+from decimal import Decimal, InvalidOperation
 from datetime import UTC, datetime
 from hashlib import sha256
 import json
@@ -24,6 +25,13 @@ VEGETATION_SENSITIVITY_THRESHOLDS = (0.20, 0.30, 0.40)
 EXPLORATORY_VALIDATION_POINTS_PER_STRATUM = 25
 EXPLORATORY_VALIDATION_SEED = 20_260_803
 DRIVE_FOLDER_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,80}$")
+VALIDATION_STRATA = {
+    0: "stable-non-target",
+    1: "stable-target",
+    2: "mapped-gain",
+    3: "mapped-loss",
+}
+VALIDATION_SAMPLING_UNIT = "common-valid target-grid pixel"
 WATER_OTSU_HISTOGRAM = {"minimum": -1.0, "maximum": 1.0001, "buckets": 256}
 WATER_OTSU_SENSITIVITY_ID = "water-pooled-otsu"
 BUILT_IBI_SENSITIVITY_ID = "built-ibi"
@@ -823,8 +831,8 @@ def create_water_otsu_histogram_export(
 def _validation_frame_method(indicator_id: str, sensitivity_id: str | None) -> dict[str, Any]:
     """Return the frozen classification rule represented by one blinded frame."""
 
-    if indicator_id not in ("vegetation", "built-up"):
-        raise ValueError("Exploratory validation frames are currently limited to vegetation and built-up")
+    if indicator_id not in INDICATORS:
+        raise ValueError("Validation frames require a documented classification indicator")
     if sensitivity_id is None:
         return {
             "id": "default",
@@ -851,6 +859,55 @@ def _validation_frame_task_description(indicator_id: str, sensitivity_id: str | 
         return "sparc_nagpur_vegetation_validation_frame_v1"
     method_id = "default" if sensitivity_id is None else f"{sensitivity_id}-v2"
     return f"sparc_nagpur_{indicator_id}_validation_frame_{method_id}_v1"
+
+
+def _validation_population_task_description(region: str, indicator_id: str, sensitivity_id: str | None) -> str:
+    """Name a pre-sampling population ledger without colliding with a sample frame."""
+
+    if region not in REGIONS:
+        raise ValueError("Validation population export does not name an approved region")
+    _validation_frame_method(indicator_id, sensitivity_id)
+    method_id = "default" if sensitivity_id is None else f"{sensitivity_id}-v2"
+    # v1 used Earth Engine's weighted frequency histogram, which produced
+    # fractional totals and therefore cannot define a finite pixel population.
+    # Preserve that rejected evidence and use a non-colliding task identity for
+    # the corrected unweighted count export.
+    return f"sparc_{region}_{indicator_id}_validation_frame_populations_{method_id}_v2"
+
+
+def _validation_strata_image(
+    ee: Any,
+    indicator_id: str,
+    baseline: dict[str, Any],
+    comparison: dict[str, Any],
+    *,
+    sensitivity_id: str | None,
+) -> Any:
+    """Construct the fixed common-valid mapped-change strata for sampling work."""
+
+    common_valid = baseline["valid"].And(comparison["valid"])
+    if sensitivity_id == BUILT_IBI_SENSITIVITY_ID:
+        common_valid = common_valid.And(baseline["median"].select("ibi").mask()).And(
+            comparison["median"].select("ibi").mask()
+        )
+    baseline_class = _classification(
+        ee, indicator_id, baseline["median"], sensitivity_id=sensitivity_id
+    ).updateMask(common_valid)
+    comparison_class = _classification(
+        ee, indicator_id, comparison["median"], sensitivity_id=sensitivity_id
+    ).updateMask(common_valid)
+    stable_target = baseline_class.And(comparison_class)
+    gain = baseline_class.Not().And(comparison_class)
+    loss = baseline_class.And(comparison_class.Not())
+    return (
+        ee.Image(0)
+        .where(stable_target, 1)
+        .where(gain, 2)
+        .where(loss, 3)
+        .rename("stratum")
+        .toInt()
+        .updateMask(common_valid)
+    )
 
 
 def create_validation_sample_export(
@@ -883,28 +940,12 @@ def create_validation_sample_export(
     comparison_collection = _period_collection(ee, geometry, comparison_start, comparison_end)
     baseline = _period_composite(ee, baseline_collection, indicator_id)
     comparison = _period_composite(ee, comparison_collection, indicator_id)
-    common_valid = baseline["valid"].And(comparison["valid"])
-    if sensitivity_id == BUILT_IBI_SENSITIVITY_ID:
-        common_valid = common_valid.And(baseline["median"].select("ibi").mask()).And(
-            comparison["median"].select("ibi").mask()
-        )
-    baseline_class = _classification(
-        ee, indicator_id, baseline["median"], sensitivity_id=sensitivity_id
-    ).updateMask(common_valid)
-    comparison_class = _classification(
-        ee, indicator_id, comparison["median"], sensitivity_id=sensitivity_id
-    ).updateMask(common_valid)
-    stable_target = baseline_class.And(comparison_class)
-    gain = baseline_class.Not().And(comparison_class)
-    loss = baseline_class.And(comparison_class.Not())
-    strata = (
-        ee.Image(0)
-        .where(stable_target, 1)
-        .where(gain, 2)
-        .where(loss, 3)
-        .rename("stratum")
-        .toInt()
-        .updateMask(common_valid)
+    strata = _validation_strata_image(
+        ee,
+        indicator_id,
+        baseline,
+        comparison,
+        sensitivity_id=sensitivity_id,
     )
     samples = strata.stratifiedSample(
         numPoints=EXPLORATORY_VALIDATION_POINTS_PER_STRATUM,
@@ -913,8 +954,8 @@ def create_validation_sample_export(
         scale=INDICATORS[indicator_id]["scaleMetres"],
         projection=analysis_crs,
         seed=EXPLORATORY_VALIDATION_SEED,
-        classValues=[0, 1, 2, 3],
-        classPoints=[EXPLORATORY_VALIDATION_POINTS_PER_STRATUM] * 4,
+        classValues=list(VALIDATION_STRATA),
+        classPoints=[EXPLORATORY_VALIDATION_POINTS_PER_STRATUM] * len(VALIDATION_STRATA),
         dropNulls=True,
         tileScale=4,
         geometries=True,
@@ -962,12 +1003,7 @@ def create_validation_sample_export(
             "pixelSizeMetres": INDICATORS[indicator_id]["scaleMetres"],
             "minClearObservations": MIN_CLEAR_OBSERVATIONS,
             "commonValidOnly": True,
-            "strata": {
-                "0": "stable-non-target",
-                "1": "stable-target",
-                "2": "mapped-gain",
-                "3": "mapped-loss",
-            },
+            "strata": {str(code): name for code, name in VALIDATION_STRATA.items()},
             "targetPointsPerStratum": EXPLORATORY_VALIDATION_POINTS_PER_STRATUM,
             "seed": EXPLORATORY_VALIDATION_SEED,
             "blindedExport": True,
@@ -1015,6 +1051,163 @@ def create_vegetation_validation_sample_export(
     )
 
 
+def _validation_population_features(
+    ee: Any,
+    strata: Any,
+    geometry: Any,
+    *,
+    indicator_id: str,
+    validation_method: dict[str, Any],
+    analysis_crs: str,
+    boundary_sha256: str,
+) -> Any:
+    """Build the non-blinded design ledger used before a probability draw.
+
+    This table is deliberately separate from the reviewer frame. It contains
+    mapped-stratum populations needed for inclusion probabilities and must not
+    be shown to initial reference-label reviewers.
+    """
+
+    scale = int(INDICATORS[indicator_id]["scaleMetres"])
+    reduction = strata.reduceRegion(
+        reducer=ee.Reducer.frequencyHistogram().unweighted(),
+        geometry=geometry,
+        crs=analysis_crs,
+        scale=scale,
+        maxPixels=10_000_000_000,
+        tileScale=4,
+    )
+    counts = ee.Dictionary(reduction.get("stratum", ee.Dictionary({})))
+    features = []
+    for code, name in VALIDATION_STRATA.items():
+        features.append(
+            ee.Feature(
+                None,
+                {
+                    "stratum": code,
+                    "stratumName": name,
+                    "populationPixels": ee.Number(counts.get(str(code), 0)),
+                    "indicatorId": indicator_id,
+                    "mapMethodId": validation_method["id"],
+                    "mapMethodVersion": validation_method["methodVersion"],
+                    "boundarySha256": boundary_sha256,
+                    "analysisCrs": analysis_crs,
+                    "pixelSizeMetres": scale,
+                    "minClearObservations": MIN_CLEAR_OBSERVATIONS,
+                    "samplingUnit": VALIDATION_SAMPLING_UNIT,
+                    "designStatus": "STRATA_DISCOVERY_ONLY",
+                },
+            )
+        )
+    return ee.FeatureCollection(features)
+
+
+def create_validation_population_export(
+    project: str,
+    region: str,
+    drive_folder: str,
+    output_dir: Path,
+    *,
+    indicator_id: str,
+    sensitivity_id: str | None = None,
+    start: bool,
+) -> dict[str, Any]:
+    """Export finite mapped-stratum populations before a formal sample draw.
+
+    The resulting design ledger is neither a blinded reviewer frame nor an
+    independent validation result. It establishes the finite population needed
+    to choose and pre-register a later allocation and its inclusion
+    probabilities. It must be kept away from initial label reviewers.
+    """
+
+    if not DRIVE_FOLDER_PATTERN.fullmatch(drive_folder):
+        raise ValueError("--drive-folder must contain 1–80 letters, numbers, hyphens, or underscores")
+    if region not in REGIONS:
+        raise ValueError("Validation population export does not name an approved region")
+    validation_method = _validation_frame_method(indicator_id, sensitivity_id)
+    ee = _initialize(project)
+    boundary_geometry, boundary_manifest = _load_region_geometry(region)
+    analysis_crs = REGIONS[region]["analysisCrs"]
+    geometry = ee.Geometry(boundary_geometry, "EPSG:4326", False)
+    pilot = PILOTS[region]
+    baseline_start, baseline_end = pilot.periods[0]
+    comparison_start, comparison_end = pilot.periods[1]
+    baseline_collection = _period_collection(ee, geometry, baseline_start, baseline_end)
+    comparison_collection = _period_collection(ee, geometry, comparison_start, comparison_end)
+    baseline = _period_composite(ee, baseline_collection, indicator_id)
+    comparison = _period_composite(ee, comparison_collection, indicator_id)
+    strata = _validation_strata_image(
+        ee,
+        indicator_id,
+        baseline,
+        comparison,
+        sensitivity_id=sensitivity_id,
+    )
+    task_description = _validation_population_task_description(region, indicator_id, sensitivity_id)
+    request = {
+        "manifestVersion": "1",
+        "createdAt": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+        "status": "started" if start else "dry-run",
+        "task": {
+            "description": task_description,
+            "destination": "Google Drive",
+            "driveFolder": drive_folder,
+            "fileNamePrefix": task_description,
+            "fileFormat": "CSV",
+        },
+        "region": {
+            "key": region,
+            "boundarySha256": boundary_manifest["boundary"]["sha256"],
+        },
+        "method": {
+            "indicatorId": indicator_id,
+            "mapMethod": validation_method,
+            "analysisCrs": analysis_crs,
+            "pixelSizeMetres": INDICATORS[indicator_id]["scaleMetres"],
+            "minClearObservations": MIN_CLEAR_OBSERVATIONS,
+            "commonValidOnly": True,
+            "samplingUnit": VALIDATION_SAMPLING_UNIT,
+            "strata": {str(code): name for code, name in VALIDATION_STRATA.items()},
+            "designStatus": "STRATA_DISCOVERY_ONLY",
+            "reviewerBlinding": "Do not give this mapped-stratum ledger to initial reference-label reviewers.",
+        },
+        "periods": {
+            "baseline": {"start": baseline_start, "end": baseline_end, "endInclusive": True},
+            "comparison": {"start": comparison_start, "end": comparison_end, "endInclusive": True},
+        },
+        "requiredBeforeSampleDraw": [
+            "Import and validate this finite-population ledger.",
+            "Pre-register an allocation, replacement policy, random seed, and inclusion probabilities.",
+            "Draw a new blinded probability sample; do not reclassify the exploratory frame as formal.",
+        ],
+        "disclaimer": "This is a pre-sampling mapped-stratum population ledger, not a blinded reviewer frame or completed independent validation.",
+    }
+    output_dir.mkdir(parents=True, exist_ok=True)
+    request_path = output_dir / f"{task_description}.batch-request.json"
+    request_path.write_text(json.dumps(request, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    task = ee.batch.Export.table.toDrive(
+        collection=_validation_population_features(
+            ee,
+            strata,
+            geometry,
+            indicator_id=indicator_id,
+            validation_method=validation_method,
+            analysis_crs=analysis_crs,
+            boundary_sha256=boundary_manifest["boundary"]["sha256"],
+        ),
+        description=task_description,
+        folder=drive_folder,
+        fileNamePrefix=task_description,
+        fileFormat="CSV",
+    )
+    if not start:
+        return request
+    task.start()
+    request["task"]["id"] = task.id
+    request_path.write_text(json.dumps(request, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return request
+
+
 def _required_csv_float(row: dict[str, str], field: str) -> float:
     value = row.get(field)
     try:
@@ -1044,6 +1237,116 @@ def _read_single_export_row(path: Path) -> dict[str, str]:
     if len(rows) != 1:
         raise ValueError(f"Batch CSV must contain exactly one summary row, found {len(rows)}")
     return rows[0]
+
+
+def _required_csv_non_negative_int(row: dict[str, str], field: str) -> int:
+    value = row.get(field)
+    if not isinstance(value, str):
+        raise ValueError(f"Batch CSV field {field!r} must be a non-negative integer")
+    try:
+        parsed = Decimal(value)
+    except InvalidOperation as exc:
+        raise ValueError(f"Batch CSV field {field!r} must be a non-negative integer") from exc
+    if not parsed.is_finite() or parsed < 0 or parsed != parsed.to_integral_value():
+        raise ValueError(f"Batch CSV field {field!r} must be a non-negative integer")
+    return int(parsed)
+
+
+def import_validation_frame_populations(
+    region: str,
+    indicator_id: str,
+    csv_path: Path,
+    batch_request_path: Path,
+    *,
+    sensitivity_id: str | None = None,
+) -> dict[str, Any]:
+    """Validate a mapped-stratum population ledger before a probability draw."""
+
+    if region not in REGIONS or indicator_id not in INDICATORS:
+        raise ValueError("Validation population import does not name an approved region and indicator")
+    expected_method = _validation_frame_method(indicator_id, sensitivity_id)
+    expected_description = _validation_population_task_description(region, indicator_id, sensitivity_id)
+    request = _read_json(batch_request_path)
+    _, boundary_manifest = _load_region_geometry(region)
+    boundary_sha256 = boundary_manifest["boundary"]["sha256"]
+    expected_strata = {str(code): name for code, name in VALIDATION_STRATA.items()}
+    method = request.get("method")
+    if request.get("task", {}).get("description") != expected_description:
+        raise ValueError("Validation population batch request has an unexpected task description")
+    if request.get("region", {}).get("key") != region or request.get("region", {}).get("boundarySha256") != boundary_sha256:
+        raise ValueError("Validation population batch request does not match the approved region boundary")
+    if not isinstance(method, dict) or method.get("indicatorId") != indicator_id or method.get("mapMethod") != expected_method:
+        raise ValueError("Validation population batch request does not match the approved map method")
+    if method.get("analysisCrs") != REGIONS[region]["analysisCrs"] or method.get("pixelSizeMetres") != INDICATORS[indicator_id]["scaleMetres"]:
+        raise ValueError("Validation population batch request does not match the approved grid")
+    if method.get("minClearObservations") != MIN_CLEAR_OBSERVATIONS or method.get("samplingUnit") != VALIDATION_SAMPLING_UNIT:
+        raise ValueError("Validation population batch request does not record the fixed sampling controls")
+    if method.get("strata") != expected_strata or method.get("designStatus") != "STRATA_DISCOVERY_ONLY":
+        raise ValueError("Validation population batch request does not record the approved discovery design")
+
+    rows = _read_export_rows(csv_path)
+    if len(rows) != len(VALIDATION_STRATA):
+        raise ValueError("Validation population CSV must contain exactly one row for each primary stratum")
+    validated: dict[int, int] = {}
+    for row in rows:
+        code = _required_csv_non_negative_int(row, "stratum")
+        if code not in VALIDATION_STRATA or code in validated:
+            raise ValueError("Validation population CSV strata must be unique and complete")
+        if row.get("stratumName") != VALIDATION_STRATA[code]:
+            raise ValueError("Validation population CSV stratum name does not match its code")
+        if row.get("indicatorId") != indicator_id or row.get("mapMethodId") != expected_method["id"] or row.get("mapMethodVersion") != expected_method["methodVersion"]:
+            raise ValueError("Validation population CSV map identity does not match the approved method")
+        if row.get("boundarySha256") != boundary_sha256:
+            raise ValueError("Validation population CSV boundary checksum does not match the approved boundary")
+        if row.get("analysisCrs") != REGIONS[region]["analysisCrs"]:
+            raise ValueError("Validation population CSV analysis CRS does not match the approved region CRS")
+        if _required_csv_float(row, "pixelSizeMetres") != float(INDICATORS[indicator_id]["scaleMetres"]):
+            raise ValueError("Validation population CSV pixel size does not match the approved method")
+        if _required_csv_float(row, "minClearObservations") != float(MIN_CLEAR_OBSERVATIONS):
+            raise ValueError("Validation population CSV observation floor does not match the approved method")
+        if row.get("samplingUnit") != VALIDATION_SAMPLING_UNIT or row.get("designStatus") != "STRATA_DISCOVERY_ONLY":
+            raise ValueError("Validation population CSV does not record the controlled sampling design")
+        validated[code] = _required_csv_non_negative_int(row, "populationPixels")
+    if set(validated) != set(VALIDATION_STRATA):
+        raise ValueError("Validation population CSV strata must be unique and complete")
+    if sum(validated.values()) == 0:
+        raise ValueError("Validation population CSV contains no common-valid sampling units")
+
+    pixel_size = int(INDICATORS[indicator_id]["scaleMetres"])
+    return {
+        "status": "FRAME_DISCOVERED_NOT_SAMPLED",
+        "region": {"key": region, "boundarySha256": boundary_sha256},
+        "batchExport": {
+            "taskDescription": request.get("task", {}).get("description"),
+            "taskId": request.get("task", {}).get("id"),
+            "rawCsv": csv_path.as_posix(),
+            "rawCsvSha256": _sha256_file(csv_path),
+        },
+        "method": {
+            "indicatorId": indicator_id,
+            "mapMethod": expected_method,
+            "analysisCrs": REGIONS[region]["analysisCrs"],
+            "pixelSizeMetres": pixel_size,
+            "minClearObservations": MIN_CLEAR_OBSERVATIONS,
+            "samplingUnit": VALIDATION_SAMPLING_UNIT,
+            "designStatus": "STRATA_DISCOVERY_ONLY",
+        },
+        "strata": [
+            {
+                "code": code,
+                "name": VALIDATION_STRATA[code],
+                "populationPixels": validated[code],
+                "populationAreaSqKm": validated[code] * pixel_size * pixel_size / 1_000_000,
+            }
+            for code in VALIDATION_STRATA
+        ],
+        "requiredBeforeSampleDraw": [
+            "Pre-register allocation, replacement policy, random seed, and inclusion probabilities from these finite populations.",
+            "Create a new blinded probability sample; the existing exploratory frame cannot be promoted to formal validation.",
+            "Obtain temporally appropriate independent reference labels and keep initial reviewers blinded to mapped strata.",
+        ],
+        "disclaimer": "Mapped-stratum populations support a future probability design; they are not a blind reviewer frame or independent validation result.",
+    }
 
 
 def _validated_sensitivity_row(row: dict[str, str], boundary_sha256: str, *, region: str) -> dict[str, Any]:
@@ -1466,7 +1769,13 @@ def main() -> int:
     parser.add_argument("--indicator", choices=["all", *INDICATORS], default="all")
     parser.add_argument(
         "--mode",
-        choices=("interactive", "batch-export", "validation-sample-export", "water-otsu-histogram-export"),
+        choices=(
+            "interactive",
+            "batch-export",
+            "validation-sample-export",
+            "validation-population-export",
+            "water-otsu-histogram-export",
+        ),
         default="interactive",
     )
     parser.add_argument("--drive-folder", help="Google Drive folder name for a batch CSV export")
@@ -1477,6 +1786,11 @@ def main() -> int:
     )
     parser.add_argument("--import-export-csv", type=Path, help="Completed Earth Engine batch CSV to validate and import")
     parser.add_argument(
+        "--import-validation-population-csv",
+        type=Path,
+        help="Completed mapped-stratum population CSV to validate before a probability-sample draw",
+    )
+    parser.add_argument(
         "--import-sensitivity-csv",
         type=Path,
         help="Completed one-row water or built-proxy sensitivity CSV to validate and attach to its local report",
@@ -1486,7 +1800,11 @@ def main() -> int:
         type=Path,
         help="Completed 256-row pooled-water histogram CSV to validate and turn into a locked threshold record",
     )
-    parser.add_argument("--batch-request", type=Path, help="Local batch-request JSON associated with --import-export-csv")
+    parser.add_argument(
+        "--batch-request",
+        type=Path,
+        help="Local batch-request JSON associated with a completed Earth Engine CSV import",
+    )
     parser.add_argument(
         "--import-vegetation-sensitivity-csv",
         type=Path,
@@ -1509,6 +1827,12 @@ def main() -> int:
     )
     parser.add_argument("--project", default=os.getenv("EARTH_ENGINE_PROJECT"))
     parser.add_argument("--output-dir", type=Path, default=Path("data/processed/earth-engine-p0"))
+    parser.add_argument(
+        "--validation-output-dir",
+        type=Path,
+        default=Path("data/processed/validation"),
+        help="Local location for validated population-ledger metadata",
+    )
     args = parser.parse_args()
 
     if args.vegetation_sensitivity and (args.mode != "batch-export" or args.indicator != "vegetation"):
@@ -1517,6 +1841,7 @@ def main() -> int:
         parser.error("Choose either --vegetation-sensitivity or --sensitivity")
     if sum(bool(value) for value in (
         args.import_export_csv,
+        args.import_validation_population_csv,
         args.import_vegetation_sensitivity_csv,
         args.import_sensitivity_csv,
         args.import_water_otsu_histogram_csv,
@@ -1600,6 +1925,25 @@ def main() -> int:
         output.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         print(f"{args.region}: imported batch export -> {output}")
         return 0
+    if args.import_validation_population_csv:
+        if args.region == "all" or args.indicator == "all":
+            parser.error("--import-validation-population-csv requires one --region and one --indicator")
+        if args.sensitivity and (args.indicator != "built-up" or args.sensitivity != BUILT_IBI_SENSITIVITY_ID):
+            parser.error("A validation population import may use only --indicator built-up --sensitivity built-ibi")
+        task_description = _validation_population_task_description(args.region, args.indicator, args.sensitivity)
+        request_path = args.batch_request or args.output_dir / f"{task_description}.batch-request.json"
+        evidence = import_validation_frame_populations(
+            args.region,
+            args.indicator,
+            args.import_validation_population_csv,
+            request_path,
+            sensitivity_id=args.sensitivity,
+        )
+        args.validation_output_dir.mkdir(parents=True, exist_ok=True)
+        output = args.validation_output_dir / f"{task_description}.json"
+        output.write_text(json.dumps(evidence, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        print(f"{args.region}: imported validation frame populations -> {output}")
+        return 0
     project = _require_project(args.project)
     if args.mode == "water-otsu-histogram-export":
         if args.region == "all" or args.indicator != "surface-water":
@@ -1633,6 +1977,25 @@ def main() -> int:
         )
         action = "started" if args.start_batch_export else "prepared"
         print(f"nagpur: {action} {args.indicator} validation sample export {request['task']['description']}")
+        return 0
+    if args.mode == "validation-population-export":
+        if args.region == "all" or args.indicator == "all":
+            parser.error("--mode validation-population-export requires one --region and one --indicator")
+        if args.sensitivity and (args.indicator != "built-up" or args.sensitivity != BUILT_IBI_SENSITIVITY_ID):
+            parser.error("A validation population export may use only --indicator built-up --sensitivity built-ibi")
+        if not args.drive_folder:
+            parser.error("--drive-folder is required with --mode validation-population-export")
+        request = create_validation_population_export(
+            project,
+            args.region,
+            args.drive_folder,
+            args.output_dir,
+            indicator_id=args.indicator,
+            sensitivity_id=args.sensitivity,
+            start=args.start_batch_export,
+        )
+        action = "started" if args.start_batch_export else "prepared"
+        print(f"{args.region}: {action} {args.indicator} validation population export {request['task']['description']}")
         return 0
     selected = REGIONS if args.region == "all" else {args.region: REGIONS[args.region]}
     indicator_ids = tuple(INDICATORS) if args.indicator == "all" else (args.indicator,)

@@ -203,3 +203,20 @@ The browser remains mock-only. Generated cities and the bundled Nagpur fixture r
 5. Only then run `export --dry-run`, review both files, and run for real.
 
 Do not set `planStatus` to `PREREGISTERED` to unblock the pipeline before the allocation is genuinely decided. The gate checks the flag, but the flag is an assertion by a person — it is the one thing the code cannot verify for you.
+
+---
+
+## 10. Post-merge reconciliation (2026-08-04)
+
+The remote UI/data commits were fast-forwarded into `main` after this handoff was
+written. The previously described gate implementation, template, and tests now
+exist in the repository, and the corrected v2 ledger is present only in the local
+Git-ignored validation workspace. The remote additions were preserved: the bundled
+Natural Earth basemap assets and provenance record, the `Choropleth` globe overlay,
+the generated-city/demo-mode controls, and the associated browser/data documentation.
+
+The working-tree changes restored after the fast-forward add the city-picker and
+offline-demo integration, Earth Engine population-export safeguards, and the
+corresponding status/validation updates. No incoming feature was removed. The
+formal sample remains blocked on the scientific allocation decision; the remote
+commits do not change that gate.

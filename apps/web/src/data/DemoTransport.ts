@@ -70,8 +70,8 @@ export class DemoTransport implements Transport {
   }
 
   async listRegions(): Promise<RegionRef[]> {
-    // The real pack first, then the generated demo districts. Order matters:
-    // the one district with actual processing behind it should lead.
+    // The committed Nagpur fixture leads, followed by generated fixtures.
+    // Every entry in this transport is synthetic and must stay mock-labelled.
     return [this.summary.data.region, ...demoRegions()];
   }
 
