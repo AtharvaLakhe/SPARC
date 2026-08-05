@@ -12,7 +12,8 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { PLACES, findPlaces, nearestPlace } from './places.js';
+import { PLACES, findPlaces, nearestPlace, describeLocation } from './places.js';
+import { loadLandMask, isWater } from './landmask.js';
 import { latLonToVec3 as latLonXYZ, vec3ToLatLon, parseQuery, fmtLat, fmtLon } from './geo.js';
 import { ATMOSPHERE_GLSL, NOISE_GLSL, SRGB_GLSL } from './shaders.js';
 import { pickTier } from './quality.js';
@@ -172,6 +173,12 @@ const nightMap = tex('earth_night.jpg');
 const cloudMap = tex('earth_clouds.jpg');
 const oceanMap = tex('earth_ocean.jpg');
 const topoMap = tex('earth_topo.jpg');
+
+/* The same mask, decoded to a CPU-readable bitset so the hover readout can tell
+   sea from land instead of inferring it. Deliberately outside `manager`: the
+   globe does not need it to draw, and a readout that is briefly less specific
+   is better than holding the loader open on it. */
+loadLandMask('assets/earth_ocean.jpg');
 
 /* ── starfield: three shells so parallax reads as real depth ────────────── */
 
@@ -1601,7 +1608,7 @@ function updatePointer() {
     readout.style.left = `${state.clientX}px`;
     readout.style.top = `${state.clientY}px`;
     $('cursor-coords').textContent = `${fmtLat(lat)}  ${fmtLon(lon)}`;
-    $('cursor-place').textContent = nearestPlace(lat, lon) || 'open water';
+    $('cursor-place').textContent = describeLocation(lat, lon, isWater(lat, lon));
     $('tel-lat').textContent = fmtLat(lat);
     $('tel-lon').textContent = fmtLon(lon);
 
@@ -1647,6 +1654,7 @@ manager.onLoad = () => { bootedAt(); applyDeepLink(); };
 // expose a little surface for the smoke test
 window.__orbital = {
   state, latLonToVec3, vec3ToLatLon, parseQuery, PLACES, THREE,
+  describeLocation, isWater,
   scene, camera, controls, satAnchor, marker, beam, designator, goTo, releaseTarget,
   get satellite() { return satellite; },
 };

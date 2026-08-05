@@ -1,7 +1,7 @@
 /* Node smoke test for the coordinate + query logic.  node test-geo.mjs  */
 
 import { latLonToVec3, vec3ToLatLon, parseQuery, fmtLat, fmtLon } from './geo.js';
-import { PLACES, findPlaces, nearestPlace } from './places.js';
+import { PLACES, findPlaces, nearestPlace, nearestPlaceInfo, describeLocation, haversine, bearing, CITY_KM } from './places.js';
 
 let pass = 0, fail = 0;
 const ok = (name, cond, extra = '') => {
@@ -83,6 +83,47 @@ console.log('reverse lookup');
 ok('on a city', nearestPlace(35.68, 139.70) === 'Tokyo');
 ok('mid-ocean is null', nearestPlace(-30, -140) === null, String(nearestPlace(-30, -140)));
 ok('antimeridian safe', typeof nearestPlace(0, 179.9) !== 'undefined');
+
+// The bug this file exists to keep out: the reticle sat in the Bay of Bengal,
+// 400 km off the coast, and the readout said KOLKATA — the old blanket 550 km
+// radius reached that far out to sea.
+console.log('reverse lookup does not over-claim');
+ok('bay of bengal is not Kolkata', nearestPlace(18.97, 88.02) === null,
+   String(nearestPlace(18.97, 88.02)));
+ok('every place claims at most its own radius', PLACES.every((p) => (p.r ?? CITY_KM) <= 900));
+ok('a place still claims its own centre', PLACES.every((p) => nearestPlace(p.lat, p.lon) !== null),
+   PLACES.filter((p) => nearestPlace(p.lat, p.lon) === null).map((p) => p.name).join(','));
+ok('40 km out still reads as the city', nearestPlace(22.5726 + 0.36, 88.3639) === 'Kolkata',
+   String(nearestPlace(22.5726 + 0.36, 88.3639)));
+ok('regions keep their extent', nearestPlace(23.0, 22.0) === 'Sahara Desert',
+   String(nearestPlace(23.0, 22.0)));
+
+console.log('distance and bearing');
+ok('haversine zero', near(haversine(19, 88, 19, 88), 0, 1e-9));
+ok('haversine known leg', near(haversine(22.5726, 88.3639, 18.97, 88.02), 402, 3),
+   String(haversine(22.5726, 88.3639, 18.97, 88.02)));
+ok('symmetric', near(haversine(35, 139, -33, 151), haversine(-33, 151, 35, 139), 1e-9));
+ok('due north', bearing(0, 0, 10, 0) === 'N', bearing(0, 0, 10, 0));
+ok('due south', bearing(0, 0, -10, 0) === 'S', bearing(0, 0, -10, 0));
+ok('due east', bearing(0, 0, 0, 10) === 'E', bearing(0, 0, 0, 10));
+ok('due west', bearing(0, 0, 0, -10) === 'W', bearing(0, 0, 0, -10));
+ok('bay of bengal is south of Kolkata', bearing(22.5726, 88.3639, 18.97, 88.02) === 'S',
+   bearing(22.5726, 88.3639, 18.97, 88.02));
+
+console.log('hover description');
+ok('on a city, just the name', describeLocation(22.5726, 88.3639, false) === 'Kolkata',
+   describeLocation(22.5726, 88.3639, false));
+ok('city wins over the water bit', describeLocation(22.5726, 88.3639, true) === 'Kolkata',
+   describeLocation(22.5726, 88.3639, true));
+ok('open water is relative, not named', describeLocation(18.97, 88.02, true) === 'open water · 402 km S of Kolkata',
+   describeLocation(18.97, 88.02, true));
+ok('land near nothing is still not water', !/water/.test(describeLocation(60, 100, false)),
+   describeLocation(60, 100, false));
+ok('unknown mask never claims water', !/water/.test(describeLocation(18.97, 88.02, null)),
+   describeLocation(18.97, 88.02, null));
+ok('deep ocean drops the relative fix', describeLocation(-30, -140, true) === 'open water',
+   describeLocation(-30, -140, true));
+ok('nearest info always resolves', nearestPlaceInfo(0, 0)?.place?.name?.length > 0);
 
 console.log('formatting');
 ok('north', fmtLat(51.5074) === '51.51°N');

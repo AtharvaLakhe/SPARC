@@ -1,6 +1,13 @@
 /* Offline gazetteer.
    Everything resolves locally - no geocoding service, so the page works with no
-   network and there is nothing to rate-limit or fail mid-interaction. */
+   network and there is nothing to rate-limit or fail mid-interaction.
+
+   `r` is how far out the name still describes where you are, in km. Cities take
+   CITY_KM below — metropolitan scale — and only the wide natural features carry
+   their own extent. Beyond that radius the reverse lookup reports a bearing and
+   a distance rather than the name, because 400 km off the coast is not Kolkata. */
+
+export const CITY_KM = 55;
 
 export const PLACES = [
   { name: 'Tokyo', country: 'Japan', lat: 35.6762, lon: 139.6503 },
@@ -141,16 +148,23 @@ export const PLACES = [
   { name: 'Suva', country: 'Fiji', lat: -18.1248, lon: 178.4501 },
   { name: 'Port Moresby', country: 'Papua New Guinea', lat: -9.4438, lon: 147.1803 },
 
-  { name: 'McMurdo Station', country: 'Antarctica', lat: -77.8419, lon: 166.6863 },
-  { name: 'Longyearbyen', country: 'Svalbard', lat: 78.2232, lon: 15.6267 },
-  { name: 'Nuuk', country: 'Greenland', lat: 64.1836, lon: -51.7214 },
-  { name: 'Mount Everest', country: 'Nepal/China', lat: 27.9881, lon: 86.9250 },
-  { name: 'Kilimanjaro', country: 'Tanzania', lat: -3.0674, lon: 37.3556 },
-  { name: 'Grand Canyon', country: 'United States', lat: 36.1069, lon: -112.1129 },
-  { name: 'Great Barrier Reef', country: 'Australia', lat: -18.2871, lon: 147.6992 },
-  { name: 'Amazon Basin', country: 'Brazil', lat: -3.4653, lon: -62.2159 },
-  { name: 'Sahara Desert', country: 'Africa', lat: 23.4162, lon: 25.6628 },
-  { name: 'Point Nemo', country: 'Pacific Ocean', lat: -48.8767, lon: -123.3933 },
+  // Settlements and summits are points; the rest are regions, and a region that
+  // took the city radius would report "820 km NE of Sahara Desert" from inside
+  // the Sahara. These extents are deliberately conservative — a name that only
+  // covers the middle of its feature is a smaller error than one that spills
+  // past the edge onto something else.
+  { name: 'McMurdo Station', country: 'Antarctica', lat: -77.8419, lon: 166.6863, r: 40 },
+  { name: 'Longyearbyen', country: 'Svalbard', lat: 78.2232, lon: 15.6267, r: 30 },
+  { name: 'Nuuk', country: 'Greenland', lat: 64.1836, lon: -51.7214, r: 30 },
+  { name: 'Mount Everest', country: 'Nepal/China', lat: 27.9881, lon: 86.9250, r: 25 },
+  { name: 'Kilimanjaro', country: 'Tanzania', lat: -3.0674, lon: 37.3556, r: 30 },
+  { name: 'Grand Canyon', country: 'United States', lat: 36.1069, lon: -112.1129, r: 80 },
+  { name: 'Great Barrier Reef', country: 'Australia', lat: -18.2871, lon: 147.6992, r: 350 },
+  { name: 'Amazon Basin', country: 'Brazil', lat: -3.4653, lon: -62.2159, r: 700 },
+  { name: 'Sahara Desert', country: 'Africa', lat: 23.4162, lon: 25.6628, r: 900 },
+  // The oceanic pole of inaccessibility. Being nowhere near anything is the
+  // whole point of it, so it is the one entry that earns a wide radius.
+  { name: 'Point Nemo', country: 'Pacific Ocean', lat: -48.8767, lon: -123.3933, r: 800 },
 ];
 
 /* substring match, ranked: exact > prefix > contained, shorter names first */
@@ -174,18 +188,73 @@ export function findPlaces(query, limit = 6) {
   return scored.slice(0, limit).map((s) => s.p);
 }
 
-/* nearest known place within `maxKm`, for the hover readout and custom coords */
-export function nearestPlace(lat, lon, maxKm = 550) {
-  const toRad = Math.PI / 180;
-  const la1 = lat * toRad, lo1 = lon * toRad;
+const toRad = Math.PI / 180;
+const R_KM = 6371;
+
+/* great-circle distance, km */
+export function haversine(lat1, lon1, lat2, lon2) {
+  const la1 = lat1 * toRad, la2 = lat2 * toRad;
+  const dLa = la2 - la1, dLo = (lon2 - lon1) * toRad;
+  const h = Math.sin(dLa / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(dLo / 2) ** 2;
+  return 2 * R_KM * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+const COMPASS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
+                 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+
+/* initial great-circle bearing from 1 to 2, as a 16-point compass name */
+export function bearing(lat1, lon1, lat2, lon2) {
+  const la1 = lat1 * toRad, la2 = lat2 * toRad, dLo = (lon2 - lon1) * toRad;
+  const y = Math.sin(dLo) * Math.cos(la2);
+  const x = Math.cos(la1) * Math.sin(la2) - Math.sin(la1) * Math.cos(la2) * Math.cos(dLo);
+  const deg = (Math.atan2(y, x) / toRad + 360) % 360;
+  return COMPASS[Math.round(deg / 22.5) % 16];
+}
+
+/* closest gazetteer entry to a coordinate, whatever the distance:
+   { place, km, from } where `from` is the compass direction of the coordinate
+   as seen from the place — the direction the phrase "S of Kolkata" needs. */
+export function nearestPlaceInfo(lat, lon) {
   let best = null, bestD = Infinity;
   for (const p of PLACES) {
-    const la2 = p.lat * toRad, lo2 = p.lon * toRad;
-    // haversine on a 6371 km sphere
-    const dLa = la2 - la1, dLo = lo2 - lo1;
-    const h = Math.sin(dLa / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(dLo / 2) ** 2;
-    const d = 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(h)));
+    const d = haversine(lat, lon, p.lat, p.lon);
     if (d < bestD) { bestD = d; best = p; }
   }
-  return bestD <= maxKm ? best.name : null;
+  if (!best) return null;
+  return { place: best, km: bestD, from: bearing(best.lat, best.lon, lat, lon) };
+}
+
+/* Name for a coordinate, or null if no entry is close enough to claim it.
+   `maxKm` overrides the per-place radius; leave it off to get the honest one. */
+export function nearestPlace(lat, lon, maxKm) {
+  const n = nearestPlaceInfo(lat, lon);
+  if (!n) return null;
+  const limit = maxKm ?? n.place.r ?? CITY_KM;
+  return n.km <= limit ? n.place.name : null;
+}
+
+const fmtKm = (km) => (km < 10
+  ? `${km.toFixed(1)} km`
+  : `${Math.round(km).toLocaleString('en-US')} km`);
+
+/* Past this there is no useful relationship left to state, and "3,180 km SW of
+   Honolulu" is just a long way of saying you are in the middle of the Pacific. */
+const RELATIVE_KM = 1200;
+
+/* One line describing where a coordinate is, for the hover readout.
+
+   Every branch has to survive being read off the screen and checked on a map,
+   which rules out both of the old behaviours: naming a city you are 400 km from
+   and calling unknown ground open water. `water` comes from the mask —
+   true, false, or null while it is still decoding — and null simply drops the
+   sea/land clause rather than guessing at it. */
+export function describeLocation(lat, lon, water = null) {
+  const n = nearestPlaceInfo(lat, lon);
+  if (!n) return water === true ? 'open water' : '—';
+
+  if (n.km <= (n.place.r ?? CITY_KM)) return n.place.name;
+
+  const rel = `${fmtKm(n.km)} ${n.from} of ${n.place.name}`;
+  if (water !== true) return rel;
+  return n.km <= RELATIVE_KM ? `open water · ${rel}` : 'open water';
 }
