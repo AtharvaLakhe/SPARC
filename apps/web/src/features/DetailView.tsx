@@ -6,16 +6,17 @@
  * and the caveats sit *inside* the interpretation block rather than in a
  * footnote — a reading and its limits should not be separable by scrolling. */
 
-import { useId } from 'react';
+import { useId, type CSSProperties } from 'react';
 import { sdgLinksFor } from '../sdg';
 import type { DetailView as DetailVM } from '../viewmodel/mapper';
-import { Callout, StatusPill, Value } from './Primitives';
 import { QualityPanel, ProvenancePanel } from './Disclosure';
 import { BoundaryProvenancePanel } from './BoundaryProvenance';
 import { LayerView } from './LayerView';
 import { EvidenceViz } from './EvidenceViz';
 import { Choropleth } from './Choropleth';
 import { styleFor } from '../indicators';
+import { SignalObservatory } from './SignalObservatory';
+import { Value } from './Primitives';
 
 /* Which SDG target this proxy speaks to — and, just as prominently, the official
    indicator it is not. Stating the relevance without stating the limit is how a
@@ -49,8 +50,24 @@ export function DetailScreen({
   detail: DetailVM;
   onBack: () => void;
 }) {
-  const headingId = useId();
-  const interpId = useId();
+  const indicatorLabel = detail.indicatorName.replace(/ — .*$/, '');
+  const indicatorStyle = styleFor(detail.indicatorId);
+  const signalSubject = indicatorStyle.short === 'Water'
+    ? 'Surface-water signal'
+    : `${indicatorStyle.short} signal`;
+  const relativeMagnitude = detail.metric.percentChange.kind === 'value'
+    ? detail.metric.percentChange.text.replace(/^[+\-−]/, '')
+    : null;
+  const finding = detail.metric.changeUnavailable
+    ? `A defensible change estimate is not available for ${indicatorLabel}.`
+    : detail.metric.direction === 'no measured change'
+      ? `${signalSubject} shows no measured change from baseline.`
+      : relativeMagnitude
+        ? `${signalSubject} is ${relativeMagnitude} ${detail.metric.direction} than baseline.`
+        : `${signalSubject} moved from ${detail.metric.baseline.text} to ${detail.metric.comparison.text}.`;
+  const findingStyle = {
+    '--finding-accent': indicatorStyle.accent,
+  } as CSSProperties;
 
   return (
     <>
@@ -63,55 +80,30 @@ export function DetailScreen({
         <span className="crumb__here">{detail.indicatorName.replace(/ — .*$/, '')}</span>
       </nav>
 
-      <section className="panel" aria-labelledby={headingId}>
-        <h2 id={headingId}>{detail.indicatorName}</h2>
-        <p className="panel__lede">{detail.proxyLabel}</p>
-        <p className="card__pills">
-          <StatusPill status={detail.status} />
-        </p>
-
-        {detail.partial || detail.status === 'partial' ? (
-          <Callout tone="warn" title="Partial result">
-            <p>
-              At least one period did not meet its gate, so this is not a
-              complete change measurement. The values that do exist are shown;
-              the ones that do not are marked unavailable with a reason.
-            </p>
-          </Callout>
-        ) : null}
-
-        <dl className="metrics">
-          <div>
-            <dt>Analysis period · baseline · {detail.baseline.range}</dt>
-            <dd><Value value={detail.metric.baseline} /></dd>
-          </div>
-          <div>
-            <dt>Analysis period · comparison · {detail.comparison.range}</dt>
-            <dd><Value value={detail.metric.comparison} /></dd>
-          </div>
-          <div>
-            <dt>Estimated change</dt>
-            <dd><Value value={detail.metric.absoluteChange} /></dd>
-          </div>
-          <div>
-            <dt>Estimated relative change</dt>
-            <dd><Value value={detail.metric.percentChange} /></dd>
-          </div>
-        </dl>
-
-        {detail.metric.unavailableReason ? (
-          <Callout tone="warn" title="Why a value is missing">
-            <p>{detail.metric.unavailableReason}</p>
-            <p>
-              A missing value is not zero and not “no change”. It means the
-              observation could not be made to the required standard.
-            </p>
-          </Callout>
-        ) : null}
+      <section id="detail-signal" className="detail-finding" style={findingStyle} aria-labelledby="detail-finding-heading">
+        <p className="detail-section__kicker">01 / principal finding</p>
+        <div className="detail-finding__composition">
+          <h1 id="detail-finding-heading">
+            {finding}
+          </h1>
+          <dl className="detail-finding__telemetry">
+            <div>
+              <dt>Estimated change</dt>
+              <dd><Value value={detail.metric.absoluteChange} /></dd>
+            </div>
+            <div>
+              <dt>Relative movement</dt>
+              <dd><Value value={detail.metric.percentChange} /></dd>
+            </div>
+          </dl>
+        </div>
       </section>
 
-      <section className="panel" aria-labelledby={interpId}>
-        <h3 id={interpId}>What this shows</h3>
+      <SignalObservatory detail={detail} />
+
+      <section id="detail-reading" className="panel detail-reading" aria-labelledby="detail-reading-heading">
+        <p className="detail-section__kicker">02 / interpretation</p>
+        <h3 id="detail-reading-heading">What this shows</h3>
         <p className="interp">{detail.interpretation.summary}</p>
 
         <h4>What it does not show</h4>
@@ -134,12 +126,12 @@ export function DetailScreen({
         </p>
       </section>
 
-      <EvidenceViz detail={detail} />
+      <EvidenceViz detail={detail} id="detail-evidence" />
+      <QualityPanel quality={detail.quality} id="detail-quality" />
       <SdgPanel indicatorId={detail.indicatorId} />
-      <QualityPanel quality={detail.quality} />
       <LayerView
-        layers={detail.layers}
-        regionId={detail.region.id}
+        id="detail-spatial"
+        detail={detail}
         syntheticLayers={detail.badge.grade === 'synthetic'}
         accent={styleFor(detail.indicatorId).accent}
       />

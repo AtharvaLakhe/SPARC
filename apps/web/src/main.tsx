@@ -68,6 +68,15 @@ function ensureHost(): HTMLElement {
   const clampWidth = (px: number) =>
     Math.max(MIN, Math.min(px, Math.round(innerWidth * 0.96)));
   const applyWidth = (px: number) => {
+    /* The inline width wins over the responsive stylesheet. Without this
+       branch, a drawer opened on desktop stays wider than the viewport after
+       rotation/resizing, and a drawer first opened on a phone stops short of
+       the left edge. Keep the desktop preference, but let mobile own the full
+       viewport. */
+    if (innerWidth <= 46 * 16) {
+      el.style.width = '100vw';
+      return;
+    }
     panelWidth = clampWidth(px);
     el.style.width = `${panelWidth}px`;
   };
@@ -86,6 +95,7 @@ function ensureHost(): HTMLElement {
     dragging = false;
     document.body.classList.remove('sparc-resizing');
   });
+  addEventListener('resize', () => applyWidth(panelWidth));
   // Keyboard equivalent: a drag handle reachable only by pointer is not a control.
   grip.addEventListener('keydown', (e) => {
     const step = e.shiftKey ? 96 : 24;
@@ -129,6 +139,7 @@ function closePanel() {
   panelHost?.classList.remove('sparc-panel--open');
   document.documentElement.classList.remove('sparc-panel-open');
   dispatchEvent(new CustomEvent('sparc:district', { detail: null }));
+  dispatchEvent(new CustomEvent('sparc:indicator', { detail: { indicatorId: null } }));
 
   /* Unmount after the slide-out finishes. Keeping the tree alive would keep
      its state too, so reopening would drop you back on whatever indicator you

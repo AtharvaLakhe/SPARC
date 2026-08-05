@@ -3,6 +3,7 @@
  * lifecycle are frozen by the API contract. */
 
 import { useEffect, useId, useState } from 'react';
+import { createPortal } from 'react-dom';
 import release from '@boundaries/release-metadata.json';
 import nagpurProvenance from '@boundaries/nagpur.provenance.json';
 import bengaluruProvenance from '@boundaries/bengaluru-urban.provenance.json';
@@ -216,8 +217,13 @@ export function ReportConcern({ open, onClose, regionName, regionId, analysisSna
       const form = new FormData();
       form.append('report', JSON.stringify(payload));
       files.slice(0, 6).forEach((file) => form.append('attachments', file, file.name));
-      const response = await fetch(`${config.apiBaseUrl}/api/v1/reports`, { method: 'POST', body: form, headers: { 'Idempotency-Key': `browser-${crypto.randomUUID()}` } });
-      const result = await response.json() as { data?: { id: string; artifacts?: unknown[] }; meta?: { mock?: boolean }; detail?: string };
+      let response: Response;
+      try {
+        response = await fetch(`${config.apiBaseUrl}/api/v1/reports`, { method: 'POST', body: form, headers: { 'Idempotency-Key': `browser-${crypto.randomUUID()}` } });
+      } catch {
+        throw new Error(`The report service is not reachable at ${config.apiBaseUrl}. Start the FastAPI server from the repository root, then try again.`);
+      }
+      const result = await response.json().catch(() => ({})) as { data?: { id: string; artifacts?: unknown[] }; meta?: { mock?: boolean }; detail?: string };
       if (!response.ok || !result.data) throw new Error(result.detail || 'The report could not be created.');
       setReportId(result.data.id); setAccessToken(response.headers.get('X-Report-Access'));
       setStatusNotice('Report created. Download the generated PDF or evidence package, then review it before manual handoff.');
@@ -250,7 +256,12 @@ export function ReportConcern({ open, onClose, regionName, regionId, analysisSna
   const next = () => { if (step === 'concern') setStep('evidence'); else if (step === 'evidence') setStep('review'); else if (step === 'review' && canContinueFromReview) void createReport(); };
   const back = () => { const previous = STEPS[stepIndex - 1]; if (previous) setStep(previous.id); };
 
-  return (
+  // The analytical dashboard is mounted inside a transformed, scrollable side
+  // panel. A fixed descendant of that panel is fixed to the transformed panel,
+  // not the viewport, so opening the workflow while scrolled to this launch
+  // button can render the dialog above the visible scroll position. Portalling
+  // to body keeps the modal viewport-fixed and outside the panel's clipping.
+  return createPortal(
     <div className="report-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <section className="report-dialog" role="dialog" aria-modal="true" aria-labelledby={titleId}>
         <div className="report-dialog__topline"><p className="report-dialog__eyebrow">REPORT WORKFLOW · CODEX CONTRACT</p><button type="button" className="console__close" onClick={onClose} aria-label="Close report workflow">×</button></div>
@@ -283,6 +294,7 @@ export function ReportConcern({ open, onClose, regionName, regionId, analysisSna
         {statusNotice && step !== 'handoff' ? <p className="report-status-notice" role="status">{statusNotice}</p> : null}
         <div className="report-actions">{stepIndex > 0 && step !== 'handoff' ? <button type="button" className="btn btn--ghost" onClick={back}>Back</button> : null}{step !== 'handoff' ? <button type="button" className="btn btn--primary" onClick={next} disabled={(step === 'concern' && concerns.length === 0) || (step === 'review' && (!canContinueFromReview || creating))}>{creating ? 'Creating package…' : step === 'review' ? 'Create report package' : 'Continue'}</button> : <button type="button" className="btn btn--ghost" onClick={onClose}>Return to dashboard</button>}</div>
       </section>
-    </div>
+    </div>,
+    document.body,
   );
 }

@@ -12,10 +12,11 @@
  * and the dashboard must be usable before it arrives, or on a device where it
  * never will. ADR-005 pins it below v6. */
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
 import type { LayerDescriptor } from '../contract/types';
 import { shapeForRegion } from '../globe/overlay';
-import { Callout } from './Primitives';
+import type { DetailView as DetailVM } from '../viewmodel/mapper';
+import { Callout, Value } from './Primitives';
 
 function webglAvailable(): boolean {
   try {
@@ -87,21 +88,192 @@ function Legend({ layer }: { layer: LayerDescriptor }) {
   );
 }
 
-/** A descriptor carrying only what the map needs to frame a boundary. */
-function syntheticBoundaryLayer(regionId: string, rings: [number, number][][]): LayerDescriptor {
-  let w = 180, s = 90, e = -180, n = -90;
-  for (const ring of rings) {
-    for (const [lon, lat] of ring) {
-      w = Math.min(w, lon); e = Math.max(e, lon);
-      s = Math.min(s, lat); n = Math.max(n, lat);
-    }
-  }
-  return {
-    id: `${regionId}:extent`, kind: 'district extent', representation: 'geojson',
-    href: '', tileJsonHref: null, bounds: [w, s, e, n],
-    minZoom: null, maxZoom: null, opacity: 1, legend: [], attributions: [],
-    checksum: null, contentVersion: null, availableOffline: true,
-  };
+type SpatialMode = 'signal' | 'extent' | 'source';
+
+const SPATIAL_WIDTH = 760;
+const SPATIAL_HEIGHT = 420;
+const SPATIAL_PADDING = 54;
+
+function formatLongitude(value: number): string {
+  return `${Math.abs(value).toFixed(2)}°${value < 0 ? 'W' : 'E'}`;
+}
+
+function formatLatitude(value: number): string {
+  return `${Math.abs(value).toFixed(2)}°${value < 0 ? 'S' : 'N'}`;
+}
+
+function projectBoundary(
+  rings: [number, number][][],
+  bounds: [number, number, number, number],
+) {
+  const [west, south, east, north] = bounds;
+  const lonSpan = Math.max(east - west, 0.000001);
+  const latSpan = Math.max(north - south, 0.000001);
+  const scale = Math.min(
+    (SPATIAL_WIDTH - SPATIAL_PADDING * 2) / lonSpan,
+    (SPATIAL_HEIGHT - SPATIAL_PADDING * 2) / latSpan,
+  );
+  const drawnWidth = lonSpan * scale;
+  const drawnHeight = latSpan * scale;
+  const xOffset = (SPATIAL_WIDTH - drawnWidth) / 2;
+  const yOffset = (SPATIAL_HEIGHT - drawnHeight) / 2;
+
+  const point = ([longitude, latitude]: [number, number]) => ({
+    x: xOffset + (longitude - west) * scale,
+    y: yOffset + (north - latitude) * scale,
+  });
+  const path = rings.map((ring) => ring.map((coordinate, index) => {
+    const projected = point(coordinate);
+    return `${index === 0 ? 'M' : 'L'}${projected.x.toFixed(2)} ${projected.y.toFixed(2)}`;
+  }).join(' ') + ' Z').join(' ');
+
+  return { path, point };
+}
+
+function qualityText(detail: DetailVM, label: string): string {
+  return detail.quality.rows.find((row) => row.label === label)?.value.text ?? 'Unavailable';
+}
+
+function SpatialField({ detail, accent, id }: { detail: DetailVM; accent?: string; id?: string }) {
+  const headingId = useId();
+  const clipId = `${headingId.replaceAll(':', '')}-boundary-clip`;
+  const [mode, setMode] = useState<SpatialMode>('signal');
+  const shape = shapeForRegion(detail.region.id, detail.region.bbox);
+  const projected = shape ? projectBoundary(shape.rings, detail.region.bbox) : null;
+  const centroid = projected?.point(detail.region.centroid) ?? { x: SPATIAL_WIDTH / 2, y: SPATIAL_HEIGHT / 2 };
+  const source = detail.provenance.sources[0];
+  const resolution = detail.provenance.effectiveResolutionMeters === null
+    ? 'Unavailable'
+    : `${detail.provenance.effectiveResolutionMeters} m`;
+  const [west, south, east, north] = detail.region.bbox;
+  const visualStyle = { '--spatial-accent': accent ?? '#63c2ff' } as CSSProperties;
+
+  return (
+    <section id={id} className="panel spatial-field" aria-labelledby={headingId} style={visualStyle}>
+      <header className="spatial-field__header">
+        <div>
+          <p className="detail-section__kicker">05 / spatial context</p>
+          <h3 id={headingId}>District signal, located without invented pixels.</h3>
+        </div>
+        <p>
+          The outline is real. The fill is deliberately uniform because this
+          package contains one district-wide statistic, not a spatial raster.
+        </p>
+      </header>
+
+      <div className="spatial-field__shell">
+        <div className="spatial-field__modes" role="group" aria-label="Choose spatial view">
+          {([
+            ['signal', '01', 'Signal'],
+            ['extent', '02', 'Extent'],
+            ['source', '03', 'Source'],
+          ] as const).map(([value, index, label]) => (
+            <button key={value} type="button" className={mode === value ? 'is-active' : undefined}
+              aria-pressed={mode === value} onClick={() => setMode(value)}>
+              <span>{index}</span><strong>{label}</strong>
+            </button>
+          ))}
+        </div>
+
+        <div className={`spatial-field__stage spatial-field__stage--${mode}`}>
+          <svg className="spatial-field__graphic" viewBox={`0 0 ${SPATIAL_WIDTH} ${SPATIAL_HEIGHT}`}
+            role="img" aria-labelledby={`${clipId}-title ${clipId}-desc`}>
+            <title id={`${clipId}-title`}>{detail.region.name} spatial context</title>
+            <desc id={`${clipId}-desc`}>
+              Validated district outline with uniform aggregate signal. No pixel-level analytical raster is packaged.
+            </desc>
+            <defs>
+              <linearGradient id={`${clipId}-fill`} x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stopColor="var(--spatial-accent)" stopOpacity="0.1" />
+                <stop offset="0.56" stopColor="var(--spatial-accent)" stopOpacity="0.34" />
+                <stop offset="1" stopColor="var(--spatial-accent)" stopOpacity="0.13" />
+              </linearGradient>
+              <linearGradient id={`${clipId}-scan`} x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stopColor="var(--spatial-accent)" stopOpacity="0" />
+                <stop offset="0.5" stopColor="var(--spatial-accent)" stopOpacity="0.5" />
+                <stop offset="1" stopColor="var(--spatial-accent)" stopOpacity="0" />
+              </linearGradient>
+              {projected ? <clipPath id={clipId}><path d={projected.path} /></clipPath> : null}
+            </defs>
+
+            <path className="spatial-field__frame" d="M18 84V18H84 M676 18H742V84 M742 336V402H676 M84 402H18V336" />
+            <path className="spatial-field__datum" d="M54 210H706 M380 42V378" />
+
+            {projected ? (
+              <>
+                <path className="spatial-field__boundary-glow" d={projected.path} fillRule="evenodd" />
+                <path className="spatial-field__boundary" d={projected.path}
+                  fill={`url(#${clipId}-fill)`} fillRule="evenodd" />
+                <g clipPath={`url(#${clipId})`} className="spatial-field__scan-layer">
+                  <rect x="-180" y="0" width="180" height={SPATIAL_HEIGHT} fill={`url(#${clipId}-scan)`} />
+                </g>
+              </>
+            ) : null}
+
+            <path className="spatial-field__centroid-cross"
+              d={`M${(centroid.x - 11).toFixed(2)} ${centroid.y.toFixed(2)}H${(centroid.x + 11).toFixed(2)} M${centroid.x.toFixed(2)} ${(centroid.y - 11).toFixed(2)}V${(centroid.y + 11).toFixed(2)}`} />
+            <rect className="spatial-field__centroid-core" x={centroid.x - 2.5} y={centroid.y - 2.5} width="5" height="5" />
+          </svg>
+
+          <div className="spatial-field__overlay" aria-live="polite">
+            {mode === 'signal' ? (
+              <>
+                <div className="spatial-field__callout spatial-field__callout--primary">
+                  <span>Uniform district aggregate</span>
+                  <strong><Value value={detail.metric.absoluteChange} /></strong>
+                  <small><Value value={detail.metric.percentChange} /> relative to baseline</small>
+                </div>
+                <div className="spatial-field__callout spatial-field__callout--secondary">
+                  <span>Baseline → comparison</span>
+                  <strong><Value value={detail.metric.baseline} /> → <Value value={detail.metric.comparison} /></strong>
+                  <small>{qualityText(detail, 'Common-valid coverage')} common-valid coverage</small>
+                </div>
+              </>
+            ) : mode === 'extent' ? (
+              <>
+                <div className="spatial-field__callout spatial-field__callout--primary">
+                  <span>Validated centroid</span>
+                  <strong>{formatLatitude(detail.region.centroid[1])}</strong>
+                  <small>{formatLongitude(detail.region.centroid[0])}</small>
+                </div>
+                <div className="spatial-field__callout spatial-field__callout--secondary">
+                  <span>Bounding coordinates</span>
+                  <strong>{formatLongitude(west)} — {formatLongitude(east)}</strong>
+                  <small>{formatLatitude(south)} — {formatLatitude(north)}</small>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="spatial-field__callout spatial-field__callout--primary">
+                  <span>Observation source</span>
+                  <strong>{source?.mission ?? source?.provider ?? 'Unavailable'}</strong>
+                  <small>{source?.collection ?? 'Collection not supplied'}</small>
+                </div>
+                <div className="spatial-field__callout spatial-field__callout--secondary">
+                  <span>Processing frame</span>
+                  <strong>{resolution} effective resolution</strong>
+                  <small>{detail.provenance.analysisCrs} · {detail.provenance.algorithmVersion}</small>
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="spatial-field__telemetry" aria-hidden="true">
+            <span>{shape?.approximate ? 'Approximate extent' : 'Validated geometry'}</span>
+            <span>LAT {formatLatitude(detail.region.centroid[1])}</span>
+            <span>LON {formatLongitude(detail.region.centroid[0])}</span>
+            <span>RES {resolution}</span>
+          </div>
+        </div>
+      </div>
+
+      <p className="spatial-field__truth">
+        <strong>Spatial truth:</strong> no change-detection raster is present in
+        this build. The shape, aggregate values, coverage, periods, source and
+        processing metadata above all come from the result package.
+      </p>
+    </section>
+  );
 }
 
 function MapCanvas({ layer, regionId, syntheticLayers, accent }: {
@@ -286,47 +458,23 @@ function MapCanvas({ layer, regionId, syntheticLayers, accent }: {
   );
 }
 
-export function LayerView({ layers, regionId, syntheticLayers = false, accent }: {
-  layers: LayerDescriptor[]; regionId: string; syntheticLayers?: boolean; accent?: string;
+export function LayerView({ detail, syntheticLayers = false, accent, id }: {
+  detail: DetailVM; syntheticLayers?: boolean; accent?: string; id?: string;
 }) {
   const headingId = useId();
   const [webgl] = useState(webglAvailable);
+  const { layers } = detail;
+  const regionId = detail.region.id;
 
-  /* No analytical raster does not mean nothing to show. The district boundary
-     always exists, so the map renders regardless — previously an empty `layers`
-     array produced a text callout and no visual at all, which is what every
-     generated district got. */
+  /* An empty descriptor list is not a broken map: it means the contract has no
+     pixel layer. Render the real district geometry as an interactive aggregate
+     instrument instead of booting MapLibre merely to display an empty frame. */
   if (!layers.length) {
-    const shape = shapeForRegion(regionId);
-    return (
-      <section className="panel" aria-labelledby={headingId}>
-        <h3 id={headingId}>Spatial extent</h3>
-        {webgl && shape ? (
-          <div className="layer__map">
-            <MapCanvas
-              layer={syntheticBoundaryLayer(regionId, shape.rings)}
-              regionId={regionId}
-              syntheticLayers
-              accent={accent}
-            />
-          </div>
-        ) : null}
-        <Callout tone="info" title="No analytical layer is packaged for this result">
-          <p>
-            {shape?.approximate
-              ? 'The outline is this district’s bounding box, drawn dashed because it is an approximation rather than a surveyed boundary.'
-              : 'The outline is the validated district boundary.'}{' '}
-            No change-detection raster exists for it, so there is nothing to drape
-            over the shape. The metric, quality evidence and provenance are
-            unaffected.
-          </p>
-        </Callout>
-      </section>
-    );
+    return <SpatialField detail={detail} accent={accent} id={id} />;
   }
 
   return (
-    <section className="panel" aria-labelledby={headingId}>
+    <section id={id} className="panel" aria-labelledby={headingId}>
       <h3 id={headingId}>Spatial layer</h3>
 
       {layers.map((layer) => (

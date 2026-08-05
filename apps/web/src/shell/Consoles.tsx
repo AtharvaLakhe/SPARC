@@ -11,8 +11,8 @@ import { findPlaces } from '@globe/places.js';
 import { parseQuery } from '@globe/geo.js';
 import type { RegionRef } from '../contract/types';
 import { FROZEN_PERIODS, type FrozenPeriod } from '../config';
-import { CityPicker } from './CityPicker';
 import { catalogRegions, cityForCoordinate } from '../catalog/cities';
+import { CityPicker } from './CityPicker';
 
 /** Great-circle distance in km. */
 function haversineKm(aLat: number, aLon: number, bLat: number, bLon: number): number {
@@ -34,12 +34,14 @@ function coveringRegion(regions: RegionRef[], lat: number, lon: number): RegionR
 
 export function LocationConsole({
   regions,
+  regionsLoading,
   onResolved,
   onCancel,
   handoff,
   showDemoCities = false,
 }: {
   regions: RegionRef[];
+  regionsLoading: boolean;
   onResolved: (regionId: string) => void;
   onCancel: () => void;
   /** Coordinates the globe already collected, if the user arrived that way. */
@@ -53,6 +55,14 @@ export function LocationConsole({
 
   useEffect(() => { inputRef.current?.focus(); }, []);
 
+  useEffect(() => {
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onCancel();
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [onCancel]);
+
   const catalog = catalogRegions();
 
   /* Arriving from the globe, the location question has already been answered —
@@ -62,13 +72,17 @@ export function LocationConsole({
   const consumed = useRef(false);
   useEffect(() => {
     if (!handoff || consumed.current) return;
+    /* A catalog envelope can be resolved without the API list. A processed
+       district cannot: wait for listRegions instead of consuming the handoff
+       against an empty list and incorrectly reporting that nothing covers it. */
+    if (regionsLoading && !cityForCoordinate(handoff.lat, handoff.lon)) return;
     consumed.current = true;
     setQuery(handoff.name);
     resolve(handoff.lat, handoff.lon, handoff.name);
     // resolve() is stable for this purpose; re-running on every render would
     // fight the user's own typing.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [handoff, regions]);
+  }, [handoff, regions, regionsLoading]);
 
   const suggestions = useMemo(
     () => (query.trim().length >= 2 ? findPlaces(query, 5) : []),
@@ -106,50 +120,68 @@ export function LocationConsole({
   }
 
   return (
-    <div className="console-wrap" role="dialog" aria-modal="true" aria-labelledby="loc-h">
-      <div className="console">
+    <div className="console-wrap" role="dialog" aria-modal="true" aria-labelledby="loc-h" aria-describedby="loc-desc">
+      <div className="console console--location">
         <button type="button" className="console__close" onClick={onCancel} aria-label="Close">×</button>
-        <p className="console__step">Step 1 of 2</p>
-        <h2 id="loc-h">Where do you want to look?</h2>
-        <p className="console__lede">
-          Type a place or a coordinate pair. SPARC will tell you whether a
-          processed district covers it.
-        </p>
+        <header className="console__header">
+          <div className="console__mission">
+            <p className="console__step">01 / Locate</p>
+            <div className="console__sequence" aria-hidden="true">
+              <span className="is-active">Position</span>
+              <span>Window</span>
+            </div>
+          </div>
+          <h2 id="loc-h">Set an observation point</h2>
+          <p className="console__lede" id="loc-desc">
+            Search by place or enter latitude and longitude. The instrument only
+            opens an analysis where a processed district or catalog scope exists.
+          </p>
+        </header>
 
-        <form onSubmit={submit}>
+        <form className="console__search" onSubmit={submit}>
+          <span className="console__search-label" aria-hidden="true">Spatial query</span>
           <div className="console__field">
             <label htmlFor="place" className="sr-only">Place or coordinates</label>
+            <span className="console__reticle" aria-hidden="true" />
             <input
               id="place"
               ref={inputRef}
               value={query}
               onChange={(e) => { setQuery(e.target.value); setMessage(null); }}
-              placeholder="Nagpur    ·    21.15, 79.08"
+              placeholder="Nagpur  /  21.15, 79.08"
               autoComplete="off"
               spellCheck={false}
             />
-            <button type="submit" className="cta cta--sm">Locate</button>
+            <button type="submit" className="console__submit">Resolve point <span aria-hidden="true">↗</span></button>
           </div>
         </form>
 
         {suggestions.length ? (
-          <ul className="console__suggest">
+          <div className="console__suggestions">
+            <p className="console__suggest-label">Matching coordinates</p>
+            <ul className="console__suggest">
             {suggestions.map((p) => (
               <li key={`${p.name}-${p.lat}`}>
                 <button type="button" onClick={() => resolve(p.lat, p.lon, p.name)}>
-                  <span>{p.name}, {p.country}</span>
+                  <span className="console__suggest-place">{p.name}, {p.country}</span>
                   <code>{p.lat.toFixed(2)}, {p.lon.toFixed(2)}</code>
+                  <span className="console__suggest-go" aria-hidden="true">↗</span>
                 </button>
               </li>
             ))}
-          </ul>
+            </ul>
+          </div>
         ) : null}
 
         {message ? <p className="console__msg" role="status">{message}</p> : null}
 
         <div className="console__foot">
-          {regions.length === 0 ? (
+          {regionsLoading ? (
             <p className="console__note">Loading districts…</p>
+          ) : regions.length === 0 ? (
+            <p className="console__note" role="status">
+              The processed-district index is unavailable. Catalog report/export targets remain below.
+            </p>
           ) : null}
           <CityPicker
             onPick={onResolved}
@@ -173,40 +205,83 @@ export function PeriodConsole({
   onChosen: (period: FrozenPeriod) => void;
   onBack: () => void;
 }) {
+  const firstPeriodRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => { firstPeriodRef.current?.focus(); }, []);
+
+  useEffect(() => {
+    const backOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onBack();
+    };
+    window.addEventListener('keydown', backOnEscape);
+    return () => window.removeEventListener('keydown', backOnEscape);
+  }, [onBack]);
+
   return (
-    <div className="console-wrap" role="dialog" aria-modal="true" aria-labelledby="per-h">
-      <div className="console">
+    <div className="console-wrap" role="dialog" aria-modal="true" aria-labelledby="per-h" aria-describedby="per-desc">
+      <div className="console console--period">
         <button type="button" className="console__close" onClick={onBack} aria-label="Back">×</button>
-        <p className="console__step">Step 2 of 2</p>
-        <h2 id="per-h">Which two periods should we compare?</h2>
-        <p className="console__lede">
-          Both windows must cover the same season, or the difference measures the
-          calendar rather than the ground. These are the windows with a processed
-          composite behind them.
-        </p>
+        <header className="console__header">
+          <div className="console__mission">
+            <p className="console__step">02 / Observation window</p>
+            <div className="console__sequence" aria-hidden="true">
+              <span>Position</span>
+              <span className="is-active">Window</span>
+            </div>
+          </div>
+          <h2 id="per-h">Align two seasonal captures</h2>
+          <p className="console__lede" id="per-desc">
+            Choose a processed comparison for {regionName}. Each pair holds the
+            season constant so the signal describes the ground, not the calendar.
+          </p>
+        </header>
 
         <ul className="period-list">
-          {periods.map((p) => (
+          {periods.map((p, index) => (
             <li key={p.id}>
-              <button type="button" className="period-card" onClick={() => onChosen(p)}>
-                <span className="period-card__season">{p.seasonLabel}</span>
-                <span className="period-card__label">{p.label}</span>
-                <span className="period-card__dates">
-                  <span>{p.baselineStart} → {p.baselineEnd}</span>
-                  <span className="period-card__vs">compared with</span>
-                  <span>{p.comparisonStart} → {p.comparisonEnd}</span>
+              <button
+                ref={index === 0 ? firstPeriodRef : undefined}
+                type="button"
+                className="period-card"
+                onClick={() => onChosen(p)}
+              >
+                <span className="period-card__heading">
+                  <span className="period-card__season">{p.seasonLabel}</span>
+                  <span className="period-card__label">{p.label}</span>
                 </span>
-                <span className="period-card__go">Analyse {regionName} →</span>
+                <span className="period-card__track" aria-hidden="true">
+                  <span className="period-card__node">{p.baselineStart.slice(0, 4)}</span>
+                  <span className="period-card__line"><i /></span>
+                  <span className="period-card__node period-card__node--comparison">{p.comparisonStart.slice(0, 4)}</span>
+                </span>
+                <span className="period-card__dates">
+                  <span className="period-card__capture">
+                    <span>Baseline capture</span>
+                    <time dateTime={p.baselineStart}>{p.baselineStart}</time>
+                    <span aria-hidden="true">—</span>
+                    <time dateTime={p.baselineEnd}>{p.baselineEnd}</time>
+                  </span>
+                  <span className="period-card__capture period-card__capture--comparison">
+                    <span>Comparison capture</span>
+                    <time dateTime={p.comparisonStart}>{p.comparisonStart}</time>
+                    <span aria-hidden="true">—</span>
+                    <time dateTime={p.comparisonEnd}>{p.comparisonEnd}</time>
+                  </span>
+                </span>
+                <span className="period-card__go">Open aligned analysis <span aria-hidden="true">→</span></span>
               </button>
             </li>
           ))}
         </ul>
 
-        <p className="console__note">
-          Other date ranges are not offered because nothing has been computed for
-          them. SPARC resolves immutable precomputed results; it does not process
-          imagery on request.
-        </p>
+        <details className="console__disclosure">
+          <summary>Why are the windows fixed?</summary>
+          <p>
+            Other date ranges are not offered because nothing has been computed
+            for them. SPARC resolves immutable precomputed results; it does not
+            process imagery on request.
+          </p>
+        </details>
       </div>
     </div>
   );

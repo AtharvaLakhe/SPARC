@@ -1,106 +1,162 @@
-/* District picker.
- *
- * Fully fluid: the grid uses auto-fit with an intrinsic minimum, so it goes
- * 4-up on a wide screen and 1-up at 360 px without a single width media query.
- * The old version was a fixed row of pills that neither reflowed nor said
- * anything about the data behind them. */
+/* District picker: an observation index rather than a grid of product cards. */
 
-.picker { margin: 0.6rem 0 0; }
+.picker { margin: 0.2rem 0 0; }
+.picker__section + .picker__section { margin-top: 1.6rem; }
 
 .picker__label {
-  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.6rem;
-  margin: 1.2rem 0 0.6rem;
-  font-size: 0.68rem; letter-spacing: 0.22em; text-transform: uppercase;
-  color: #7d8a9e;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin: 1.2rem 0 0;
+  padding: 0 0 0.55rem;
+  border-bottom: 1px solid rgba(118, 163, 201, 0.16);
+  color: #71889a;
+  font: 600 0.6rem/1.4 ui-monospace, "Cascadia Mono", "Segoe UI Mono", monospace;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
-.picker__label--fixture { margin-top: 0.2rem; color: #ffb454; }
+.picker__label--fixture { margin-top: 0.2rem; color: #e2b572; }
+.picker__count { color: #9eb6c8; font-variant-numeric: tabular-nums; }
 .picker__warn {
-  letter-spacing: 0.08em; text-transform: none; font-size: 0.72rem;
-  color: #ffb454;
+  color: #687f91;
+  font-size: 0.56rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: none;
 }
 
-.picker__fixture { list-style: none; margin: 0; padding: 0; }
+.picker__fixture,
 .picker__grid {
-  list-style: none; margin: 0; padding: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(13.5rem, 100%), 1fr));
-  gap: 0.7rem;
+  grid-template-columns: 1fr;
 }
 
 .citycard {
-  width: 100%; height: 100%;
-  display: flex; flex-direction: column; gap: 0.5rem;
-  text-align: left; font: inherit; cursor: pointer;
-  padding: 0.85rem 0.95rem;
-  border-radius: 12px;
-  color: #e6edf6;
-  background: linear-gradient(150deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.02));
-  border: 1px solid rgba(140, 170, 210, 0.18);
-  transition: transform 170ms ease, border-color 170ms ease, box-shadow 170ms ease;
+  position: relative;
+  width: 100%;
+  min-height: 7.2rem;
+  display: grid;
+  grid-template-columns: 2.1rem minmax(0, 1fr) minmax(5.2rem, auto);
+  gap: 0.9rem;
+  align-items: start;
+  padding: 1rem 0.4rem;
+  color: #dce8f2;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(118, 163, 201, 0.11);
+  border-radius: 0;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: background 340ms ease, padding 340ms cubic-bezier(0.16, 1, 0.3, 1);
 }
-.citycard:hover {
-  transform: translateY(-3px);
-  border-color: rgba(88, 183, 255, 0.65);
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.42);
+.citycard::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 1px;
+  background: #5ab4f0;
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 340ms cubic-bezier(0.16, 1, 0.3, 1);
 }
+.citycard:hover,
+.citycard:focus-visible {
+  padding-inline: 0.75rem 0.05rem;
+  background: linear-gradient(90deg, rgba(90, 180, 240, 0.09), transparent 78%);
+}
+.citycard:hover::before,
+.citycard:focus-visible::before { transform: scaleY(1); }
 .citycard--fixture {
-  background: linear-gradient(150deg, rgba(255, 180, 84, 0.14), rgba(255, 180, 84, 0.03));
-  border-color: rgba(255, 180, 84, 0.42);
+  background: linear-gradient(90deg, rgba(240, 168, 78, 0.075), transparent 72%);
 }
-.citycard--fixture:hover { border-color: rgba(255, 180, 84, 0.9); }
+.citycard--fixture::before { background: #f0a84e; }
+.citycard__index {
+  color: #4e687d;
+  font: 500 0.6rem/1.5 ui-monospace, "Cascadia Mono", "Segoe UI Mono", monospace;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+.citycard__body { min-width: 0; display: grid; gap: 0.45rem; }
 
-.citycard__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.45rem; }
-.citycard__name { font-size: 1.02rem; font-weight: 650; letter-spacing: -0.01em; }
-.citycard__country { font-size: 0.72rem; color: #7d8a9e; }
+.citycard__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.35rem 0.7rem; }
+.citycard__name { color: #edf4fa; font-size: 1rem; font-weight: 650; letter-spacing: -0.015em; }
+.citycard__country {
+  color: #6f879a;
+  font: 500 0.58rem/1.4 ui-monospace, "Cascadia Mono", "Segoe UI Mono", monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
 .citycard__badge {
-  font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase;
-  padding: 0.1rem 0.4rem; border-radius: 999px;
-  color: #ffcf8a; border: 1px solid rgba(255, 180, 84, 0.5);
+  max-width: 9rem;
+  padding-left: 0.5rem;
+  border-left: 1px solid rgba(240, 168, 78, 0.55);
+  color: #c79c66;
+  font: 550 0.54rem/1.45 ui-monospace, "Cascadia Mono", "Segoe UI Mono", monospace;
+  letter-spacing: 0.1em;
+  text-align: right;
+  text-transform: uppercase;
 }
-.citycard__story { font-size: 0.74rem; line-height: 1.45; color: #93a4b8; }
+.citycard--supported .citycard__badge { border-left-color: rgba(92, 217, 142, 0.6); color: #7ac89d; }
+.citycard__story { max-width: 66ch; color: #8499aa; font-size: 0.72rem; line-height: 1.48; }
+.citycard__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.9rem;
+  color: #5f778a;
+  font: 500 0.56rem/1.45 ui-monospace, "Cascadia Mono", "Segoe UI Mono", monospace;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.citycard__meta > span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.citycard__status {
+  width: 0.35rem;
+  height: 0.35rem;
+  background: #f0a84e;
+  box-shadow: 0 0 0.65rem rgba(240, 168, 78, 0.32);
+}
+.citycard--supported .citycard__status,
+.citycard--fixture .citycard__status { background: #5cd98e; box-shadow: 0 0 0.65rem rgba(92, 217, 142, 0.32); }
+.citycard__action {
+  display: grid;
+  justify-items: end;
+  gap: 1.5rem;
+  min-height: 100%;
+}
+.citycard__go {
+  align-self: end;
+  color: #8fd6ff;
+  font: 650 0.61rem/1 ui-monospace, "Cascadia Mono", "Segoe UI Mono", monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
 
-/* ── dials ───────────────────────────────────────────────────────────────── */
-.citycard__dials {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 0.3rem; margin-top: 0.15rem;
+@media (max-width: 36rem) {
+  .citycard { grid-template-columns: 1.7rem minmax(0, 1fr); gap: 0.65rem; }
+  .citycard__action {
+    grid-column: 2;
+    grid-row: 2;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: end;
+    gap: 0.65rem;
+  }
+  .citycard__badge { max-width: none; text-align: left; }
+  .picker__warn { width: 100%; }
 }
-.dial { display: flex; flex-direction: column; align-items: center; gap: 0.1rem; }
-.dial__svg { width: 100%; max-width: 3.1rem; height: auto; display: block; }
-.dial__track { fill: none; stroke: rgba(140, 170, 210, 0.22); stroke-width: 3; }
-.dial__arc {
-  fill: none; stroke-width: 3; stroke-linecap: round;
-  transition: stroke-dasharray 600ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-.dial__glyph { font-size: 11px; text-anchor: middle; opacity: 0.95; }
-.dial__pct { font-size: 0.7rem; font-weight: 650; font-variant-numeric: tabular-nums; }
-.dial__label {
-  font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase; color: #7d8a9e;
-}
-
-/* ── footer ──────────────────────────────────────────────────────────────── */
-.citycard__foot {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
-  gap: 0.4rem; margin-top: auto; padding-top: 0.5rem;
-  border-top: 1px solid rgba(140, 170, 210, 0.14);
-}
-.citycard__cov {
-  display: flex; align-items: center; gap: 0.4rem;
-  font-size: 0.63rem; letter-spacing: 0.06em; color: #7d8a9e;
-}
-.citycard__covbar {
-  width: 2.6rem; height: 4px; border-radius: 999px; overflow: hidden;
-  background: rgba(140, 170, 210, 0.2);
-}
-.citycard__covfill { display: block; height: 100%; background: #58b7ff; border-radius: 999px; }
-.citycard__go { font-size: 0.72rem; font-weight: 650; color: #7fd0ff; margin-left: auto; }
 
 @media (prefers-reduced-motion: reduce) {
   .citycard { transition: none; }
-  .citycard:hover { transform: none; }
-  .dial__arc { transition: none; }
+  .citycard::before { transition: none; }
 }
 
 @media (prefers-contrast: more) {
-  .citycard { border-width: 2px; }
-  .dial__track { stroke: rgba(140, 170, 210, 0.5); }
+  .citycard { border-bottom-width: 2px; }
+  .citycard__badge { border-left-width: 2px; }
 }

@@ -1,26 +1,28 @@
-/* District summary and the three indicator cards.
+/* District summary as an editorial observation report.
  *
- * The card leads with the *change*, because that is the question the product
- * exists to answer — "is this district's water shrinking" is answered by the
- * delta, not by two absolute numbers the reader has to subtract themselves.
- * Baseline and comparison sit underneath as the working.
- *
- * The two bars are scaled against each other rather than a global range, and
- * they are decoration on top of numbers that are already printed: they make the
- * magnitude readable at a glance, they are not the only way to read it. When a
- * value is missing there is no bar at all — a bar drawn from a null is a
- * fabricated measurement. */
+ * The change is the finding, so it receives the strongest typographic weight.
+ * Baseline and comparison remain adjacent as the audit trail, while status,
+ * unavailable reasons, and caveats stay in the reading flow. Nothing in this
+ * view derives a value that is not already present in the view model. */
 
-import { useId } from 'react';
-import { barFractions, styleFor } from '../indicators';
-import { sdgChips, SDG_SCOPE_NOTE } from '../sdg';
+import { useEffect, useId, useRef } from 'react';
+import { styleFor } from '../indicators';
+import { SDG_SCOPE_NOTE } from '../sdg';
 import type { IndicatorCardView, PeriodView, SummaryView as SummaryVM } from '../viewmodel/mapper';
-import { StatusPill, Value } from './Primitives';
+import { Value } from './Primitives';
+
+const STATUS_LABELS: Record<IndicatorCardView['status'], string> = {
+  complete: 'Complete',
+  partial: 'Partial',
+  unavailable: 'Unavailable',
+  failed: 'Failed',
+};
 
 function PeriodBlock({ title, period }: { title: string; period: PeriodView }) {
   return (
-    <div className="period">
-      <h4 className="period__title">{title}</h4>
+    <article className="period" aria-label={`${title} observation period`}>
+      <span className="period__node" aria-hidden="true" />
+      <h3 className="period__title">{title}</h3>
       <p className="period__range">{period.range}</p>
       <dl className="period__meta">
         {period.seasonLabel ? (<><dt>Season</dt><dd>{period.seasonLabel}</dd></>) : null}
@@ -28,106 +30,100 @@ function PeriodBlock({ title, period }: { title: string; period: PeriodView }) {
         <dt>Scenes</dt>
         <dd>{period.sceneCount === null ? 'Unavailable' : period.sceneCount}</dd>
       </dl>
-    </div>
+    </article>
   );
 }
 
-function CompareBars({ card, accent }: { card: IndicatorCardView; accent: string }) {
-  const f = barFractions(card.metric.baselineRaw, card.metric.comparisonRaw);
-  if (!f) return null;
-  return (
-    <div className="bars" aria-hidden="true">
-      <div className="bars__row">
-        <span className="bars__tag">was</span>
-        <span className="bars__track">
-          <span className="bars__fill bars__fill--base" style={{ width: `${f.baseline * 100}%` }} />
-        </span>
-      </div>
-      <div className="bars__row">
-        <span className="bars__tag">now</span>
-        <span className="bars__track">
-          <span
-            className="bars__fill"
-            style={{ width: `${f.comparison * 100}%`, background: accent }}
-          />
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function IndicatorCard({
+function SignalReadout({
   card,
+  index,
   onOpen,
+  onPreview,
 }: {
   card: IndicatorCardView;
+  index: number;
   onOpen: (indicatorId: string) => void;
+  onPreview: (indicatorId: string | null) => void;
 }) {
   const headingId = useId();
   const style = styleFor(card.id);
-  const rising = (card.metric.percentRaw ?? 0) > 0;
+  const sequence = String(index + 1).padStart(2, '0');
 
   return (
-    <li className="card card2" style={{ ['--accent' as string]: style.accent }}>
+    <li className="readout" data-indicator-id={card.id} style={{ ['--accent' as string]: style.accent }}>
       <article aria-labelledby={headingId}>
-        <header className="card2__head">
-          <span className="card2__glyph" aria-hidden="true">{style.glyph}</span>
-          <div>
-            <h3 id={headingId} className="card2__title">{card.name}</h3>
-            <p className="card2__proxy">{card.proxyLabel}</p>
-          </div>
+        <header className="readout__header">
+          <p className="readout__channel">Signal {sequence} / {style.short}</p>
+          <span className={`readout__status readout__status--${card.status}`}>
+            {STATUS_LABELS[card.status]}
+          </span>
         </header>
 
-        <p className="card2__pills">
-          {sdgChips(card.id).map((chip) => (
-            <span key={chip} className="pill pill--sdg">{chip}</span>
-          ))}
-          <StatusPill status={card.status} />
-        </p>
+        <div className="readout__main">
+          <div className="readout__finding">
+            <h3 id={headingId} className="readout__title">{card.name}</h3>
+            <p className="readout__proxy">{card.proxyLabel}</p>
 
-        {/* The headline. Direction is written in words as well as shown by the
-            arrow, so it survives without colour and without the glyph. */}
-        <div className="card2__hero">
-          {card.metric.changeUnavailable ? (
-            <p className="card2__nochange">
-              <Value value={card.metric.absoluteChange} />
-              <span className="card2__nochange-word">no change value</span>
-            </p>
-          ) : (
-            <>
-              <p className="card2__delta">
-                <span className="card2__arrow" aria-hidden="true">{rising ? '▲' : '▼'}</span>
-                <Value value={card.metric.absoluteChange} />
-              </p>
-              <p className="card2__pct">
-                <Value value={card.metric.percentChange} />
-                <span className="card2__word"> · {card.metric.direction} than baseline</span>
-              </p>
-            </>
-          )}
+            {card.metric.changeUnavailable ? (
+              <div className="readout__change readout__change--unavailable">
+                <p className="readout__change-label">Reported change</p>
+                <p className="readout__value"><Value value={card.metric.absoluteChange} /></p>
+                <p className="readout__direction">No change value was produced.</p>
+              </div>
+            ) : (
+              <div className="readout__change">
+                <p className="readout__change-label">Reported change</p>
+                <p className="readout__value"><Value value={card.metric.absoluteChange} /></p>
+                <p className="readout__direction">
+                  <Value value={card.metric.percentChange} />
+                  <span> · {card.metric.direction} than baseline</span>
+                </p>
+              </div>
+            )}
+          </div>
+
+          <dl className="readout__telemetry" aria-label={`${card.name} period comparison`}>
+            <div>
+              <dt>Baseline</dt>
+              <dd><Value value={card.metric.baseline} /></dd>
+            </div>
+            <div>
+              <dt>Comparison</dt>
+              <dd><Value value={card.metric.comparison} /></dd>
+            </div>
+          </dl>
         </div>
 
-        <CompareBars card={card} accent={style.accent} />
-
-        <dl className="card2__figures">
-          <div>
-            <dt>Baseline</dt>
-            <dd><Value value={card.metric.baseline} /></dd>
-          </div>
-          <div>
-            <dt>Comparison</dt>
-            <dd><Value value={card.metric.comparison} /></dd>
-          </div>
-        </dl>
-
         {card.metric.changeUnavailable && card.metric.unavailableReason ? (
-          <p className="card__reason">{card.metric.unavailableReason}</p>
+          <p className="readout__note readout__note--reason">
+            <span>Why unavailable</span>
+            {card.metric.unavailableReason}
+          </p>
         ) : null}
-        {card.caveat ? <p className="card__caveat">{card.caveat}</p> : null}
+        {card.caveat ? (
+          <p className="readout__note">
+            <span>Interpret with care</span>
+            {card.caveat}
+          </p>
+        ) : null}
 
-        <button type="button" className="btn btn--card" onClick={() => onOpen(card.id)}>
-          Open evidence
-          <span className="sr-only"> for {card.name}</span>
+        <span className="readout__action" aria-hidden="true">
+          <span>Inspect evidence</span>
+          <span className="readout__arrow" aria-hidden="true">↗</span>
+        </span>
+        <button
+          type="button"
+          className="readout__open"
+          onClick={() => onOpen(card.id)}
+          onPointerEnter={() => onPreview(card.id)}
+          onPointerLeave={(event) => {
+            if (event.currentTarget.ownerDocument.activeElement !== event.currentTarget) onPreview(null);
+          }}
+          onFocus={() => onPreview(card.id)}
+          onBlur={() => onPreview(null)}
+          aria-label={`Inspect evidence for ${card.name}`}
+        >
+          <span className="sr-only">Inspect evidence for {card.name}</span>
         </button>
       </article>
     </li>
@@ -137,51 +133,115 @@ function IndicatorCard({
 export function SummaryScreen({
   summary,
   onOpenIndicator,
+  onPreviewIndicator,
   onReport,
 }: {
   summary: SummaryVM;
   onOpenIndicator: (indicatorId: string) => void;
+  onPreviewIndicator: (indicatorId: string | null) => void;
   onReport: () => void;
 }) {
   const periodsId = useId();
   const indicatorsId = useId();
   const reportId = useId();
+  const signalsRef = useRef<HTMLOListElement | null>(null);
+
+  useEffect(() => {
+    const list = signalsRef.current;
+    const view = list?.ownerDocument.defaultView;
+    if (!list || !view) return;
+
+    const root = list.closest<HTMLElement>('.sparc-panel');
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const rootRect = root?.getBoundingClientRect();
+      const readingLine = (rootRect?.top ?? 0) + (rootRect?.height ?? view.innerHeight) * 0.44;
+      const listRect = list.getBoundingClientRect();
+      if (readingLine < listRect.top || readingLine > listRect.bottom) {
+        onPreviewIndicator(null);
+        return;
+      }
+
+      const rows = Array.from(list.querySelectorAll<HTMLElement>('[data-indicator-id]'));
+      const active = rows.find((row) => {
+        const rect = row.getBoundingClientRect();
+        return rect.top <= readingLine && rect.bottom >= readingLine;
+      });
+      onPreviewIndicator(active?.dataset.indicatorId ?? null);
+    };
+    const schedule = () => {
+      if (frame) return;
+      frame = view.requestAnimationFrame(update);
+    };
+
+    update();
+    (root ?? view).addEventListener('scroll', schedule, { passive: true });
+    view.addEventListener('resize', schedule, { passive: true });
+    return () => {
+      (root ?? view).removeEventListener('scroll', schedule);
+      view.removeEventListener('resize', schedule);
+      if (frame) view.cancelAnimationFrame(frame);
+      onPreviewIndicator(null);
+    };
+  }, [onPreviewIndicator, summary.indicators]);
 
   return (
     <>
-      <section className="panel" aria-labelledby={periodsId}>
-        <h2 id={periodsId}>
-          {summary.regionName}
-          <span className="panel__sub"> · {summary.regionType}</span>
-        </h2>
+      <section id="summary-overview" className="panel panel--mission-summary" aria-labelledby={periodsId}>
+        <header className="panel__heading">
+          <div>
+            <p className="panel__kicker">Observation window</p>
+            <h2 id={periodsId}>
+              {summary.regionName}
+              <span className="panel__sub"> · {summary.regionType}</span>
+            </h2>
+          </div>
+          <span className="panel__index" aria-hidden="true">01</span>
+        </header>
         <p className="panel__lede">
           Analysis period: same-season comparison between two fixed composite windows. Both
           windows use the same method, so the difference is not an artefact of
           changing how the measurement was made.
         </p>
-        <div className="periods">
+        <div className="periods" aria-label="Connected baseline and comparison capture timeline">
           <PeriodBlock title="Baseline" period={summary.baseline} />
           <PeriodBlock title="Comparison" period={summary.comparison} />
         </div>
       </section>
 
-      <section className="panel" aria-labelledby={indicatorsId}>
-        <h2 id={indicatorsId}>Satellite-derived estimates</h2>
+      <section id="summary-signals" className="panel panel--signals" aria-labelledby={indicatorsId}>
+        <header className="panel__heading">
+          <div>
+            <p className="panel__kicker">Earth surface signals</p>
+            <h2 id={indicatorsId}>Observed change</h2>
+          </div>
+          <span className="panel__count">{summary.indicators.length} signals</span>
+        </header>
         <p className="panel__lede">{SDG_SCOPE_NOTE}</p>
-        <ul className="cards">
-          {summary.indicators.map((card) => (
-            <IndicatorCard key={card.id} card={card} onOpen={onOpenIndicator} />
+        <ol ref={signalsRef} className="cards">
+          {summary.indicators.map((card, index) => (
+            <SignalReadout
+              key={card.id}
+              card={card}
+              index={index}
+              onOpen={onOpenIndicator}
+              onPreview={onPreviewIndicator}
+            />
           ))}
-        </ul>
+        </ol>
       </section>
 
-      <section className="panel report-launch" aria-labelledby={reportId}>
-        <h2 id={reportId}>Report an environmental concern</h2>
-        <p className="panel__lede">
-          Create a neutral request for inspection using this analysis and your own observation.
-        </p>
+      <section id="summary-report" className="panel report-launch panel--report" aria-labelledby={reportId}>
+        <div className="report-launch__copy">
+          <p className="panel__kicker">Ground response</p>
+          <h2 id={reportId}>Turn observation into action</h2>
+          <p className="panel__lede">
+            Create a neutral request for inspection using this analysis and your own observation.
+          </p>
+        </div>
         <button type="button" className="btn btn--primary" onClick={onReport}>
-          Report environmental concern
+          <span>Start a report</span><span aria-hidden="true">↗</span>
         </button>
       </section>
     </>

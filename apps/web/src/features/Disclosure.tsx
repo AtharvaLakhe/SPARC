@@ -5,8 +5,9 @@
  * "visible without opening developer tools". So none of this is behind a
  * console log or a tooltip, and the parts that qualify the result — the badge,
  * the proxy disclaimer, the boundary disclaimer — are not inside a collapsed
- * <details>. Only the long source inventory collapses, and it defaults open on
- * the detail screen where provenance is the point. */
+ * <details>. The long processing record is progressively disclosed after a
+ * visible algorithm/source summary so it remains complete without reading like
+ * a debug dump. */
 
 import { useId } from 'react';
 import type { Provenance } from '../contract/types';
@@ -64,10 +65,32 @@ export function LimitationsPanel() {
   );
 }
 
-export function QualityPanel({ quality }: { quality: QualityView }) {
+const QUALITY_GROUPS = [
+  {
+    index: '01',
+    title: 'Observation footprint',
+    description: 'Where the comparison had usable spatial support.',
+    labels: ['Common-valid coverage', 'Scene coverage', 'Cloud', 'No data'],
+  },
+  {
+    index: '02',
+    title: 'Composite inputs',
+    description: 'How many source observations fed each period.',
+    labels: ['Scenes — baseline', 'Scenes — comparison'],
+  },
+  {
+    index: '03',
+    title: 'Method response',
+    description: 'Sensitivity and independent validation evidence.',
+    labels: ['Threshold sensitivity', "User's accuracy", "Producer's accuracy"],
+  },
+] as const;
+
+export function QualityPanel({ quality, id: sectionId }: { quality: QualityView; id?: string }) {
   const id = useId();
   return (
-    <section className="panel" aria-labelledby={id}>
+    <section id={sectionId} className="panel quality-panel" aria-labelledby={id}>
+      <p className="detail-section__kicker">04 / quality ledger</p>
       <h3 id={id}>Quality evidence</h3>
 
       <p className="panel__lede">
@@ -102,14 +125,36 @@ export function QualityPanel({ quality }: { quality: QualityView }) {
         </>
       ) : null}
 
-      <h4>Evidence</h4>
-      <dl className="rows">
-        {quality.rows.map((row) => (
-          <Row key={row.label} label={row.label} note={row.note}>
-            <Value value={row.value} />
-          </Row>
-        ))}
-      </dl>
+      <div className="quality-ledger" aria-label="Full quality evidence">
+        {QUALITY_GROUPS.map((group) => {
+          const rows = quality.rows.filter((row) =>
+            group.labels.some((label) => label === row.label),
+          );
+          if (!rows.length) return null;
+          return (
+            <section key={group.title} className="quality-cluster" aria-labelledby={`${id}-${group.index}`}>
+              <header className="quality-cluster__header">
+                <span>{group.index}</span>
+                <div>
+                  <h4 id={`${id}-${group.index}`}>{group.title}</h4>
+                  <p>{group.description}</p>
+                </div>
+              </header>
+              <dl className="quality-cluster__metrics">
+                {rows.map((row) => (
+                  <div key={row.label} className="quality-metric">
+                    <dt>{row.label}</dt>
+                    <dd>
+                      <Value value={row.value} />
+                      {row.note ? <span className="quality-metric__note">{row.note}</span> : null}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          );
+        })}
+      </div>
     </section>
   );
 }
@@ -156,61 +201,78 @@ function ScrollList({ items, noun, mono = false }: {
 
 export function ProvenancePanel({ provenance }: { provenance: Provenance }) {
   const id = useId();
+  const itemCount = provenance.sources.reduce((total, source) => total + source.itemIds.length, 0);
   return (
-    <section className="panel" aria-labelledby={id}>
+    <section className="panel provenance-panel" aria-labelledby={id}>
+      <p className="detail-section__kicker">06 / processing record</p>
       <h3 id={id}>Provenance</h3>
+      <p className="provenance-panel__summary">
+        <span><strong>{provenance.algorithmId}</strong></span>
+        <span>Version {provenance.algorithmVersion}</span>
+        <span>{provenance.sources.length} source dataset{provenance.sources.length === 1 ? '' : 's'}</span>
+        <span>{itemCount.toLocaleString()} item identifier{itemCount === 1 ? '' : 's'}</span>
+      </p>
 
-      <dl className="rows">
-        <Row label="Algorithm"><code>{provenance.algorithmId}</code> v{provenance.algorithmVersion}</Row>
-        <Row label="Parameters hash"><code className="wrap">{provenance.parametersHash}</code></Row>
-        <Row label="Analysis CRS">{provenance.analysisCrs}</Row>
-        <Row
-          label="Effective resolution"
-          note="The thermal or spectral support can be coarser than the published grid."
-        >
-          {provenance.effectiveResolutionMeters === null
-            ? 'Unavailable'
-            : `${provenance.effectiveResolutionMeters} m`}
-        </Row>
-        <Row label="Generated">{provenance.generatedAt}</Row>
-      </dl>
-
-      <h4>Source observations</h4>
-      {provenance.sources.map((source) => (
-        <details key={source.datasetId} className="source" open>
-          <summary>
-            {source.provider}
-            {source.mission ? ` · ${source.mission}` : ''}
-          </summary>
+      <details className="provenance-drawer">
+        <summary>
+          <span>Open method and source record</span>
+          <small>Parameters, resolution, acquisitions, citations and licences</small>
+        </summary>
+        <div className="provenance-drawer__body">
           <dl className="rows">
-            <Row label="Dataset"><code>{source.datasetId}</code></Row>
-            {source.collection ? <Row label="Collection">{source.collection}</Row> : null}
-            {source.processingBaseline ? (
-              <Row label="Processing baseline">{source.processingBaseline}</Row>
-            ) : null}
-            <Row label="Scene items">
-              <ScrollList items={source.itemIds} noun="scene" mono />
+            <Row label="Algorithm"><code>{provenance.algorithmId}</code></Row>
+            <Row label="Algorithm version"><code>{provenance.algorithmVersion}</code></Row>
+            <Row label="Parameters hash"><code className="wrap">{provenance.parametersHash}</code></Row>
+            <Row label="Analysis CRS">{provenance.analysisCrs}</Row>
+            <Row
+              label="Effective resolution"
+              note="The thermal or spectral support can be coarser than the published grid."
+            >
+              {provenance.effectiveResolutionMeters === null
+                ? 'Unavailable'
+                : `${provenance.effectiveResolutionMeters} m`}
             </Row>
-            {source.acquiredAt.length ? (
-              <Row label="Acquired">
-                <ScrollList items={source.acquiredAt} noun="acquisition" />
-              </Row>
-            ) : null}
-            {source.assetKeys.length ? (
-              <Row label="Bands / assets">{source.assetKeys.join(', ')}</Row>
-            ) : null}
-            <Row label="Citation">{source.citation}</Row>
-            <Row label="Licence">{source.license}</Row>
-            {source.sourceUrl ? (
-              <Row label="Catalogue">
-                <a href={source.sourceUrl} target="_blank" rel="noreferrer noopener" className="wrap">
-                  {source.sourceUrl}
-                </a>
-              </Row>
-            ) : null}
+            <Row label="Generated">{provenance.generatedAt}</Row>
           </dl>
-        </details>
-      ))}
+
+          <h4>Source observations</h4>
+          {provenance.sources.map((source) => (
+            <details key={source.datasetId} className="source">
+              <summary>
+                {source.provider}
+                {source.mission ? ` · ${source.mission}` : ''}
+              </summary>
+              <dl className="rows">
+                <Row label="Dataset"><code>{source.datasetId}</code></Row>
+                {source.collection ? <Row label="Collection">{source.collection}</Row> : null}
+                {source.processingBaseline ? (
+                  <Row label="Processing baseline">{source.processingBaseline}</Row>
+                ) : null}
+                <Row label="Scene items">
+                  <ScrollList items={source.itemIds} noun="scene" mono />
+                </Row>
+                {source.acquiredAt.length ? (
+                  <Row label="Acquired">
+                    <ScrollList items={source.acquiredAt} noun="acquisition" />
+                  </Row>
+                ) : null}
+                {source.assetKeys.length ? (
+                  <Row label="Bands / assets">{source.assetKeys.join(', ')}</Row>
+                ) : null}
+                <Row label="Citation">{source.citation}</Row>
+                <Row label="Licence">{source.license}</Row>
+                {source.sourceUrl ? (
+                  <Row label="Catalogue">
+                    <a href={source.sourceUrl} target="_blank" rel="noreferrer noopener" className="wrap">
+                      {source.sourceUrl}
+                    </a>
+                  </Row>
+                ) : null}
+              </dl>
+            </details>
+          ))}
+        </div>
+      </details>
     </section>
   );
 }

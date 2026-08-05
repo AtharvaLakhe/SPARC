@@ -20,6 +20,7 @@ import { LimitationsPanel, ModeBanner } from './features/Disclosure';
 import { ErrorView, LoadingView } from './features/StateViews';
 import { SummaryScreen } from './features/SummaryView';
 import { FallbackCityView } from './features/FallbackCityView';
+import { ChapterRail, type ChapterRailChapter } from './features/ChapterRail';
 import { intensityFor, shapeForRegion } from './globe/overlay';
 import { styleFor } from './indicators';
 import { LocationConsole, PeriodConsole } from './shell/Consoles';
@@ -44,10 +45,29 @@ const DEFAULT_PERIOD = FROZEN_PERIODS[0]!;
 /* The globe-led experience is the canonical public entry. */
 const ORBIT_URL = '/';
 
+const SUMMARY_CHAPTERS: readonly ChapterRailChapter[] = [
+  { id: 'summary-overview', label: 'Window' },
+  { id: 'summary-signals', label: 'Signals' },
+  { id: 'summary-report', label: 'Respond' },
+];
+
+const DETAIL_CHAPTERS: readonly ChapterRailChapter[] = [
+  { id: 'detail-signal', label: 'Finding' },
+  { id: 'detail-reading', label: 'Reading' },
+  { id: 'detail-evidence', label: 'Evidence' },
+  { id: 'detail-quality', label: 'Quality' },
+  { id: 'detail-spatial', label: 'Spatial' },
+];
+
+function coordinate(value: number, positive: string, negative: string) {
+  return `${Math.abs(value).toFixed(2)}°${value >= 0 ? positive : negative}`;
+}
+
 function parseHash(hash: string): { stage: Stage; route: Route } {
   const ind = /^#\/dashboard\/([a-z0-9-]{1,64})/.exec(hash);
   if (ind?.[1]) return { stage: 'dashboard', route: { name: 'indicator', indicatorId: ind[1] } };
   if (hash.startsWith('#/dashboard')) return { stage: 'dashboard', route: { name: 'summary' } };
+  if (hash.startsWith('#/period')) return { stage: 'period', route: { name: 'summary' } };
   return { stage: 'locate', route: { name: 'summary' } };
 }
 
@@ -80,12 +100,14 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
   const [regionId, setRegionId] = useState<string>(DEFAULT_REGION);
   const [period, setPeriod] = useState<FrozenPeriod>(FROZEN_PERIODS[0]);
   const [regions, setRegions] = useState<RegionRef[]>([]);
+  const [regionsLoading, setRegionsLoading] = useState(true);
   const [summary, setSummary] = useState<Async<SummaryVM>>({ status: 'idle' });
   const [detail, setDetail] = useState<Async<DetailVM>>({ status: 'idle' });
   const [reloadToken, setReloadToken] = useState(0);
   // CODEX PROTOTYPE HANDOFF: Claude should replace this local shell with the
   // reviewed reporting transport once the browser contract is consumed.
   const [reportOpen, setReportOpen] = useState(false);
+  const [previewIndicatorId, setPreviewIndicatorId] = useState<string | null>(null);
   const mainRef = useRef<HTMLElement | null>(null);
 
   const repository = useMemo(() => new Repository(createTransport(dataMode)), [dataMode]);
@@ -110,9 +132,19 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
 
   useEffect(() => {
     const ac = new AbortController();
+    setRegionsLoading(true);
+    setRegions([]);
     repository.listRegions(ac.signal)
-      .then((list) => setRegions(list.filter((r) => r.type === 'district')))
-      .catch(() => setRegions([]));
+      .then((list) => {
+        if (ac.signal.aborted) return;
+        setRegions(list.filter((r) => r.type === 'district'));
+        setRegionsLoading(false);
+      })
+      .catch(() => {
+        if (ac.signal.aborted) return;
+        setRegions([]);
+        setRegionsLoading(false);
+      });
     return () => ac.abort();
   }, [repository]);
 
@@ -140,15 +172,37 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
     return () => ac.abort();
   }, [repository, selection, stage, route, reloadToken, catalogCity, cityHasValidatedPack]);
 
-  useEffect(() => { if (stage === 'dashboard') mainRef.current?.focus(); }, [stage, route.name]);
+  useEffect(() => {
+    if (stage !== 'dashboard' || !mainRef.current) return;
+    const drawer = mainRef.current.closest<HTMLElement>('.sparc-panel');
+    if (drawer) drawer.scrollTop = 0;
+    else mainRef.current.scrollIntoView({ block: 'start' });
+    /* Focus announces the new result to keyboard and assistive-tech users, but
+       its default scroll would tuck the first heading under the sticky mission
+       header on a narrow viewport. The container is already positioned above. */
+    mainRef.current.focus({ preventScroll: true });
+  }, [stage, route.name]);
 
   /* The globe owns its own scene, so the panel does not reach into it — it
      announces which indicator is in focus and the globe recolours its marker
      if it feels like it. One-way, so neither side can break the other. */
   useEffect(() => {
-    const id = route.name === 'indicator' ? route.indicatorId : null;
+    const id = stage === 'dashboard'
+      ? route.name === 'indicator' ? route.indicatorId : previewIndicatorId
+      : null;
     dispatchEvent(new CustomEvent('sparc:indicator', { detail: { indicatorId: id } }));
-  }, [route]);
+  }, [stage, route, previewIndicatorId]);
+
+  /* Camera movement belongs to target selection, not signal preview. Keeping
+     it separate prevents each scroll-linked colour change from restarting the
+     globe's flight animation. */
+  useEffect(() => {
+    if (stage !== 'dashboard' || summary.status !== 'ready') return;
+    const globe = (window as unknown as { __orbital?: { goTo?: (lat: number, lon: number, name: string) => void } }).__orbital;
+    if (!globe?.goTo) return;
+    const [w, s2, e, n] = summary.value.bbox;
+    globe.goTo((s2 + n) / 2, (w + e) / 2, summary.value.regionName);
+  }, [stage, summary]);
 
   /* Choropleth patch for the district in view. Sent whenever the district or
      the focused indicator changes; cleared when the panel leaves the results,
@@ -162,17 +216,7 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
     const shape = shapeForRegion(regionId);
     if (!shape) return;
 
-    /* Point the globe at it. Picking a district from the list previously left
-       the planet wherever it happened to be, so the patch was often drawn on
-       the far side and the user saw nothing happen. */
-    const centre = summary.status === 'ready' ? summary.value : null;
-    const globe = (window as unknown as { __orbital?: { goTo?: (lat: number, lon: number, name: string) => void } }).__orbital;
-    if (centre && globe?.goTo) {
-      const [w, s2, e, n] = centre.bbox;
-      globe.goTo((s2 + n) / 2, (w + e) / 2, centre.regionName);
-    }
-
-    const focused = route.name === 'indicator' ? route.indicatorId : null;
+    const focused = route.name === 'indicator' ? route.indicatorId : previewIndicatorId;
     const card = summary.status === 'ready'
       ? summary.value.indicators.find((i) => (focused ? i.id === focused : true))
       : undefined;
@@ -185,17 +229,22 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
         intensity: intensityFor(card?.metric.percentRaw ?? null),
       },
     }));
-  }, [stage, regionId, route, summary]);
+  }, [stage, regionId, route, summary, previewIndicatorId]);
 
   const go = useCallback((hash: string) => { location.hash = hash; }, []);
   const openIndicator = useCallback((id: string) => {
+    setPreviewIndicatorId(null);
     if (panel) setPanelNav({ stage: 'dashboard', route: { name: 'indicator', indicatorId: id } });
     else go(`#/dashboard/${id}`);
   }, [panel, go]);
   const backToSummary = useCallback(() => {
+    setPreviewIndicatorId(null);
     if (panel) setPanelNav({ stage: 'dashboard', route: { name: 'summary' } });
     else go('#/dashboard');
   }, [panel, go]);
+  const previewIndicator = useCallback((id: string | null) => {
+    setPreviewIndicatorId((current) => current === id ? current : id);
+  }, []);
   const retry = useCallback(() => setReloadToken((n) => n + 1), []);
 
   /* Resolution lives in LocationConsole and nowhere else. It previously also
@@ -216,6 +265,7 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
                console auto-resolved an incoming target against an incomplete list
                and refused London — which it does have. The console waits instead. */
             regions={regions}
+            regionsLoading={regionsLoading}
             onResolved={(id) => {
               setRegionId(id);
               setPeriod(frozenPeriodsForRegion(id)[0] ?? DEFAULT_PERIOD);
@@ -236,11 +286,13 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
               if (panel) setPanelNav(next); else setNav(next);
             }}
             handoff={panel ? panel.target : handoffFromHash(location.hash)}
-            /* Only stable packaged regions belong in the primary picker. The
-               generated quick-target cards remain an internal fixture aid
-               until accepted precomputed outputs are connected. */
+            /* Only stable packaged regions appear as processed districts.
+               Catalog targets remain available for their explicitly labelled
+               report/export scope; they never receive invented metrics. */
             showDemoCities={false}
-            onCancel={() => { location.href = ORBIT_URL; }}
+            onCancel={() => {
+              if (panel) panel.onClose(); else location.href = ORBIT_URL;
+            }}
           />
         ) : (
           <PeriodConsole
@@ -248,10 +300,15 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
             periods={availablePeriods}
             onChosen={(p) => {
               setPeriod(p);
+              setSummary({ status: 'idle' });
+              setDetail({ status: 'idle' });
               if (panel) setPanelNav({ stage: 'dashboard', route: { name: 'summary' } });
               else go('#/dashboard');
             }}
-            onBack={() => setNav({ stage: 'locate', route: { name: 'summary' } })}
+            onBack={() => {
+              const next = { stage: 'locate' as Stage, route: { name: 'summary' as const } };
+              if (panel) setPanelNav(next); else setNav(next);
+            }}
           />
         )}
       </div>
@@ -263,36 +320,74 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
     : detail.status === 'ready' ? detail.value.badge : null;
   const warnings = summary.status === 'ready' ? summary.value.warnings : [];
   const fallbackCity = catalogCity && !cityHasValidatedPack ? catalogCity : null;
+  const chapters = fallbackCity
+    ? []
+    : route.name === 'summary' && summary.status === 'ready'
+      ? SUMMARY_CHAPTERS
+      : route.name === 'indicator' && detail.status === 'ready'
+        ? DETAIL_CHAPTERS
+        : [];
 
   return (
-    <div className="app">
+    <div className={`app${chapters.length ? ' app--chapters' : ''}`}>
       <a className="skip" href="#main">Skip to results</a>
 
       <header className="topbar">
         <div className="brand">
-          <span className="brand__name">SPARC</span>
-          <span className="brand__sub">{regionName} · {fallbackCity ? 'Report/export scope' : period.label}</span>
+          {panel ? <span className="brand__beacon" aria-hidden="true"><i /></span> : null}
+          <span className="brand__copy">
+            {panel ? <span className="brand__eyebrow">Orbital analysis / district scan</span> : null}
+            <span className="brand__name">SPARC</span>
+            <span className="brand__sub">{regionName} · {fallbackCity ? 'Report/export scope' : period.label}</span>
+          </span>
         </div>
         <div className="topbar__actions">
-          {badge ? <ModeBanner badge={badge} warnings={warnings} /> : null}
+          {!panel && badge ? <ModeBanner badge={badge} warnings={warnings} /> : null}
           <button
             type="button" className="btn"
-            onClick={() => (panel
-              ? setPanelNav({ stage: 'locate', route: { name: 'summary' } })
-              : go('#/locate'))}
+            onClick={() => {
+              if (fallbackCity) {
+                if (panel) setPanelNav({ stage: 'locate', route: { name: 'summary' } });
+                else go('#/locate');
+                return;
+              }
+              if (panel) setPanelNav({ stage: 'period', route: { name: 'summary' } });
+              else go('#/period');
+            }}
           >
-            {fallbackCity ? 'Change location' : 'Change period'}
+            {fallbackCity ? 'Change target' : panel ? 'Window' : 'Change period'}
           </button>
           <button
             type="button" className="btn btn--ghost" data-autofocus
+            aria-label={panel ? 'Close analysis panel' : undefined}
+            title={panel ? 'Close analysis panel' : undefined}
             onClick={() => (panel ? panel.onClose() : (location.href = ORBIT_URL))}
           >
-            {panel ? 'Close' : 'Back to orbit'}
+            {panel ? <span className="topbar__close" aria-hidden="true">×</span> : 'Back to orbit'}
           </button>
         </div>
+
+        {panel ? (
+          <div className="mission-strip" aria-label="Selected target details">
+            <span className="mission-strip__state"><span aria-hidden="true" /> Target acquired</span>
+            <dl className="mission-strip__telemetry">
+              <div><dt>Lat</dt><dd>{coordinate(panel.target.lat, 'N', 'S')}</dd></div>
+              <div><dt>Lon</dt><dd>{coordinate(panel.target.lon, 'E', 'W')}</dd></div>
+              <div><dt>Signals</dt><dd>{summary.status === 'ready' ? summary.value.indicators.length : '—'}</dd></div>
+            </dl>
+            {badge ? <ModeBanner badge={badge} warnings={warnings} /> : null}
+          </div>
+        ) : null}
       </header>
 
-      <main id="main" ref={mainRef} tabIndex={-1} className="main">
+      <div className="analysis-frame">
+        {chapters.length ? <ChapterRail chapters={chapters} /> : null}
+        <main
+          id="main"
+          ref={mainRef}
+          tabIndex={-1}
+          className={`main${route.name === 'indicator' ? ' main--detail' : ''}`}
+        >
         {fallbackCity ? (
           <FallbackCityView city={fallbackCity} onReport={() => setReportOpen(true)} />
         ) : route.name === 'summary' ? (
@@ -306,7 +401,12 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
               onUseOffline={() => setDataMode('demo')}
             />
           ) : (
-            <SummaryScreen summary={summary.value} onOpenIndicator={openIndicator} onReport={() => setReportOpen(true)} />
+            <SummaryScreen
+              summary={summary.value}
+              onOpenIndicator={openIndicator}
+              onPreviewIndicator={previewIndicator}
+              onReport={() => setReportOpen(true)}
+            />
           )
         ) : detail.status === 'loading' || detail.status === 'idle' ? (
           <LoadingView what="the indicator result" />
@@ -328,8 +428,9 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
           <DetailScreen detail={detail.value} onBack={backToSummary} />
         )}
 
-        <LimitationsPanel />
-      </main>
+          <LimitationsPanel />
+        </main>
+      </div>
 
       <footer className="foot">
         <p>Contract {config.contractVersion} · No official SDG claim, no causal claim.</p>

@@ -33,11 +33,20 @@ const QUALITY_TEXT: Record<QualityLevel, string> = {
   unknown: 'Quality unknown',
 };
 
+const QUALITY_SCORE: Record<QualityLevel, number> = {
+  high: 3,
+  medium: 2,
+  low: 1,
+  unknown: 0,
+};
+
 export function QualityPill({ level }: { level: QualityLevel }) {
   return (
     <span className={`pill pill--quality pill--${level}`}>
       <span aria-hidden="true" className="pill__glyph">
-        {level === 'high' ? '●●●' : level === 'medium' ? '●●○' : level === 'low' ? '●○○' : '○○○'}
+        {[0, 1, 2].map((index) => (
+          <i key={index} className={index < QUALITY_SCORE[level] ? 'is-active' : undefined} />
+        ))}
       </span>
       {QUALITY_TEXT[level]}
     </span>

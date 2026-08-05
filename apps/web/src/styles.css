@@ -11,34 +11,34 @@
  * (minmax(min(...))) so nothing forces a horizontal scrollbar at 360 px. */
 
 :root {
-  --bg: #0b0f14;
-  --panel: #121820;
-  --panel-2: #171f29;
-  --line: #263140;
-  --ink: #e6edf6;
-  --dim: #93a4b8;
-  --accent: #58b7ff;
-  --warn: #ffb454;
-  --stop: #ff8a8a;
-  --ok: #7ee2b8;
-  --radius: 6px;
+  --bg: #04080e;
+  --surface: rgba(10, 18, 28, 0.82);
+  --surface-2: rgba(16, 26, 38, 0.72);
+  --panel: #0a121c;
+  --panel-2: #101a26;
+  --line: rgba(120, 160, 200, 0.14);
+  --ink: #edf2f8;
+  --dim: #7a8ea0;
+  --muted: #4f6275;
+  --accent: #5ab4f0;
+  --water: #4da3ff;
+  --green: #5cd98e;
+  --built: #f0a84e;
+  --heat: #f07060;
+  --glow: rgba(90, 180, 240, 0.12);
+  --warn: #f0a84e;
+  --stop: #f07060;
+  --ok: #5cd98e;
+  --radius: 3px;
+  --font-sans: Inter, "Segoe UI Variable", "Aptos", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quad: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --duration-fast: 180ms;
+  --duration-normal: 340ms;
+  --duration-slow: 620ms;
+  --duration-orbital: 1200ms;
   color-scheme: dark;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    --bg: #f6f8fb;
-    --panel: #ffffff;
-    --panel-2: #eef2f7;
-    --line: #ccd6e2;
-    --ink: #10171f;
-    --dim: #4d5d70;
-    --accent: #0b5fa5;
-    --warn: #8a5300;
-    --stop: #a11b1b;
-    --ok: #10614a;
-    color-scheme: light;
-  }
 }
 
 * { box-sizing: border-box; }
@@ -49,15 +49,18 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-sans);
   font-size: 1rem;
   line-height: 1.55;
 }
 
+h1, h2, h3, h4, button, input, select, textarea { font-family: var(--font-sans); }
+code, kbd, samp { font-family: var(--font-mono); }
+
 /* Visible focus on everything, not just links. Removing the default without a
    replacement is the single most common way a keyboard journey breaks. */
 :focus-visible {
-  outline: 3px solid var(--accent);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: 2px;
 }
@@ -174,7 +177,102 @@ body {
 .mode__warnings { margin: 0.5rem 0 0; padding-left: 1.1rem; font-size: 0.82rem; }
 
 /* ── panels ──────────────────────────────────────────────────────────────── */
-.main { display: block; }
+.main { display: block; min-width: 0; }
+
+/* Scroll-tracked report chapters. The rail is linear by design: active
+   chapters are marked by a bright edge, never a progress ring or gauge. */
+.analysis-frame { min-width: 0; }
+.app--chapters .analysis-frame {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr);
+  gap: 1.15rem;
+  align-items: start;
+}
+.chapter-rail {
+  position: sticky;
+  top: 1rem;
+  z-index: 6;
+  min-width: 0;
+  padding-top: 0.35rem;
+}
+.chapter-rail__list {
+  margin: 0;
+  padding: 0;
+  border-left: 1px solid var(--line);
+  list-style: none;
+}
+.chapter-rail__item { margin: 0; }
+.chapter-rail__link {
+  position: relative;
+  display: grid;
+  gap: 0.14rem;
+  min-height: 3rem;
+  padding: 0.55rem 0.35rem 0.5rem 0.7rem;
+  color: var(--muted);
+  text-decoration: none;
+  transition:
+    color var(--duration-normal) var(--ease-out-expo),
+    background-color var(--duration-normal) var(--ease-out-expo);
+}
+.chapter-rail__link::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 -1px;
+  width: 2px;
+  background: var(--accent);
+  opacity: 0;
+  transform: scaleY(0.2);
+  transform-origin: center;
+  transition:
+    opacity var(--duration-fast) ease,
+    transform var(--duration-normal) var(--ease-out-expo);
+}
+.chapter-rail__link:hover,
+.chapter-rail__link:focus-visible,
+.chapter-rail__link--active { color: var(--ink); background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.chapter-rail__link--active::before { opacity: 1; transform: scaleY(1); }
+.chapter-rail__index {
+  color: color-mix(in srgb, var(--accent) 62%, var(--dim));
+  font: 500 0.55rem/1 var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+}
+.chapter-rail__label {
+  overflow: hidden;
+  font: 600 0.54rem/1.25 var(--font-mono);
+  letter-spacing: 0.07em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+}
+.chapter-rail__hint {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+  align-items: center;
+  margin: 0.8rem 0 0 0.65rem;
+  color: var(--muted);
+  font-size: 0.5rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.chapter-rail__hint kbd {
+  min-width: 1.05rem;
+  padding: 0.1rem 0.18rem;
+  border: 1px solid var(--line);
+  color: var(--dim);
+  font: 500 0.52rem/1.1 var(--font-mono);
+  text-align: center;
+}
+.chapter-rail__hint span { width: 100%; }
+
+.chapter-section {
+  opacity: 0.72;
+  transform: translateY(0.5rem);
+  transition:
+    opacity var(--duration-slow) var(--ease-out-expo),
+    transform var(--duration-slow) var(--ease-out-expo);
+}
+.chapter-section--visible { opacity: 1; transform: translateY(0); }
 
 /* City-catalog fallback scope. It deliberately has no metric cards: a missing
    processing pack is a report/export state, not a reason to invent values. */
@@ -196,9 +294,10 @@ body {
 .panel {
   margin: 1.25rem 0;
   padding: 1.1rem 1.2rem;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 88%, transparent), color-mix(in srgb, var(--surface-2) 58%, transparent));
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
 }
 .panel h2 { margin: 0 0 0.25rem; font-size: 1.25rem; }
 .panel h3 { margin: 0 0 0.5rem; font-size: 1.05rem; }
@@ -280,7 +379,14 @@ body {
   border: 1px solid var(--line);
   background: var(--panel);
 }
-.pill__glyph { letter-spacing: 0.1em; font-size: 0.6rem; }
+.pill__glyph { display: inline-grid; grid-auto-flow: column; gap: 2px; }
+.pill__glyph i {
+  width: 3px;
+  height: 0.55rem;
+  border: 1px solid currentColor;
+  opacity: 0.42;
+}
+.pill__glyph i.is-active { background: currentColor; opacity: 1; }
 .pill--high { color: var(--ok); border-color: var(--ok); }
 .pill--medium { color: var(--accent); border-color: var(--accent); }
 .pill--low, .pill--unknown { color: var(--warn); border-color: var(--warn); }
@@ -292,9 +398,9 @@ body {
 .callout {
   margin: 0.85rem 0;
   padding: 0.8rem 0.9rem;
-  border-radius: var(--radius);
-  border-left: 4px solid var(--accent);
-  background: var(--panel-2);
+  border-radius: 0;
+  border-left: 2px solid var(--accent);
+  background: color-mix(in srgb, var(--surface-2) 72%, transparent);
 }
 .callout--warn { border-left-color: var(--warn); }
 .callout--stop { border-left-color: var(--stop); }
@@ -324,7 +430,34 @@ body {
 .table th { color: var(--dim); font-weight: 600; width: 40%; }
 .wrap { overflow-wrap: anywhere; }
 
-.source { margin: 0.5rem 0; border: 1px solid var(--line); border-radius: var(--radius); padding: 0.5rem 0.7rem; }
+.provenance-panel__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.1rem;
+  margin: 0.75rem 0 0;
+  padding: 0.7rem 0;
+  border-block: 1px solid var(--line);
+  color: var(--dim);
+  font-size: 0.72rem;
+}
+.provenance-panel__summary span + span { padding-left: 1.1rem; border-left: 1px solid var(--line); }
+.provenance-panel__summary strong { color: var(--ink); font-weight: 600; }
+.provenance-drawer { margin-top: 0.7rem; }
+.provenance-drawer > summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.2rem 1rem;
+  align-items: center;
+  padding: 0.7rem 0;
+  color: var(--ink);
+  cursor: pointer;
+  font-weight: 600;
+  list-style: revert;
+}
+.provenance-drawer > summary small { color: var(--dim); font-size: 0.68rem; font-weight: 400; }
+.provenance-drawer[open] > summary { border-bottom: 1px solid var(--line); color: var(--accent); }
+.provenance-drawer__body { padding-top: 0.8rem; }
+.source { margin: 0.5rem 0; border: 1px solid var(--line); border-radius: 0; padding: 0.5rem 0.7rem; }
 .source summary { cursor: pointer; font-weight: 600; }
 
 .limits { margin: 0; padding-left: 1.15rem; font-size: 0.9rem; }
@@ -356,13 +489,17 @@ body {
   font-weight: 600;
   padding: 0.5rem 0.9rem;
   min-height: 2.5rem;
-  background: var(--panel-2);
+  background: color-mix(in srgb, var(--surface-2) 78%, transparent);
   color: var(--ink);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+  border-radius: 2px;
   cursor: pointer;
+  transition:
+    color var(--duration-fast) var(--ease-out-quad),
+    border-color var(--duration-fast) var(--ease-out-quad),
+    background-color var(--duration-fast) var(--ease-out-quad);
 }
-.btn:hover { border-color: var(--accent); }
+.btn:hover { border-color: color-mix(in srgb, var(--accent) 70%, transparent); background: color-mix(in srgb, var(--accent) 8%, var(--surface-2)); }
 .btn--primary { background: var(--accent); color: #04121f; border-color: var(--accent); }
 .btn--card { margin-top: 0.9rem; width: 100%; }
 .btn--link { background: none; border: 0; color: var(--accent); padding-left: 0; text-decoration: underline; }
@@ -393,6 +530,30 @@ body {
 }
 
 /* ── narrow viewports ────────────────────────────────────────────────────── */
+@media (max-width: 42rem) {
+  .app--chapters .analysis-frame { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .chapter-rail {
+    top: 0;
+    overflow-x: auto;
+    padding: 0;
+    background: color-mix(in srgb, var(--bg) 90%, transparent);
+    backdrop-filter: blur(18px);
+    scrollbar-width: none;
+  }
+  .chapter-rail::-webkit-scrollbar { display: none; }
+  .chapter-rail__list {
+    display: grid;
+    grid-template-columns: repeat(var(--chapter-count, 5), minmax(4.4rem, 1fr));
+    min-width: max-content;
+    border-left: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .chapter-rail__link { min-height: 2.65rem; padding: 0.48rem 0.6rem; }
+  .chapter-rail__link::before { inset: auto 0 -1px; width: auto; height: 2px; transform: scaleX(0.2); }
+  .chapter-rail__link--active::before { transform: scaleX(1); }
+  .chapter-rail__hint { display: none; }
+}
+
 @media (max-width: 30rem) {
   .app { padding: 0 0.75rem 2rem; }
   .topbar { align-items: stretch; }
@@ -404,11 +565,22 @@ body {
   .map { height: 12rem; }
 }
 
+@media (max-width: 20rem) {
+  .chapter-rail { display: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-normal: 0ms;
+    --duration-slow: 0ms;
+    --duration-orbital: 0ms;
+  }
   /* The spinner is the only looping animation in the app; leave it visible but
      stop it moving, so the busy state is still conveyed by the text. */
   .spinner { animation: none; border-top-color: var(--accent); }
   * { transition: none !important; }
+  .chapter-section { opacity: 1; transform: none; }
 }
 
 @media (prefers-contrast: more) {
