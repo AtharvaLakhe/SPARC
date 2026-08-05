@@ -1,0 +1,141 @@
+{
+  "catalogVersion": "2026-08-05.3",
+  "sourcePolicy": "geoBoundaries gbOpen simplified GeoJSON; every selection is pinned by release ID and shape ID, then passed through the existing boundary gate",
+  "cities": {
+    "mumbai": {
+      "scope": "Mumbai City plus Mumbai Suburban districts",
+      "source": "data/raw/boundaries/global/IND-ADM2-76128533/source-simplified.geojson",
+      "metadata": "data/raw/boundaries/global/IND-ADM2-76128533/source-metadata.json",
+      "boundaryId": "IND-ADM2-76128533",
+      "level": "ADM2",
+      "countryCode": "IND",
+      "shapeIds": [
+        "76128533B16442413169750",
+        "76128533B67326016655833"
+      ],
+      "shapeNames": ["Mumbai", "Mumbai Suburban"]
+    },
+    "delhi": {
+      "scope": "National Capital Territory of Delhi",
+      "source": "data/raw/boundaries/global/IND-ADM1-1811400/source-simplified.geojson",
+      "metadata": "data/raw/boundaries/global/IND-ADM1-1811400/source-metadata.json",
+      "boundaryId": "IND-ADM1-1811400",
+      "level": "ADM1",
+      "countryCode": "IND",
+      "shapeIds": ["1811400B23625213884851"],
+      "shapeNames": ["Delhi"]
+    },
+    "chennai": {
+      "scope": "Chennai district",
+      "source": "data/raw/boundaries/global/IND-ADM2-76128533/source-simplified.geojson",
+      "metadata": "data/raw/boundaries/global/IND-ADM2-76128533/source-metadata.json",
+      "boundaryId": "IND-ADM2-76128533",
+      "level": "ADM2",
+      "countryCode": "IND",
+      "shapeIds": ["76128533B89024397489955"],
+      "shapeNames": ["Chennai"]
+    },
+    "bhopal": {
+      "scope": "Bhopal district",
+      "source": "data/raw/boundaries/global/IND-ADM2-76128533/source-simplified.geojson",
+      "metadata": "data/raw/boundaries/global/IND-ADM2-76128533/source-metadata.json",
+      "boundaryId": "IND-ADM2-76128533",
+      "level": "ADM2",
+      "countryCode": "IND",
+      "shapeIds": ["76128533B22439249004073"],
+      "shapeNames": ["Bhopal"]
+    },
+    "new-york": {
+      "scope": "New York City five borough counties",
+      "source": "data/raw/boundaries/global/USA-ADM2-52423323/source-simplified.geojson",
+      "metadata": "data/raw/boundaries/global/USA-ADM2-52423323/source-metadata.json",
+      "boundaryId": "USA-ADM2-52423323",
+      "level": "ADM2",
+      "countryCode": "USA",
+      "shapeIds": [
+        "52423323B68557587713523",
+        "52423323B42930074476451",
+        "52423323B86897144494159",
+        "52423323B44038614744637",
+        "52423323B38635571773884"
+      ],
+      "shapeNames": ["New York", "Kings", "Queens", "Bronx", "Richmond"]
+    },
+    "washington-dc": {
+      "scope": "District of Columbia",
+      "source": "data/raw/boundaries/global/USA-ADM1-66186276/source-simplified.geojson",
+      "metadata": "data/raw/boundaries/global/USA-ADM1-66186276/source-metadata.json",
+      "boundaryId": "USA-ADM1-66186276",
+      "level": "ADM1",
+      "countryCode": "USA",
+      "shapeIds": ["66186276B94082813086253"],
+      "shapeNames": ["District of Columbia"]
+    },
+    "tokyo": {
+      "scope": "Tokyo prefecture",
+      "source": "data/raw/boundaries/global/JPN-ADM1-47310658/source-simplified.geojson",
+      "metadata": "data/raw/boundaries/global/JPN-ADM1-47310658/source-metadata.json",
+      "boundaryId": "JPN-ADM1-47310658",
+      "level": "ADM1",
+      "countryCode": "JPN",
+      "shapeIds": ["47310658B199342310790"],
+      "shapeNames": ["Tokyo"]
+    },
+    "london": {
+      "scope": "Greater London boroughs and the City of London",
+      "source": "data/raw/boundaries/global/GBR-ADM2-9080712/source-simplified.geojson",
+      "metadata": "data/raw/boundaries/global/GBR-ADM2-9080712/source-metadata.json",
+      "boundaryId": "GBR-ADM2-9080712",
+      "level": "ADM2",
+      "countryCode": "GBR",
+      "shapeIds": [],
+      "shapeNames": [
+        "City of London", "Barking and Dagenham", "Barnet", "Bexley", "Brent", "Bromley",
+        "Camden", "Croydon", "Ealing", "Enfield", "Greenwich", "Hackney", "Hammersmith and Fulham",
+        "Haringey", "Harrow", "Havering", "Hillingdon", "Hounslow", "Islington", "Kensington and Chelsea",
+        "Kingston upon Thames", "Lambeth", "Lewisham", "Merton", "Newham", "Redbridge", "Richmond upon Thames",
+        "Southwark", "Sutton", "Tower Hamlets", "Waltham Forest", "Wandsworth", "Westminster"
+      ]
+    },
+    "cairo": {
+      "scope": "Cairo Governorate",
+      "source": "data/raw/boundaries/global/EGY-ADM1-46179711/source-simplified.geojson",
+      "metadata": "data/raw/boundaries/global/EGY-ADM1-46179711/source-metadata.json",
+      "boundaryId": "EGY-ADM1-46179711",
+      "level": "ADM1",
+      "countryCode": "EGY",
+      "shapeIds": ["46179711B66630674459803"],
+      "shapeNames": ["Cairo Governorate"]
+    },
+    "sydney": {
+      "scope": "City of Sydney local government area",
+      "source": "data/raw/boundaries/global/AUS-ADM2-25037944/source-simplified.geojson",
+      "metadata": "data/raw/boundaries/global/AUS-ADM2-25037944/source-metadata.json",
+      "boundaryId": "AUS-ADM2-25037944",
+      "level": "ADM2",
+      "countryCode": "AUS",
+      "shapeIds": ["25037944B98854570895907"],
+      "shapeNames": ["Sydney"]
+    },
+    "rio-de-janeiro": {
+      "scope": "Rio de Janeiro municipality",
+      "source": "data/raw/boundaries/global/BRA-ADM2-56859067/source-simplified.geojson",
+      "metadata": "data/raw/boundaries/global/BRA-ADM2-56859067/source-metadata.json",
+      "boundaryId": "BRA-ADM2-56859067",
+      "level": "ADM2",
+      "countryCode": "BRA",
+      "shapeIds": ["56859067B69544192053781"],
+      "shapeNames": ["Rio de Janeiro"]
+    },
+    "reykjavik": {
+      "scope": "Reykjavíkurborg municipality",
+      "source": "data/raw/boundaries/global/ISL-ADM2-244011/source-simplified.geojson",
+      "metadata": "data/raw/boundaries/global/ISL-ADM2-244011/source-metadata.json",
+      "boundaryId": "ISL-ADM2-244011",
+      "level": "ADM2",
+      "countryCode": "ISL",
+      "shapeIds": ["244011B48219786980381"],
+      "shapeNames": ["Reykjavíkurborg"]
+    }
+  }
+}

@@ -17,18 +17,18 @@ def _catalog() -> dict:
 
 def test_city_catalog_binds_requested_set_and_packs() -> None:
     result = validate_city_catalog(CATALOG_PATH, ROOT)
-    assert result == {"catalogVersion": "2026-08-05.1", "cities": 13, "validatedPacks": 2}
+    assert result == {"catalogVersion": "2026-08-05.3", "cities": 14, "validatedPacks": 3}
 
 
 def test_city_catalog_has_country_codes_and_explicit_boundaries() -> None:
     cities = _catalog()["cities"]
     assert {city["slug"] for city in cities} == {
         "nagpur", "bengaluru", "mumbai", "delhi", "chennai", "bhopal",
-        "new-york", "washington-dc", "tokyo", "london", "cairo", "sydney", "reykjavik",
+        "new-york", "washington-dc", "tokyo", "london", "cairo", "sydney", "rio-de-janeiro", "reykjavik",
     }
     assert all(len(city["countryCode"]) == 2 for city in cities)
     assert all(city["boundary"]["kind"] in {"validated-adm2", "catalog-envelope"} for city in cities)
-    assert sum(city["boundary"]["status"] == "VALIDATED" for city in cities) == 2
+    assert sum(city["boundary"]["status"] == "VALIDATED" for city in cities) == 3
     assert all(city["boundary"]["sha256"].startswith("sha256:") for city in cities)
 
 
@@ -41,6 +41,18 @@ def test_report_only_cities_use_a_safe_contract_fallback() -> None:
         assert city["processingPack"]["checksums"] == {}
         assert city["boundary"]["status"] == "CATALOG_ONLY"
         assert "not an ADM boundary" in city["boundary"]["definition"]
+
+
+def test_expansion_registry_has_twelve_gated_city_boundaries() -> None:
+    registry_path = ROOT / "data" / "catalog" / "city-boundary-coverage.json"
+    registry = json.loads(registry_path.read_text(encoding="utf-8"))
+    expected = {
+        "mumbai", "delhi", "chennai", "bhopal", "new-york", "washington-dc",
+        "tokyo", "london", "cairo", "sydney", "rio-de-janeiro", "reykjavik",
+    }
+    assert set(registry["cities"]) == expected
+    assert all(row["status"] == "VALIDATED" for row in registry["cities"].values())
+    assert all(row["sha256"].startswith("sha256:") for row in registry["cities"].values())
 
 
 def test_catalog_city_routing_uses_verified_packs_or_explicit_fallback() -> None:

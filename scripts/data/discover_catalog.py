@@ -54,6 +54,101 @@ PILOTS = {
         bbox_source="https://dcmsme.gov.in/dips/Bangalore%20Urban%20District.pdf",
         periods=(("2019-01-15", "2019-03-15"), ("2024-01-15", "2024-03-15")),
     ),
+    "mumbai-city": Pilot(
+        key="mumbai-city",
+        name="Mumbai City district",
+        bbox=(72.79167, 18.88684, 72.88584, 19.05543),
+        bbox_source="https://mumbaicity.gov.in/",
+        periods=(("2019-10-15", "2019-12-15"), ("2024-10-15", "2024-12-15")),
+    ),
+    # The following quick targets use the separately gated global city
+    # boundaries under data/validated/boundaries/global.  Periods are fixed
+    # same-season comparison windows; they are processing inputs, not claims
+    # of scientific validation.
+    "mumbai": Pilot(
+        key="mumbai",
+        name="Mumbai City and Mumbai Suburban districts",
+        bbox=(72.77589, 18.88684, 72.98404, 19.26932),
+        bbox_source="data/metadata/boundaries/global/mumbai.boundary-gate.json",
+        periods=(("2019-10-15", "2019-12-15"), ("2024-10-15", "2024-12-15")),
+    ),
+    "delhi": Pilot(
+        key="delhi",
+        name="Delhi National Capital Territory",
+        bbox=(76.8389449587462, 28.40469199328046, 77.34736061800483, 28.883807228409715),
+        bbox_source="data/metadata/boundaries/global/delhi.boundary-gate.json",
+        periods=(("2019-10-15", "2019-12-15"), ("2024-10-15", "2024-12-15")),
+    ),
+    "chennai": Pilot(
+        key="chennai",
+        name="Chennai district",
+        bbox=(80.18339, 12.96704, 80.3101, 13.1489),
+        bbox_source="data/metadata/boundaries/global/chennai.boundary-gate.json",
+        periods=(("2019-10-15", "2019-12-15"), ("2024-10-15", "2024-12-15")),
+    ),
+    "bhopal": Pilot(
+        key="bhopal",
+        name="Bhopal district",
+        bbox=(77.16788, 23.07004, 77.65068, 23.89278),
+        bbox_source="data/metadata/boundaries/global/bhopal.boundary-gate.json",
+        periods=(("2019-10-15", "2019-12-15"), ("2024-10-15", "2024-12-15")),
+    ),
+    "new-york": Pilot(
+        key="new-york",
+        name="New York City five borough counties",
+        bbox=(-74.26061251699997, 40.496111205000034, -73.70002135199996, 40.91758530000004),
+        bbox_source="data/metadata/boundaries/global/new-york.boundary-gate.json",
+        periods=(("2019-06-15", "2019-08-15"), ("2024-06-15", "2024-08-15")),
+    ),
+    "washington-dc": Pilot(
+        key="washington-dc",
+        name="District of Columbia",
+        bbox=(-77.11976132299998, 38.79165276400005, -76.90939725499999, 38.99511780500006),
+        bbox_source="data/metadata/boundaries/global/washington-dc.boundary-gate.json",
+        periods=(("2019-06-15", "2019-08-15"), ("2024-06-15", "2024-08-15")),
+    ),
+    "tokyo": Pilot(
+        key="tokyo",
+        name="Tokyo prefecture",
+        bbox=(138.9428648, 24.224733, 153.9865637, 35.8983844),
+        bbox_source="data/metadata/boundaries/global/tokyo.boundary-gate.json",
+        periods=(("2019-06-15", "2019-08-15"), ("2024-06-15", "2024-08-15")),
+    ),
+    "london": Pilot(
+        key="london",
+        name="Greater London boroughs and the City of London",
+        bbox=(-0.509720585402481, 51.28676013985681, 0.333995664733011, 51.69187276890297),
+        bbox_source="data/metadata/boundaries/global/london.boundary-gate.json",
+        periods=(("2019-06-15", "2019-08-15"), ("2024-06-15", "2024-08-15")),
+    ),
+    "cairo": Pilot(
+        key="cairo",
+        name="Cairo Governorate",
+        bbox=(31.2208221, 29.7483062, 31.9090054, 30.3209168),
+        bbox_source="data/metadata/boundaries/global/cairo.boundary-gate.json",
+        periods=(("2019-06-15", "2019-08-15"), ("2024-06-15", "2024-08-15")),
+    ),
+    "sydney": Pilot(
+        key="sydney",
+        name="City of Sydney local government area",
+        bbox=(151.17498844400006, -33.92431947799997, 151.23372087400003, -33.853499316999944),
+        bbox_source="data/metadata/boundaries/global/sydney.boundary-gate.json",
+        periods=(("2019-01-15", "2019-03-15"), ("2024-01-15", "2024-03-15")),
+    ),
+    "rio-de-janeiro": Pilot(
+        key="rio-de-janeiro",
+        name="Rio de Janeiro municipality",
+        bbox=(-43.795410155999946, -23.07501220699993, -43.10198974599996, -22.749328612999932),
+        bbox_source="data/metadata/boundaries/global/rio-de-janeiro.boundary-gate.json",
+        periods=(("2019-01-15", "2019-03-15"), ("2024-01-15", "2024-03-15")),
+    ),
+    "reykjavik": Pilot(
+        key="reykjavik",
+        name="Reykjavíkurborg municipality",
+        bbox=(-21.98383292304192, 63.98984905235025, -21.40194315708577, 64.31510866202072),
+        bbox_source="data/metadata/boundaries/global/reykjavik.boundary-gate.json",
+        periods=(("2019-06-15", "2019-08-15"), ("2024-06-15", "2024-08-15")),
+    ),
 }
 
 

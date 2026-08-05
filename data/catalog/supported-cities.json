@@ -1,7 +1,8 @@
 {
-  "catalogVersion": "2026-08-05.1",
+  "catalogVersion": "2026-08-05.3",
   "contractVersion": "1.0.0-alpha.1",
   "boundaryDisclaimer": "This boundary is suitable for prototype analysis but is not an authoritative legal or cadastral boundary.",
+  "boundaryRegistry": "data/catalog/city-boundary-coverage.json",
   "cities": [
     {
       "slug": "nagpur",
@@ -97,32 +98,49 @@
     },
     {
       "slug": "mumbai",
-      "regionId": "city:in:mumbai",
-      "name": "Mumbai",
+      "regionId": "district:mumbai-city",
+      "name": "Mumbai City",
       "countryCode": "IN",
       "country": "India",
       "administrativeAreas": ["Maharashtra"],
-      "district": "Mumbai Suburban",
+      "district": "Mumbai City",
       "municipality": "Mumbai",
-      "centroid": [72.8777, 19.076],
-      "bbox": [72.4777, 18.676, 73.2777, 19.476],
-      "story": "City-level report/export scope; no validated Earth Engine pack is published.",
-      "analyticsCoverage": "REPORT_GENERATION_ONLY",
-      "routingCoverage": "REPORT_GENERATION_ONLY",
-      "processingPack": {"status": "NOT_AVAILABLE", "packId": null, "manifest": null, "files": {}, "checksums": {}, "boundarySha256": null},
-      "boundary": {
-        "kind": "catalog-envelope",
-        "status": "CATALOG_ONLY",
-        "sourceName": "SPARC city catalog envelope (reference only; no external geometry redistributed)",
-        "sourceUrl": "https://www.geoboundaries.org/",
-        "license": "Not applicable to the SPARC-generated envelope",
-        "attribution": "SPARC catalog; geometry is a centroid/bbox envelope, not an administrative boundary.",
-        "sha256": "sha256:88eeb20c8f11a42300637ad41e56374c1b01a3498d80c1b2308ea20f4619538d",
-        "crs": "EPSG:4326",
-        "definition": "WGS84 envelope around the catalog centroid for report/export scope only; not an ADM boundary and not a legal or cadastral boundary.",
-        "geometryAsset": null
+      "centroid": [72.8338038241462, 18.98076517780284],
+      "bbox": [72.79167, 18.88684, 72.88584, 19.05543],
+      "story": "Validated Mumbai City district pack with post-monsoon P0 comparisons.",
+      "analyticsCoverage": "FULLY_SUPPORTED",
+      "routingCoverage": "FULLY_SUPPORTED",
+      "processingPack": {
+        "status": "VALIDATED",
+        "packId": "mumbai-city-p0-v2",
+        "manifest": "contracts/examples/precomputed/manifest.json",
+        "files": {
+          "summary": "district-mumbai-city-summary.json",
+          "surface-water": "district-mumbai-city-surface-water.json",
+          "vegetation": "district-mumbai-city-vegetation.json",
+          "built-up": "district-mumbai-city-built-up.json"
+        },
+        "checksums": {
+          "summary": "sha256:34288c100ecdd18a0f3dae118e9201d660d09cfcef124634b9348b63c22d3d73",
+          "surface-water": "sha256:f4237eca5dac948e2acda67b902a4c0d35367298316460df747915aa3083f100",
+          "vegetation": "sha256:6d56c532ab1f7fcc8f013ac070949b4c0e588247460f29f0d5f9a1477a5b472b",
+          "built-up": "sha256:a39110590c878ce2a4ef1721a82eed880239b28127a17ffb5e2fda920fe7b46f"
+        },
+        "boundarySha256": "sha256:c49e599f12d917e2f38ac236207cbb0a75037b389b178641e25babf45ef93fa0"
       },
-      "jurisdiction": {"pack": "IN/Maharashtra", "authorityIds": ["mpcb", "aaple-sarkar"]}
+      "boundary": {
+        "kind": "validated-adm2",
+        "status": "VALIDATED",
+        "sourceName": "geoBoundaries gbOpen India ADM2; source: Pathways Data Pvt. Ltd., lgdirectory.gov.in",
+        "sourceUrl": "https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/IND/ADM2/geoBoundaries-IND-ADM2-all.zip",
+        "license": "Open Data Commons Open Database License 1.0 (source-specific boundary metadata)",
+        "attribution": "Contains modified geoBoundaries data (Runfola et al., 2020), sourced from Pathways Data Pvt. Ltd. and lgdirectory.gov.in; boundary source terms: ODbL 1.0.",
+        "sha256": "sha256:c49e599f12d917e2f38ac236207cbb0a75037b389b178641e25babf45ef93fa0",
+        "crs": "EPSG:4326",
+        "definition": "The validated geoBoundaries gbOpen India ADM2 polygon selected by shapeName Mumbai and state-checked as Maharashtra.",
+        "geometryAsset": "data/validated/boundaries/geoBoundaries-IND-ADM2-76128533/mumbai-city.geojson"
+      },
+      "jurisdiction": {"pack": "IN/Maharashtra", "authorityIds": ["mpcb", "maharashtra-forest", "aaple-sarkar"]}
     },
     {
       "slug": "delhi",
@@ -379,6 +397,35 @@
         "license": "Not applicable to the SPARC-generated envelope",
         "attribution": "SPARC catalog; geometry is a centroid/bbox envelope, not an administrative boundary.",
         "sha256": "sha256:606b1af8b80e6a766dadb6757902708b47ef74ca1cddd2e740af15b8b5c9f3aa",
+        "crs": "EPSG:4326",
+        "definition": "WGS84 envelope around the catalog centroid for report/export scope only; not an ADM boundary and not a legal or cadastral boundary.",
+        "geometryAsset": null
+      },
+      "jurisdiction": {"pack": "generic", "authorityIds": []}
+    },
+    {
+      "slug": "rio-de-janeiro",
+      "regionId": "city:br:rio-de-janeiro",
+      "name": "Rio de Janeiro",
+      "countryCode": "BR",
+      "country": "Brazil",
+      "administrativeAreas": ["Rio de Janeiro"],
+      "district": null,
+      "municipality": "Rio de Janeiro",
+      "centroid": [-43.1729, -22.9068],
+      "bbox": [-43.5729, -23.3068, -42.7729, -22.5068],
+      "story": "City-level report/export scope; no validated Earth Engine pack or verified authority pack is published.",
+      "analyticsCoverage": "REPORT_GENERATION_ONLY",
+      "routingCoverage": "UNSUPPORTED_JURISDICTION",
+      "processingPack": {"status": "NOT_AVAILABLE", "packId": null, "manifest": null, "files": {}, "checksums": {}, "boundarySha256": null},
+      "boundary": {
+        "kind": "catalog-envelope",
+        "status": "CATALOG_ONLY",
+        "sourceName": "SPARC city catalog envelope (reference only; no external geometry redistributed)",
+        "sourceUrl": "https://www.geoboundaries.org/",
+        "license": "Not applicable to the SPARC-generated envelope",
+        "attribution": "SPARC catalog; geometry is a centroid/bbox envelope, not an administrative boundary.",
+        "sha256": "sha256:ddf26e5304f2309be9024f57e7b1230b7aaad4b616e27451d9b3d0d101fad633",
         "crs": "EPSG:4326",
         "definition": "WGS84 envelope around the catalog centroid for report/export scope only; not an ADM boundary and not a legal or cadastral boundary.",
         "geometryAsset": null

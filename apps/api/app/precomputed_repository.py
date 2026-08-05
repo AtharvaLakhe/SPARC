@@ -19,6 +19,10 @@ BUILT_UP_CONFLICT_REASON = (
     "Estimated land-cover change is unavailable because the two documented "
     "Nagpur methods reverse direction."
 )
+GENERIC_BUILT_UP_CONFLICT_REASON = (
+    "Estimated land-cover change is unavailable because the documented methods "
+    "reverse direction."
+)
 
 INDICATOR_NAMES = {
     "surface-water": ("Estimated surface-water change", "Estimated surface-water area"),
@@ -33,18 +37,37 @@ INDICATOR_ASSETS = {
 
 
 class PrecomputedPackRepository:
-    """Read-only repository for the accepted Nagpur and Bengaluru packs."""
+    """Read-only repository for every accepted P0 pack found on disk."""
 
     def __init__(self, packs_root: Path, reports_root: Path, boundary_metadata: Path) -> None:
         self._packs_root = packs_root.resolve(strict=True)
         self._reports_root = reports_root.resolve(strict=True)
         self._boundary_metadata = boundary_metadata.resolve(strict=True)
         release = _load_json(self._boundary_metadata)
-        self._districts = release["districts"]
+        self._districts = dict(release.get("districts", {}))
+        global_release_path = self._boundary_metadata.parents[4] / "data" / "metadata" / "boundaries" / "global" / "release-metadata.json"
+        if global_release_path.is_file():
+            global_release = _load_json(global_release_path)
+            for key, record in global_release.get("cities", {}).items():
+                bbox = record.get("bbox")
+                if not isinstance(bbox, list) or len(bbox) != 4:
+                    continue
+                self._districts[key] = {
+                    "displayName": record.get("scope", key),
+                    "bbox": bbox,
+                    "stateValidation": {
+                        "representativePoint": {
+                            "longitude": (bbox[0] + bbox[2]) / 2,
+                            "latitude": (bbox[1] + bbox[3]) / 2,
+                        }
+                    },
+                    "sha256": record.get("boundarySha256"),
+                }
         self._packs: dict[str, dict[str, Any]] = {}
         self._reports: dict[tuple[str, str], dict[str, Any]] = {}
-        for key in ("nagpur", "bengaluru-urban"):
-            pack = _load_json(self._packs_root / f"{key}-p0-v2.json")
+        for pack_path in sorted(self._packs_root.glob("*-p0-v2.json")):
+            key = pack_path.name.removesuffix("-p0-v2.json")
+            pack = _load_json(pack_path)
             if pack.get("packVersion") != "1" or pack.get("status") != "pre-publication":
                 raise RuntimeError(f"Unsupported precomputed pack status: {key}")
             if key not in self._districts:
@@ -169,14 +192,15 @@ class PrecomputedPackRepository:
         report = self._reports[(key, indicator_id)]
         baseline, comparison = self._periods(key)
         area = item["areaSqKm"]
-        blocked = key == "nagpur" and indicator_id == "built-up"
+        blocked_reason = self._built_up_conflict_reason(key, indicator_id, item)
+        blocked = blocked_reason is not None
         metric = {
             "baselineValue": None if blocked else area["baseline"],
             "comparisonValue": None if blocked else area["comparison"],
             "absoluteChange": None if blocked else area["net"],
             "percentChange": None if blocked else area["percentChange"],
             "unit": "km2",
-            "unavailableReason": BUILT_UP_CONFLICT_REASON if blocked else None,
+            "unavailableReason": blocked_reason,
         }
         quality = item["quality"]
         source = report["source"]
@@ -193,8 +217,8 @@ class PrecomputedPackRepository:
             "producersAccuracy": None,
         }
         warnings = list(quality.get("warnings", []))
-        if blocked and BUILT_UP_CONFLICT_REASON not in warnings:
-            warnings.append(BUILT_UP_CONFLICT_REASON)
+        if blocked and blocked_reason not in warnings:
+            warnings.append(blocked_reason)
         quality_view = {
             "level": "unknown",
             "basis": "unavailable",
@@ -207,8 +231,8 @@ class PrecomputedPackRepository:
         provenance = self._provenance(key, indicator_id, item, report)
         if blocked:
             interpretation = {
-                "summary": BUILT_UP_CONFLICT_REASON,
-                "caveats": [BUILT_UP_CONFLICT_REASON],
+                "summary": blocked_reason,
+                "caveats": [blocked_reason],
                 "suggestedActions": ["Request inspection or verification rather than selecting one conflicting method."],
                 "ruleId": "sparc:interpretation:built-up-conflict-v1",
             }
@@ -249,6 +273,24 @@ class PrecomputedPackRepository:
                 "related": [],
             },
         }
+
+    @staticmethod
+    def _built_up_conflict_reason(key: str, indicator_id: str, item: dict[str, Any]) -> str | None:
+        """Block only when the documented alternative reverses the default direction."""
+
+        if indicator_id != "built-up":
+            return None
+        default_net = item.get("areaSqKm", {}).get("net")
+        sensitivity = item.get("sensitivity") or {}
+        alternate_net = sensitivity.get("row", {}).get("netAreaSqKm")
+        if isinstance(default_net, (int, float)) and isinstance(alternate_net, (int, float)):
+            if default_net != 0 and alternate_net != 0 and (default_net > 0) != (alternate_net > 0):
+                return BUILT_UP_CONFLICT_REASON if key == "nagpur" else GENERIC_BUILT_UP_CONFLICT_REASON
+            return None
+        # Keep the existing Nagpur blocker fail-safe if an older pack lacks its
+        # required alternative sensitivity record. Other districts remain
+        # unavailable only when their own evidence demonstrates a conflict.
+        return BUILT_UP_CONFLICT_REASON if key == "nagpur" else None
 
     def _provenance(self, key: str, indicator_id: str, item: dict[str, Any], report: dict[str, Any]) -> dict[str, Any]:
         source = report["source"]

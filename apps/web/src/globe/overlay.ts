@@ -18,6 +18,7 @@
 
 import nagpurGeo from '@validated/nagpur.geojson?raw';
 import bengaluruGeo from '@validated/bengaluru-urban.geojson?raw';
+import mumbaiCityGeo from '@validated/mumbai-city.geojson?raw';
 import { cityForRegionId } from '../catalog/cities';
 
 /** [lon, lat] */
@@ -46,6 +47,7 @@ function parse(raw: string): GeoFeature | null {
 const REAL: Record<string, GeoFeature | null> = {
   nagpur: parse(nagpurGeo),
   'bengaluru-urban': parse(bengaluruGeo),
+  'mumbai-city': parse(mumbaiCityGeo),
 };
 
 function ringsFromFeature(f: GeoFeature): LonLat[][] {

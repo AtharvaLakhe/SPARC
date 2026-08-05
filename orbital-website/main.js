@@ -1180,7 +1180,7 @@ addEventListener('keydown', (e) => {
 const QUICK = [
   ['Nagpur', 'IN'], ['Bengaluru', 'IN'], ['Mumbai', 'IN'], ['Delhi', 'IN'],
   ['Chennai', 'IN'], ['Bhopal', 'IN'], ['New York', 'US'], ['Washington DC', 'US'],
-  ['Tokyo', 'JP'], ['London', 'GB'], ['Cairo', 'EG'], ['Sydney', 'AU'], ['Reykjavik', 'IS'],
+  ['Tokyo', 'JP'], ['London', 'GB'], ['Cairo', 'EG'], ['Sydney', 'AU'], ['Rio de Janeiro', 'BR'], ['Reykjavik', 'IS'],
 ];
 $('chips').innerHTML = QUICK.map(([name, code]) => `<button type="button" data-place="${name}">${name}<small>${code}</small></button>`).join('');
 $('chips').addEventListener('click', (e) => {

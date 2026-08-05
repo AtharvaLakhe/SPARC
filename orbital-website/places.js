@@ -12,7 +12,7 @@ export const CITY_KM = 55;
 export const PLACES = [
   { name: 'Tokyo', country: 'Japan', lat: 35.6762, lon: 139.6503 },
   { name: 'Delhi', country: 'India', lat: 28.6139, lon: 77.2090 },
-  { name: 'Mumbai', country: 'India', lat: 19.0760, lon: 72.8777 },
+  { name: 'Mumbai City', country: 'India', lat: 18.980765, lon: 72.833804 },
   { name: 'Bengaluru', country: 'India', lat: 12.9716, lon: 77.5946 },
   // SPARC pilot district. The gazetteer is a world city list, so the one place
   // the analytics actually cover was not findable from this search until now.

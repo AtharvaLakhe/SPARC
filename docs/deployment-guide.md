@@ -19,7 +19,7 @@ An implementation pull request must replace every “to be recorded” command w
 
 | Profile | Purpose | Required at judging time | Runtime dependencies | Data source |
 |---|---|---:|---|---|
-| Local demo | Primary judged and recovery path | Yes | Browser plus packaged loopback static server | Immutable Nagpur/Bengaluru packs |
+| Local demo | Primary judged and recovery path | Yes | Browser plus packaged loopback static server | Immutable Nagpur/Bengaluru/Mumbai City packs |
 | Local integration | Developer verification of API transport | No | Browser build, FastAPI and immutable result repository | Precomputed pack; approved live adapter only in explicit tests |
 | Optional cloud | Shareable URL after P0 is safe | No | Static host/CDN; optional FastAPI service | Immutable objects; future provider adapters |
 | Future production | Post-hackathon evolution | No | Managed static hosting, API, workers, object storage and metadata database | Versioned results and bounded jobs |
@@ -36,7 +36,7 @@ flowchart TB
         Launcher["START-DEMO.cmd — planned loopback launcher"]
         Static["Read-only local HTTP server on 127.0.0.1:4173"]
         Web["Vite static browser build"]
-        Pack["Versioned Nagpur and Bengaluru demo packs"]
+        Pack["Versioned Nagpur, Bengaluru, and Mumbai City result packs"]
         Checks["Manifest, SHA-256, NOTICE and launch instructions"]
         Launcher --> Static
         Static --> Web
@@ -93,7 +93,7 @@ The future `START-DEMO.cmd` contract is exact even though the file is not implem
 6. reveal no environment variables, local user path or credential; and
 7. terminate cleanly when its console closes.
 
-The tested presentation action is planned to be: **double-click `START-DEMO.cmd`, wait for the success line, then open `http://127.0.0.1:4173/`.** The expected first screen is the SPARC district selection/overview with a visible “Precomputed demo data” badge and generation date. This action must be rehearsed on the actual presentation and backup devices before release; until the launcher exists, it is a requirement, not evidence.
+The tested presentation action is planned to be: **double-click `START-DEMO.cmd`, wait for the success line, then open `http://127.0.0.1:4173/`.** The expected first screen is the SPARC district selection/overview with a visible data-source and generation-date notice. This action must be rehearsed on the actual presentation and backup devices before release; until the launcher exists, it is a requirement, not evidence.
 
 Do not use `file://`. Do not improvise with a globally installed development server during judging.
 
@@ -121,7 +121,7 @@ The following is the required sequence. The implementation must record the exact
 3. **Run contract checks.** Parse OpenAPI, resolve references and validate mocks plus real release payloads. Exact command: **to be recorded after test tooling exists**.
 4. **Run processing verification.** Reproduce data products or verify the signed/hashed production outputs; do not hand-edit values.
 5. **Build the Vite static application.** Exact command and output directory: **to be recorded after `apps/web` is scaffolded**.
-6. **Assemble only reviewed public assets.** Copy the Nagpur and Bengaluru packs, static layers, local fonts/icons and notices. Exclude raw scenes, interim rasters, `.env`, caches and optional model binaries unless separately approved.
+6. **Assemble only reviewed public assets.** Copy the Nagpur, Bengaluru, and Mumbai City packs, static layers, local fonts/icons and notices. Exclude raw scenes, interim rasters, `.env`, caches and optional model binaries unless separately approved.
 7. **Generate the manifest and checksums.** Verify all relative paths, media types and byte counts. Reject mock placeholders in claimed real data.
 8. **Add the approved packaged launcher.** Review its license and prove loopback/read-only behavior.
 9. **Scan the full directory.** Check secrets, absolute local paths, signed URLs, missing notices and required remote origins.
@@ -144,7 +144,7 @@ No package-install, data-download or provider call may be required on the presen
 1. Double-click planned `START-DEMO.cmd` in the verified release directory.
 2. Require the console to report exactly `Open http://127.0.0.1:4173/`.
 3. Open that URL in a clean browser window.
-4. Confirm the first screen shows the mode badge, dataset generation date and Nagpur/Bengaluru choices.
+4. Confirm the first screen shows the mode badge, dataset generation date and Nagpur/Bengaluru/Mumbai City choices.
 5. Follow [demo script](demo-script.md).
 
 ### Stop
@@ -234,7 +234,7 @@ A green health endpoint cannot compensate for a corrupt pack or an unvalidated r
 
 - [ ] Exact build and start commands are present and have actually run; no “to be recorded” marker remains in the operational copy.
 - [ ] Local launcher binds `127.0.0.1:4173`, serves a fixed directory read-only and exits cleanly.
-- [ ] Nagpur and Bengaluru journeys pass with network disabled from cold start.
+- [ ] Nagpur, Bengaluru, and Mumbai City journeys pass with network disabled from cold start.
 - [ ] Browser assets require no remote runtime CDN, public basemap or provider call.
 - [ ] No secret, mock claim, temporary signed URL or absolute workstation path exists in the bundle.
 - [ ] Manifest, checksums, notices and dataset/schema versions agree.

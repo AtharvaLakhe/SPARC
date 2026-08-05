@@ -33,8 +33,8 @@ verified pack remain `REPORT_GENERATION_ONLY` or `UNSUPPORTED_JURISDICTION`.
 - **Version and date:** boundary year 2021; build 2023-12-12; pinned repository commit `9469f09`
 - **Release API:** https://www.geoboundaries.org/api/current/gbOpen/IND/ADM2/
 - **Pinned archive:** https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/IND/ADM2/geoBoundaries-IND-ADM2-all.zip
-- **Accessed:** 2026-08-03
-- **Used for:** prototype Nagpur and Bengaluru Urban district AOIs; feature IDs, CRS, source/provenance record and attribution.
+- **Accessed:** 2026-08-05 (Mumbai City validation); earlier district gates accessed 2026-08-03
+- **Used for:** prototype Nagpur, Bengaluru Urban, and Mumbai City district AOIs; feature IDs, CRS, source/provenance record and attribution. Mumbai City is the `shapeName=Mumbai`, `shapeID=76128533B16442413169750` feature and is state-checked as Maharashtra.
 - **License fact:** geoBoundaries’ collection pages describe gbOpen as CC BY 4.0, but this India ADM2 release's own metadata declares **Open Data Commons Open Database License 1.0 (ODbL)** for the boundary source. SPARC follows the source-specific ODbL record for the selected geometry; it does not describe the geometry as CC BY-only.
 - **Prototype limitation:** the boundary is suitable for prototype analysis but is not an authoritative legal or cadastral boundary.
 
@@ -48,6 +48,29 @@ verified pack remain `REPORT_GENERATION_ONLY` or `UNSUPPORTED_JURISDICTION`.
 - **Pinned archive:** https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/IND/ADM1/geoBoundaries-IND-ADM1-all.zip
 - **Accessed:** 2026-08-03
 - **Used for:** independent state-location check only: Nagpur's representative point resolves to Maharashtra and the selected Bangalore feature resolves to Karnataka. It is not clipped, redistributed, or used for analysis.
+
+### Global city expansion boundary releases
+
+The expansion registry is pinned to the geoBoundaries gbOpen release metadata
+and simplified GeoJSON URLs below. The exact selected feature IDs, raw-source
+SHA-256 values, validated-GeoJSON SHA-256 values, and gate manifests are in
+`data/metadata/boundaries/global/` and `data/catalog/city-boundary-sources.json`.
+
+| Scope | Release | Source/licence | Release API |
+|---|---|---|---|
+| Delhi, Chennai, Bhopal, Mumbai expansion | `IND-ADM1-1811400` / `IND-ADM2-76128533` | DataMeet India / Pathways Data and `lgdirectory.gov.in`; CC BY 2.5 IN (ADM1) / ODbL 1.0 (ADM2) | [IND ADM1](https://www.geoboundaries.org/api/current/gbOpen/IND/ADM1/) · [IND ADM2](https://www.geoboundaries.org/api/current/gbOpen/IND/ADM2/) |
+| New York City, Washington DC | `USA-ADM1-66186276` / `USA-ADM2-52423323` | U.S. Census Bureau MAF/TIGER; Public Domain | [USA ADM1](https://www.geoboundaries.org/api/current/gbOpen/USA/ADM1/) · [USA ADM2](https://www.geoboundaries.org/api/current/gbOpen/USA/ADM2/) |
+| Tokyo | `JPN-ADM1-47310658` | OpenStreetMap/Wambacher; ODbL 1.0 | [JPN ADM1](https://www.geoboundaries.org/api/current/gbOpen/JPN/ADM1/) |
+| Greater London | `GBR-ADM2-9080712` | Office for National Statistics Open Geography Portal; Open Government Licence v3.0 | [GBR ADM2](https://www.geoboundaries.org/api/current/gbOpen/GBR/ADM2/) |
+| Cairo | `EGY-ADM1-46179711` | OpenStreetMap/Wambacher; ODbL 1.0 | [EGY ADM1](https://www.geoboundaries.org/api/current/gbOpen/EGY/ADM1/) |
+| Sydney | `AUS-ADM2-25037944` | Australian Bureau of Statistics; CC BY 4.0 | [AUS ADM2](https://www.geoboundaries.org/api/current/gbOpen/AUS/ADM2/) |
+| Rio de Janeiro | `BRA-ADM2-56859067` | IBGE/OCHA ROLAC; CC BY 3.0 IGO | [BRA ADM2](https://www.geoboundaries.org/api/current/gbOpen/BRA/ADM2/) |
+| Reykjavík | `ISL-ADM2-244011` | National Land Survey of Iceland; CC BY 4.0 | [ISL ADM2](https://www.geoboundaries.org/api/current/gbOpen/ISL/ADM2/) |
+
+Accessed 2026-08-05. Every selected polygon carries the prototype boundary
+disclaimer: it is suitable for prototype analysis but is not an authoritative
+legal or cadastral boundary. The release records do not use Survey of India
+geometry.
 
 ## Copernicus Sentinel sources
 

@@ -10,12 +10,16 @@
 
 import nagpurSummary from '@fixtures/precomputed/district-nagpur-summary.json';
 import bengaluruSummary from '@fixtures/precomputed/district-bengaluru-urban-summary.json';
+import mumbaiSummary from '@fixtures/precomputed/district-mumbai-city-summary.json';
 import nagpurWater from '@fixtures/precomputed/district-nagpur-surface-water.json';
 import nagpurVegetation from '@fixtures/precomputed/district-nagpur-vegetation.json';
 import nagpurBuiltUp from '@fixtures/precomputed/district-nagpur-built-up.json';
 import bengaluruWater from '@fixtures/precomputed/district-bengaluru-urban-surface-water.json';
 import bengaluruVegetation from '@fixtures/precomputed/district-bengaluru-urban-vegetation.json';
 import bengaluruBuiltUp from '@fixtures/precomputed/district-bengaluru-urban-built-up.json';
+import mumbaiWater from '@fixtures/precomputed/district-mumbai-city-surface-water.json';
+import mumbaiVegetation from '@fixtures/precomputed/district-mumbai-city-vegetation.json';
+import mumbaiBuiltUp from '@fixtures/precomputed/district-mumbai-city-built-up.json';
 import partialData from '@fixtures/partial-data.mock.json';
 
 import {
@@ -34,6 +38,7 @@ import type { Transport } from './transport';
 const SUMMARIES: Record<string, unknown> = {
   'district:nagpur': nagpurSummary,
   'district:bengaluru-urban': bengaluruSummary,
+  'district:mumbai-city': mumbaiSummary,
 };
 
 /* Keyed by immutable region and indicator IDs, never by a caller-controlled
@@ -48,6 +53,11 @@ const COMPARISONS: Record<string, Record<string, unknown>> = {
     'surface-water': bengaluruWater,
     vegetation: bengaluruVegetation,
     'built-up': bengaluruBuiltUp,
+  },
+  'district:mumbai-city': {
+    'surface-water': mumbaiWater,
+    vegetation: mumbaiVegetation,
+    'built-up': mumbaiBuiltUp,
   },
 };
 

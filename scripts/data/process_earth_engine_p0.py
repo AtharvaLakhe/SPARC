@@ -63,6 +63,84 @@ REGIONS = {
         "gate": Path("data/metadata/boundaries/geoBoundaries-IND-ADM2-76128533/bengaluru-urban.boundary-gate.json"),
         "analysisCrs": "EPSG:32643",
     },
+    "mumbai-city": {
+        "boundary": Path("data/validated/boundaries/geoBoundaries-IND-ADM2-76128533/mumbai-city.geojson"),
+        "provenance": Path("data/metadata/boundaries/geoBoundaries-IND-ADM2-76128533/mumbai-city.provenance.json"),
+        "gate": Path("data/metadata/boundaries/geoBoundaries-IND-ADM2-76128533/mumbai-city.boundary-gate.json"),
+        "analysisCrs": "EPSG:32643",
+    },
+    "mumbai": {
+        "boundary": Path("data/validated/boundaries/global/mumbai.geojson"),
+        "provenance": Path("data/metadata/boundaries/global/mumbai.provenance.json"),
+        "gate": Path("data/metadata/boundaries/global/mumbai.boundary-gate.json"),
+        "analysisCrs": "EPSG:32643",
+    },
+    "delhi": {
+        "boundary": Path("data/validated/boundaries/global/delhi.geojson"),
+        "provenance": Path("data/metadata/boundaries/global/delhi.provenance.json"),
+        "gate": Path("data/metadata/boundaries/global/delhi.boundary-gate.json"),
+        "analysisCrs": "EPSG:32643",
+    },
+    "chennai": {
+        "boundary": Path("data/validated/boundaries/global/chennai.geojson"),
+        "provenance": Path("data/metadata/boundaries/global/chennai.provenance.json"),
+        "gate": Path("data/metadata/boundaries/global/chennai.boundary-gate.json"),
+        "analysisCrs": "EPSG:32644",
+    },
+    "bhopal": {
+        "boundary": Path("data/validated/boundaries/global/bhopal.geojson"),
+        "provenance": Path("data/metadata/boundaries/global/bhopal.provenance.json"),
+        "gate": Path("data/metadata/boundaries/global/bhopal.boundary-gate.json"),
+        "analysisCrs": "EPSG:32643",
+    },
+    "new-york": {
+        "boundary": Path("data/validated/boundaries/global/new-york.geojson"),
+        "provenance": Path("data/metadata/boundaries/global/new-york.provenance.json"),
+        "gate": Path("data/metadata/boundaries/global/new-york.boundary-gate.json"),
+        "analysisCrs": "EPSG:32618",
+    },
+    "washington-dc": {
+        "boundary": Path("data/validated/boundaries/global/washington-dc.geojson"),
+        "provenance": Path("data/metadata/boundaries/global/washington-dc.provenance.json"),
+        "gate": Path("data/metadata/boundaries/global/washington-dc.boundary-gate.json"),
+        "analysisCrs": "EPSG:32618",
+    },
+    "tokyo": {
+        "boundary": Path("data/validated/boundaries/global/tokyo.geojson"),
+        "provenance": Path("data/metadata/boundaries/global/tokyo.provenance.json"),
+        "gate": Path("data/metadata/boundaries/global/tokyo.boundary-gate.json"),
+        "analysisCrs": "EPSG:32654",
+    },
+    "london": {
+        "boundary": Path("data/validated/boundaries/global/london.geojson"),
+        "provenance": Path("data/metadata/boundaries/global/london.provenance.json"),
+        "gate": Path("data/metadata/boundaries/global/london.boundary-gate.json"),
+        "analysisCrs": "EPSG:32630",
+    },
+    "cairo": {
+        "boundary": Path("data/validated/boundaries/global/cairo.geojson"),
+        "provenance": Path("data/metadata/boundaries/global/cairo.provenance.json"),
+        "gate": Path("data/metadata/boundaries/global/cairo.boundary-gate.json"),
+        "analysisCrs": "EPSG:32636",
+    },
+    "sydney": {
+        "boundary": Path("data/validated/boundaries/global/sydney.geojson"),
+        "provenance": Path("data/metadata/boundaries/global/sydney.provenance.json"),
+        "gate": Path("data/metadata/boundaries/global/sydney.boundary-gate.json"),
+        "analysisCrs": "EPSG:32756",
+    },
+    "rio-de-janeiro": {
+        "boundary": Path("data/validated/boundaries/global/rio-de-janeiro.geojson"),
+        "provenance": Path("data/metadata/boundaries/global/rio-de-janeiro.provenance.json"),
+        "gate": Path("data/metadata/boundaries/global/rio-de-janeiro.boundary-gate.json"),
+        "analysisCrs": "EPSG:32723",
+    },
+    "reykjavik": {
+        "boundary": Path("data/validated/boundaries/global/reykjavik.geojson"),
+        "provenance": Path("data/metadata/boundaries/global/reykjavik.provenance.json"),
+        "gate": Path("data/metadata/boundaries/global/reykjavik.boundary-gate.json"),
+        "analysisCrs": "EPSG:32627",
+    },
 }
 INDICATORS = {
     "surface-water": {

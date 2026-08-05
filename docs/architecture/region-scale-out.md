@@ -10,10 +10,10 @@ same as having evidence for more than one region.
 
 | Layer | Verified state | Constraint |
 |---|---|---|
-| Boundaries | The pinned geoBoundaries archive contains 735 ADM2 features (while its release metadata declares 736). Only Nagpur and Bengaluru Urban have passed SPARC's individual feature, geometry, CRS, state-location, provenance, and checksum gates. | Do not describe the full archive as 735 validated SPARC district boundaries. |
+| Boundaries | The pinned geoBoundaries archive contains 735 ADM2 features (while its release metadata declares 736). Nagpur, Bengaluru Urban, and Mumbai City have passed SPARC's individual feature, geometry, CRS, state-location, provenance, and checksum gates. | Do not describe the full archive as 735 validated SPARC district boundaries. |
 | Contract / API | `regionId` is opaque and the schemas can be extended without a regional special case. The current API intentionally allowlists synthetic fixtures only. | Immutable real-pack loading, unavailable-region records, and an attributable manifest are not implemented. |
 | Browser | The dashboard renders the regions supplied by its transport. DemoTransport also offers generated city fixtures, visibly marked synthetic; ApiTransport does not expose those generated fixtures. | This proves client flexibility, not real-data coverage. |
-| Processing evidence | Nagpur and Bengaluru Urban each have water, vegetation, and built pre-publication reports plus their documented sensitivity records. Neither has independent validation; Nagpur built-up remains method-blocked. | No district result is accepted for public deployment. |
+| Processing evidence | Nagpur, Bengaluru Urban, and Mumbai City each have water, vegetation, and built pre-publication reports plus their documented sensitivity records. None has independent validation; Nagpur built-up remains method-blocked. | No district result is presented as legally verified or ground-truth confirmed. |
 
 The scaling question is therefore: **how can a future screening tier add
 districts without weakening the existing method, licence, validation, or
@@ -95,8 +95,9 @@ real-data route.
 
 ## Browser evolution
 
-The current city picker and globe overlay are useful interaction work, but all
-generated city values are synthetic. A future national index may use a
+The current city picker and globe overlay are useful interaction work. The
+accepted Nagpur, Bengaluru Urban, and Mumbai City packs are immutable; any
+other generated city values are synthetic/fallback-only. A future national index may use a
 typeahead and a non-WebGL sortable table; neither should display a result until
 the corresponding immutable pack has passed the appropriate screening or
 validation gate.

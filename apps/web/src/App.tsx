@@ -275,12 +275,6 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
           {badge ? <ModeBanner badge={badge} warnings={warnings} /> : null}
           <button
             type="button" className="btn"
-            onClick={() => setReportOpen(true)}
-          >
-            Report concern
-          </button>
-          <button
-            type="button" className="btn"
             onClick={() => (panel
               ? setPanelNav({ stage: 'locate', route: { name: 'summary' } })
               : go('#/locate'))}
@@ -310,7 +304,7 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
               onUseOffline={() => setDataMode('demo')}
             />
           ) : (
-            <SummaryScreen summary={summary.value} onOpenIndicator={openIndicator} />
+            <SummaryScreen summary={summary.value} onOpenIndicator={openIndicator} onReport={() => setReportOpen(true)} />
           )
         ) : detail.status === 'loading' || detail.status === 'idle' ? (
           <LoadingView what="the indicator result" />

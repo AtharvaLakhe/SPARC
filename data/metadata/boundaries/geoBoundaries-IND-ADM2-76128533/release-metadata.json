@@ -87,6 +87,36 @@
         }
       },
       "sha256": "613c9f5da9e207d2acec5796488754abf0d2e48a6b341f5c0de25cbdc3ffa67a"
+    },
+    "mumbai-city": {
+      "displayName": "Mumbai City district",
+      "providerProperties": {
+        "shapeName": "Mumbai",
+        "shapeISO": "",
+        "shapeID": "76128533B16442413169750",
+        "shapeGroup": "IND",
+        "shapeType": "ADM2"
+      },
+      "validatedGeoJson": "data/validated/boundaries/geoBoundaries-IND-ADM2-76128533/mumbai-city.geojson",
+      "provenance": "data/metadata/boundaries/geoBoundaries-IND-ADM2-76128533/mumbai-city.provenance.json",
+      "boundaryGate": "data/metadata/boundaries/geoBoundaries-IND-ADM2-76128533/mumbai-city.boundary-gate.json",
+      "geometryType": "MultiPolygon",
+      "bbox": [
+        72.79167,
+        18.88684,
+        72.88584,
+        19.05543
+      ],
+      "crs": "EPSG:4326",
+      "stateValidation": {
+        "expectedState": "Maharashtra",
+        "providerStateName": "Mahārāshtra",
+        "representativePoint": {
+          "longitude": 72.8338038241462,
+          "latitude": 18.98076517780284
+        }
+      },
+      "sha256": "c49e599f12d917e2f38ac236207cbb0a75037b389b178641e25babf45ef93fa0"
     }
   }
 }

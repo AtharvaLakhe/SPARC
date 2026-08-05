@@ -16,11 +16,16 @@ class StaticRepositoryTests(unittest.TestCase):
         self.assertEqual({region["id"] for region in regions}, {
             "district:nagpur",
             "district:bengaluru-urban",
+            "district:mumbai-city",
         })
         built = repository.get_indicator("district:nagpur", "built-up")
         assert built is not None
         self.assertEqual(built["data"]["status"], "unavailable")
         self.assertIsNone(built["data"]["metric"]["absoluteChange"])
+        mumbai = repository.get_indicator("district:mumbai-city", "built-up")
+        assert mumbai is not None
+        self.assertEqual(mumbai["data"]["status"], "complete")
+        self.assertIsNotNone(mumbai["data"]["metric"]["absoluteChange"])
 
 
 if __name__ == "__main__":

@@ -6,8 +6,10 @@ import { useEffect, useId, useState } from 'react';
 import release from '@boundaries/release-metadata.json';
 import nagpurProvenance from '@boundaries/nagpur.provenance.json';
 import bengaluruProvenance from '@boundaries/bengaluru-urban.provenance.json';
+import mumbaiCityProvenance from '@boundaries/mumbai-city.provenance.json';
 import nagpurGeometryRaw from '@validated/nagpur.geojson?raw';
 import bengaluruGeometryRaw from '@validated/bengaluru-urban.geojson?raw';
+import mumbaiCityGeometryRaw from '@validated/mumbai-city.geojson?raw';
 import { config } from '../config';
 import type { SummaryView } from '../viewmodel/mapper';
 import {
@@ -76,6 +78,7 @@ async function digestBytes(value: ArrayBuffer): Promise<string> {
 
 const nagpurGeometry = JSON.parse(nagpurGeometryRaw) as Record<string, unknown>;
 const bengaluruGeometry = JSON.parse(bengaluruGeometryRaw) as Record<string, unknown>;
+const mumbaiCityGeometry = JSON.parse(mumbaiCityGeometryRaw) as Record<string, unknown>;
 
 export function ReportConcern({ open, onClose, regionName, regionId, analysisSnapshot, coordinates, catalogEntry }: ReportConcernProps) {
   const [step, setStep] = useState<Step>('concern');
@@ -134,15 +137,16 @@ export function ReportConcern({ open, onClose, regionName, regionId, analysisSna
     : AUTHORITIES;
   const selectedAuthority = availableAuthorities.find((item) => item.id === authority) ?? availableAuthorities[0];
   const validatedBengaluru = city?.slug === 'bengaluru';
+  const validatedMumbaiCity = city?.regionId === 'district:mumbai-city';
   const boundary = city?.boundary.kind === 'catalog-envelope'
     ? city.boundary
     : {
-      ...(validatedBengaluru ? bengaluruProvenance : nagpurProvenance),
-      sha256: city?.boundary.sha256 ?? `sha256:${validatedBengaluru ? release.districts['bengaluru-urban'].sha256 : release.districts.nagpur.sha256}`,
+      ...(validatedMumbaiCity ? mumbaiCityProvenance : validatedBengaluru ? bengaluruProvenance : nagpurProvenance),
+      sha256: city?.boundary.sha256 ?? `sha256:${validatedMumbaiCity ? release.districts['mumbai-city'].sha256 : validatedBengaluru ? release.districts['bengaluru-urban'].sha256 : release.districts.nagpur.sha256}`,
     };
   const geometry = city?.boundary.kind === 'catalog-envelope'
     ? catalogEnvelopeGeometry(city)
-    : validatedBengaluru ? bengaluruGeometry : nagpurGeometry;
+    : validatedMumbaiCity ? mumbaiCityGeometry : validatedBengaluru ? bengaluruGeometry : nagpurGeometry;
   const analysis = analysisSnapshot?.indicators ?? [];
   const primaryIndicator = analysis.find((item) => (
     concerns.includes('WATER_BODY_SHRINKAGE') && item.id === 'surface-water'

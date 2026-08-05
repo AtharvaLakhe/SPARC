@@ -1,8 +1,8 @@
 # SPARC indicator methodology
 
-**Status:** implementation-ready specification; all documented Nagpur and Bengaluru Urban P0 sensitivity exports are imported, but all outputs remain pre-publication and `quality: unknown`
+**Status:** implementation-ready specification; all documented Nagpur, Bengaluru Urban, and Mumbai City P0 sensitivity exports are imported, but all outputs remain pre-publication and `quality: unknown`
 **Evidence cut-off:** 2026-08-03
-**Primary pilot:** Nagpur district  
+**Primary pilot:** Nagpur district; Mumbai City is the additional validated Maharashtra district pack
 **P0 optical periods:** 2019-10-15 through 2019-12-15 and 2024-10-15 through 2024-12-15, both endpoints inclusive  
 **P1 heat periods:** 2019-03-01 through 2019-05-15 and 2024-03-01 through 2024-05-15, both endpoints inclusive
 
@@ -30,7 +30,7 @@ The surface-temperature distinction is a documented physical distinction, not wo
 
 ### Shared processing rules
 
-1. **DECISION — boundary:** use the separately validated one-feature geoBoundaries India ADM2 GeoJSON for each district. Nagpur is `76128533B3026318797185`; the backup source feature is legacy `Bangalore` / `76128533B76927648517269`, displayed as Bengaluru Urban. The raw archive, validated geometry, and provenance are separate artifacts and their SHA-256 values are checked before processing. This boundary is suitable for prototype analysis but is not an authoritative legal or cadastral boundary. ([GBOPEN-IND-ADM2](research/source-register.md#gbopen-ind-adm2), [GBOPEN-IND-ADM1](research/source-register.md#gbopen-ind-adm1))
+1. **DECISION — boundary:** use the separately validated one-feature geoBoundaries India ADM2 GeoJSON for each district. Nagpur is `76128533B3026318797185`; the backup source feature is legacy `Bangalore` / `76128533B76927648517269`, displayed as Bengaluru Urban; Mumbai City is `shapeName=Mumbai` / `76128533B16442413169750`. The raw archive, validated geometry, and provenance are separate artifacts and their SHA-256 values are checked before processing. This boundary is suitable for prototype analysis but is not an authoritative legal or cadastral boundary. ([GBOPEN-IND-ADM2](research/source-register.md#gbopen-ind-adm2), [GBOPEN-IND-ADM1](research/source-register.md#gbopen-ind-adm1))
 2. **DECISION — primary data path:** use Google Earth Engine `COPERNICUS/S2_SR_HARMONIZED` for offline Sentinel-2 L2A discovery and processing. Direct CDSE STAC remains the fallback. Earth Engine access is worker-only; the released demo requires no provider connection. ([GEE-S2-SR](research/source-register.md#gee-s2-sr), [CDSE-STAC](research/source-register.md#cdse-stac))
 3. **DECISION — same season:** use the fixed periods above. Do not replace missing dates with another season without issuing a new methodology version.
 4. **RECOMMENDATION — product level:** use Sentinel-2 Level-2A surface reflectance, not Level-1C top-of-atmosphere reflectance. The Level-2A structure and bands are defined by the current product specification. ([S2-PSD](research/source-register.md#s2-psd))

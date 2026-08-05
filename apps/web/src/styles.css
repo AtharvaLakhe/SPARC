@@ -191,6 +191,8 @@ body {
 .fallback-city__facts dd { margin: 0; font-size: 0.8rem; overflow-wrap: anywhere; }
 .fallback-city__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-top: 1.3rem; }
 .fallback-city__note { flex: 1 1 20rem; margin: 0; color: var(--dim); font-size: 0.8rem; }
+.report-launch { margin-top: 1.25rem; }
+.report-launch .btn { margin-top: 0.25rem; }
 .panel {
   margin: 1.25rem 0;
   padding: 1.1rem 1.2rem;

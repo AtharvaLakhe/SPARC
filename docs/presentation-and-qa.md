@@ -17,7 +17,7 @@
 
 - The React/Vite dashboard and FastAPI contract service exist for the bounded offline path.
 - Earth Engine processing outputs and validated district boundary packages exist locally.
-- A Nagpur and Bengaluru precomputed pack exists; Nagpur built-up remains unavailable because its methods reverse direction.
+- Nagpur, Bengaluru Urban, and Mumbai City precomputed packs exist; Nagpur built-up remains unavailable because its methods reverse direction.
 - No business demand, customer, revenue, cloud deployment or 3D asset compatibility has been validated.
 
 Formal academic validation is deferred for the hackathon track. The presentation must not invent accuracy, ground truth, legal verification, responsibility or causation.
@@ -151,7 +151,7 @@ A: P0 has no runtime database. It serves immutable JSON/GeoJSON/images/small til
 A: The judged path is precomputed and shows its generation time. A future API may return an immutable cache hit or `202` for bounded work. We prefer an honest, reliable mode label over a fragile “live” claim.
 
 **Q: What happens without internet?**  
-A: The primary local HTTP bundle contains application assets plus versioned Nagpur and Bengaluru data. It requires no provider, public basemap, runtime CDN, database or FastAPI. This must be proven by a cold-start network-disabled test.
+A: The primary local HTTP bundle contains application assets plus versioned Nagpur, Bengaluru, and Mumbai City data. It requires no provider, public basemap, runtime CDN, database or FastAPI. This must be proven by a cold-start network-disabled test.
 
 **Q: What if WebGL or a layer fails?**  
 A: The client displays a reviewed static image plus legend, metric, table, interpretation and provenance. One visualization cannot crash or erase the result.

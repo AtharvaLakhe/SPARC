@@ -43,6 +43,12 @@ SELECTIONS = {
         "state": "Karnataka",
         "nameNote": "The provider uses the legacy label 'Bangalore'; it is selected separately from 'Bangalore Rural'.",
     },
+    "mumbai-city": {
+        "displayName": "Mumbai City district",
+        "providerName": "Mumbai",
+        "shapeId": "76128533B16442413169750",
+        "state": "Maharashtra",
+    },
 }
 WGS84_MARKERS = ('GEOGCS["WGS84"', 'DATUM["WGS_1984"', 'UNIT["degree"')
 PROTOTYPE_DISCLAIMER = (

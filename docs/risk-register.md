@@ -93,7 +93,7 @@ This table makes every fallback requested for the prototype explicit. A later co
 | Tile server/layer failure | Retry the allowlisted local descriptor/asset once | Use packaged image/GeoJSON instead of dynamic tiles | Load the immutable layer from the demo pack | Keep metric, legend, attribution, provenance, accessible table, and reviewed static image |
 | Backend deployment failure | Run the verified loopback API candidate | Switch visibly to DemoTransport | Serve identical immutable contract payloads | Static local web bundle; cloud backend is not required |
 | Frontend deployment failure | Serve the verified build over local HTTP | Use the preserved candidate on the backup device | Load the same local app/data pair | Reviewed static evidence screens are last-resort presentation evidence, disclosed as such |
-| Internet failure | Continue the already started local-HTTP journey | Select the local DemoTransport explicitly | Nagpur and Bengaluru packs contain critical JSON/layers/fonts | Static image/table path; no remote basemap, CDN, font, provider, or 3D dependency |
+| Internet failure | Continue the already started local-HTTP journey | Select the local DemoTransport explicitly | Nagpur, Bengaluru, and Mumbai City packs contain critical JSON/layers/fonts | Static image/table path; no remote basemap, CDN, font, provider, or 3D dependency |
 | 3D asset incompatibility | Inspect actual format/extensions/textures before selecting a runtime | With user approval, use an inspected compatible export or still render only | Use an approved poster generated from user-supplied material only if rights permit | Neutral 2D placeholder; omit the showcase with no analytical effect |
 | WebGL failure | Isolate/recover the context without discarding result state | Disable interactive map and 3D | Packaged before/after image/GeoJSON representation | Accessible metrics, legend, table, provenance, and 2D poster |
 | Large 3D asset | Enforce transfer/GPU/performance gate and lazy loading | Use a user-approved inspected lower-detail/exported variant | Load no 3D payload on the analytical route | 2D poster/placeholder; never delay P0 for model optimization |
@@ -121,7 +121,7 @@ This table makes every fallback requested for the prototype explicit. A later co
 
 ### End of Day 2
 
-- [ ] Nagpur and Bengaluru packs pass schema/integrity checks or release scope is reduced.
+- [ ] Nagpur, Bengaluru, and Mumbai City packs pass schema/integrity checks or release scope is reduced.
 - [ ] Both transports map to the same view-model semantics.
 - [ ] All critical integration defects have one named owner.
 - [ ] The current integration candidate remains demo-runnable.

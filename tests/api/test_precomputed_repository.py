@@ -23,13 +23,23 @@ class PrecomputedRepositoryTests(unittest.TestCase):
             / "release-metadata.json",
         )
 
-    def test_catalogue_exposes_both_reviewed_district_packs(self) -> None:
+    def test_catalogue_exposes_reviewed_district_packs(self) -> None:
         regions = self.repository.list_regions("district", None)
         self.assertEqual([region["id"] for region in regions], [
             "district:bengaluru-urban",
+            "district:mumbai-city",
             "district:nagpur",
         ])
         self.assertEqual(regions[0]["bbox"], [77.32755, 12.65818, 77.82026, 13.23257])
+
+    def test_mumbai_city_uses_validated_pack_and_keeps_built_up_result(self) -> None:
+        summary = self.repository.get_summary("district:mumbai-city")
+        detail = self.repository.get_indicator("district:mumbai-city", "built-up")
+        assert summary is not None and detail is not None
+        self.assertEqual(summary["data"]["region"]["name"], "Mumbai City district")
+        self.assertEqual(detail["data"]["status"], "complete")
+        self.assertIsNotNone(detail["data"]["metric"]["absoluteChange"])
+        self.assertEqual(detail["data"]["provenance"]["analysisCrs"], "EPSG:32643")
 
     def test_bengaluru_uses_its_own_frozen_period(self) -> None:
         summary = self.repository.get_summary("district:bengaluru-urban")

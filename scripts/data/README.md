@@ -7,7 +7,10 @@ $env:EARTH_ENGINE_PROJECT='your-google-cloud-project-id'
 python -m scripts.data.discover_earth_engine --pilot all
 ```
 
-The command queries `COPERNICUS/S2_SR_HARMONIZED` for the fixed Nagpur and Bengaluru Urban windows and writes sanitized reports to `data/raw/earth-engine-discovery/`. That directory is ignored by Git. Authenticate locally first with `earthengine authenticate`.
+The command queries `COPERNICUS/S2_SR_HARMONIZED` for the fixed quick-target
+windows in `scripts/data/discover_catalog.py` and writes sanitized reports to
+`data/raw/earth-engine-discovery/`. That directory is ignored by Git.
+Authenticate locally first with `earthengine authenticate`.
 
 The configured bounding boxes are government-published search envelopes, not approved analytical district polygons. Do not use them for clipping, area calculation, common-valid coverage, or public map boundaries.
 
@@ -27,7 +30,12 @@ The provenance JSON must provide `sourceName`, an `https` `sourceUrl`, `version`
 
 ## P0 pre-publication processing
 
-After the pinned geoBoundaries extraction and boundary gate have passed, calculate local pre-publication summaries without exporting to Google Drive or exposing a live API route:
+After the pinned geoBoundaries extraction and boundary gate have passed,
+calculate local pre-publication summaries without exporting to Google Drive or
+exposing a live API route. The accepted region keys include `nagpur`,
+`bengaluru-urban`, and `mumbai-city`; the twelve expansion keys and their
+boundary records are listed in
+[`data/catalog/city-boundary-sources.json`](../../data/catalog/city-boundary-sources.json):
 
 ```powershell
 $env:EARTH_ENGINE_PROJECT='your-google-cloud-project-id'
@@ -36,6 +44,14 @@ python -m scripts.data.process_earth_engine_p0 --region all
 ```
 
 The worker uses `COPERNICUS/S2_SR_HARMONIZED`, allows SCL classes 4/5/6 only, requires two clear observations per period, calculates indices per observation before taking a median, and compares only the common-valid footprint. Results go to ignored `data/processed/earth-engine-p0/` and are explicitly pre-publication until threshold sensitivity and independent validation complete.
+
+The 12-city expansion batch requests prepared on 2026-08-05 are recorded in
+[`data/metadata/earth-engine-p0-expansion-run.json`](../../data/metadata/earth-engine-p0-expansion-run.json).
+That manifest is `REQUESTS_PREPARED`: no Drive task was started, no result CSV
+was imported, and no contract pack was built. The configured Earth Engine
+project reported that its noncommercial compute quota is in restricted mode;
+start exports only after the project owner confirms quota and an approved
+Drive destination.
 
 ### Interactive timeout: controlled batch export
 
@@ -215,5 +231,10 @@ python -m scripts.data.build_prepublication_result_pack `
   --report data\processed\earth-engine-p0\nagpur-built-up.json `
   --output data\processed\prepublication-packs\nagpur-p0-v1.json
 ```
+
+For Mumbai City, use the same pack gate with the three reports under
+`data\processed\earth-engine-p0\mumbai-city-*.json` and output
+`mumbai-city-p0-v2.json`. The published contract examples are then rebuilt with
+`python -m scripts.data.build_contract_pack_examples`.
 
 The output remains Git-ignored and uses [`prepublication-result-pack.schema.json`](../../packages/contracts/schemas/prepublication-result-pack.schema.json). It is an offline evidence and integration boundary, not an HTTP response and not a deployable result. The current FastAPI service must remain in `SPARC_DATA_MODE=demo` until a separately reviewed mapping and disclosure path exists.

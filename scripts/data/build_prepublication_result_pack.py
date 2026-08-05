@@ -24,11 +24,34 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 SCHEMA_PATH = REPO_ROOT / "packages" / "contracts" / "schemas" / "prepublication-result-pack.schema.json"
 MAX_REPORT_BYTES = 2 * 1024 * 1024
 P0_INDICATORS = ("surface-water", "vegetation", "built-up")
+LEGACY_BOUNDARY_METADATA = REPO_ROOT / "data" / "metadata" / "boundaries" / "geoBoundaries-IND-ADM2-76128533" / "release-metadata.json"
+GLOBAL_BOUNDARY_METADATA = REPO_ROOT / "data" / "metadata" / "boundaries" / "global" / "release-metadata.json"
 BOUNDARY_DISCLAIMER = "This boundary is suitable for prototype analysis but is not an authoritative legal or cadastral boundary."
 SENSITIVITY_DISCLAIMER = "Sensitivity evidence does not calibrate or replace the default green-cover proxy."
 PROXY_SENSITIVITY_DISCLAIMER = "Sensitivity evidence does not calibrate or replace the default district proxy."
 SENSITIVE_KEY = re.compile(r"(?:api[_-]?key|authorization|bearer|cookie|password|secret|token|signed[_-]?url)", re.IGNORECASE)
 DATE_TIME = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,6})?Z$")
+
+
+def _approved_boundary_checksums() -> dict[str, str]:
+    """Return the immutable boundary checksums accepted by the pack gate."""
+
+    checksums: dict[str, str] = {}
+    try:
+        legacy = json.loads(LEGACY_BOUNDARY_METADATA.read_text(encoding="utf-8"))
+        for key, record in legacy.get("districts", {}).items():
+            if isinstance(record, dict) and isinstance(record.get("sha256"), str):
+                checksums[key] = record["sha256"]
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError("Could not read the pinned India boundary release metadata") from exc
+    try:
+        global_release = json.loads(GLOBAL_BOUNDARY_METADATA.read_text(encoding="utf-8"))
+        for key, record in global_release.get("cities", {}).items():
+            if isinstance(record, dict) and isinstance(record.get("boundarySha256"), str):
+                checksums[key] = record["boundarySha256"]
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError("Could not read the pinned global boundary release metadata") from exc
+    return checksums
 
 
 def _sha256_bytes(value: bytes) -> str:
@@ -274,8 +297,12 @@ def _normalise_report(report: dict[str, Any], path: Path, digest: str) -> tuple[
         "name": _require_string(region.get("name"), "region.name", maximum=120),
         "boundarySha256": _require_string(region.get("boundarySha256"), "region.boundarySha256", maximum=64),
     }
-    if normalized_region["key"] not in ("nagpur", "bengaluru-urban") or not re.fullmatch(r"[a-f0-9]{64}", normalized_region["boundarySha256"]):
-        raise ValueError(f"Report region is not an approved district identity: {path}")
+    approved_boundaries = _approved_boundary_checksums()
+    expected_boundary = approved_boundaries.get(normalized_region["key"])
+    if expected_boundary is None or not re.fullmatch(r"[a-f0-9]{64}", normalized_region["boundarySha256"]):
+        raise ValueError(f"Report region is not an approved city identity: {path}")
+    if normalized_region["boundarySha256"] != expected_boundary:
+        raise ValueError(f"Report boundary checksum is not the pinned checksum for {normalized_region['key']}: {path}")
     source = _require_dict(report.get("source"), "source")
     if source.get("provider") != "Google Earth Engine" or source.get("collection") != "COPERNICUS/S2_SR_HARMONIZED":
         raise ValueError(f"Report does not use the approved Earth Engine Sentinel-2 collection: {path}")

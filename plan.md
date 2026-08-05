@@ -22,7 +22,8 @@ SPARC addresses an access and interpretation problem: satellite data exists, but
 
 ### P0 — required prototype
 
-- Nagpur district plus Bengaluru Urban backup.
+- Nagpur district plus Bengaluru Urban backup and Mumbai City district as the
+  additional validated Maharashtra scope.
 - Same-season before/after comparisons using explicit composite windows.
 - Satellite-derived open-surface-water-area proxy.
 - NDVI activity and green-cover proxy.
@@ -60,7 +61,7 @@ hackathon work. Do not spend additional time on preregistration, blinded
 sampling, independent manual labels, academic validation studies, or
 publication-level accuracy metrics. The release track instead prioritizes:
 
-1. Stable precomputed Nagpur and Bengaluru outputs through the frozen contract;
+1. Stable precomputed Nagpur, Bengaluru Urban, and Mumbai City outputs through the frozen contract;
    the API adapter is available with `SPARC_DATA_MODE=precomputed`, while the
    offline browser bundle still needs the approved packaged response assets.
 2. Neutral dashboard terminology: “Satellite-derived estimate”, “Estimated
@@ -82,17 +83,23 @@ environmental estimates.”
 
 The quick-target catalog is now a versioned, validated-gated record for Nagpur,
 Bengaluru, Mumbai, Delhi, Chennai, Bhopal, New York, Washington DC, Tokyo,
-London, Cairo, Sydney, and Reykjavik. Nagpur and Bengaluru are bound to the
-accepted geoBoundaries ADM2 geometry and precomputed contract manifest. The
-remaining entries have explicit centroid/bbox envelopes, checksum metadata,
-and jurisdiction-pack references, but are `REPORT_GENERATION_ONLY` until a
-separate boundary and Earth Engine processing gate passes. Unsupported-country
-entries use `UNSUPPORTED_JURISDICTION` routing and export-only behavior.
+London, Cairo, Sydney, Rio de Janeiro, and Reykjavik. Nagpur, Bengaluru Urban,
+and Mumbai City are bound to the accepted geoBoundaries ADM2 geometry and
+precomputed contract manifest. The remaining entries have explicit
+centroid/bbox catalog scope, checksum metadata, and jurisdiction-pack
+references. The expansion boundary registry now contains separately pinned and
+gate-validated polygons for Delhi, Chennai, Bhopal, New York City, Washington
+DC, Tokyo, Greater London, Cairo, Sydney, Rio de Janeiro, and Reykjavik, plus a
+Mumbai City + Mumbai Suburban city scope. Those entries remain
+`REPORT_GENERATION_ONLY` until authenticated Earth Engine processing and the
+contract-pack checksum gate complete. Unsupported-country entries use
+`UNSUPPORTED_JURISDICTION` routing and export-only behavior.
 
 The catalog validator (`\.venv\Scripts\python.exe
 scripts/validate_city_catalog.py`) is a release gate. It verifies the country
 codes, unique IDs, coordinate envelopes, boundary checksums, validated geometry
-assets, processing-pack checksums, contract bindings, and fallback-state rules.
+assets, global boundary-registry gates, processing-pack checksums, contract
+bindings, and fallback-state rules.
 The frontend and build-free Orbit launcher consume the same city set. No
 fabricated numeric satellite values are added for cities without a validated
 pack; their report workflow uses null/`NOT_RUN` evidence and still creates the
@@ -100,12 +107,20 @@ SPARC PDF/evidence ZIP where the reporting contract permits it.
 
 Remaining work for this expansion:
 
+- [ ] **D1-DATA-EXPANSION — Start and import the guarded Earth Engine batch requests**
+  - Owner: Codex / project owner for Earth Engine quota and Drive export approval
+  - Priority: P0 for city-level analytical coverage
+  - Progress 2026-08-05: All twelve boundaries passed the selection and boundary gates. Twelve batch-export requests were prepared and checksummed under `data/processed/earth-engine-p0/`; no external Drive task was started. The configured project reported noncommercial quota restricted mode.
+  - Expected output: one imported three-indicator report per city, boundary-bound checksums, prepublication packs, and regenerated contract examples/manifest
+  - Acceptance condition: each imported report validates against its request, exact boundary checksum, fixed periods, Sentinel-2 collection, and the existing claim-safety gates
+  - Blocker: project quota must be restored and a user-approved Drive destination must be supplied before `--start-batch-export`
+
 - [ ] Have Claude replace the temporary local catalog/picker presentation with
   registry-driven authority and accessibility components.
 - [ ] Research and validate an external boundary and provenance record for each
-  city before promoting it beyond report/export scope.
+  remaining city before promoting it beyond report/export scope.
 - [ ] Produce and checksum an Earth Engine processing pack plus contract
-  examples before setting any city to `FULLY_SUPPORTED` analytical coverage.
+  examples before setting each remaining city to `FULLY_SUPPORTED` analytical coverage.
 - [ ] Complete offline/browser acceptance checks for every quick target and the
   manual handoff/export-only branches.
 
@@ -115,12 +130,14 @@ Remaining work for this expansion:
 |---|---|---|---|
 | Nagpur | Recognizable central-India district; water, agriculture/green cover, forest context, urban growth, and heat narrative; 14 tahsils | 9,892 km² increases processing and validation load | Primary; precompute and verify catalog coverage |
 | Bengaluru Urban | Compact, five taluks, strong urban/green/water story | Small water bodies and cloud/season matching require care | Backup |
+| Mumbai City | Compact coastal district; post-monsoon water, vegetation, and built-up comparisons | Dense urban fabric, coastal/cloud effects, and district-only boundary scope | Validated additional Maharashtra pack |
 | Gurugram | Compact; clear urban and heat relevance; four blocks | Bare-soil confusion and weaker water narrative | Candidate expansion |
 | Pune | Strong reservoirs, vegetation gradient, urban growth, and heat | Very large and multi-tile; high P0 processing cost | Candidate expansion |
 
 - Nagpur P0 windows: 2019-10-15–2019-12-15 versus 2024-10-15–2024-12-15.
 - Nagpur P1 LST windows: 2019-03-01–2019-05-15 versus 2024-03-01–2024-05-15.
 - Bengaluru Urban backup windows: 2019-01-15–2019-03-15 versus the same dates in 2024. The district-boundary, catalog, cloud/common-valid-area, and license gates passed on 2026-08-03; any later period change requires a new documented method/version.
+- Mumbai City windows: 2019-10-15–2019-12-15 versus 2024-10-15–2024-12-15. The pinned Mumbai City ADM2 boundary, catalog, common-valid-area, source, and checksum gates passed on 2026-08-05; any later period change requires a new documented method/version.
 - Catalog metadata, common-valid coverage, and same-season suitability are Day 0 gates. Any expansion is symmetric across years and recorded; the demo never switches dates silently.
 
 ## Indicator Decisions
@@ -222,10 +239,10 @@ Research/license gates
   - Owner: Codex
   - Priority: P0
   - Dependency: None
-  - Expected output: Metadata-only catalog inventory for Nagpur/backup, boundary version/license record, and attribution text
-  - Acceptance condition: Both regions have documented identifiers, candidate scenes/windows, boundary source, redistribution basis, and fallback
+  - Expected output: Metadata-only catalog inventory for Nagpur, Bengaluru Urban, and Mumbai City, boundary version/license records, and attribution text
+  - Acceptance condition: All three validated regions have documented identifiers, candidate scenes/windows, boundary source, redistribution basis, and fallback
   - Fallback: Use the next approved catalog/boundary source or retain only licensed precomputed artifacts
-  - Progress 2026-08-03: Passed for district AOIs. The pinned geoBoundaries India ADM2 archive, feature IDs/names, WGS84 CRS, state containment, polygon geometry, provenance, and SHA-256 values were validated for Nagpur and the Bengaluru Urban backup. The source-specific metadata is ODbL 1.0, so any commit, distribution, or deployment must preserve its attribution and applicable share-alike obligations. No Survey of India geometry was acquired or used. See `docs/research/pilot-source-gate.md`.
+  - Progress 2026-08-05: Passed for the three district AOIs. The pinned geoBoundaries India ADM2 archive, feature IDs/names, WGS84 CRS, state containment, polygon geometry, provenance, and SHA-256 values were validated for Nagpur, the Bengaluru Urban backup, and Mumbai City (`shapeName=Mumbai`, `shapeID=76128533B16442413169750`). The source-specific metadata is ODbL 1.0, so any commit, distribution, or deployment must preserve its attribution and applicable share-alike obligations. No Survey of India geometry was acquired or used. See `docs/research/pilot-source-gate.md`.
 
 - [ ] **D0-S-002 — Freeze P0 scope, terminology, and methodology**
   - Owner: Shared
@@ -267,10 +284,10 @@ Research/license gates
   - Owner: Codex
   - Priority: P0
   - Dependency: D0-C-001, D0-S-002
-  - Expected output: Pinned environment, validated Nagpur grid/boundaries, common-valid composites, and provenance manifest
+  - Expected output: Pinned environment, validated Nagpur/Bengaluru Urban/Mumbai City grids and boundaries, common-valid composites, and provenance manifests
   - Acceptance condition: A clean run reproduces checksums and records scenes, masks, CRS, parameters, and valid coverage
   - Fallback: Use the approved preselected scenes and locally retained inputs
-  - Progress 2026-08-03: `scripts.data.extract_geoboundaries_adm2` produces separate raw-source, validated GeoJSON, and metadata/gate artifacts. `scripts.data.process_earth_engine_p0` checks the gate/hash before Earth Engine processing. Nagpur water and built-candidate computations completed on the validated polygon. The 10 m vegetation computation exceeded the interactive-worker timeout, then completed through a guarded full-resolution Google Earth Engine CSV batch export to the approved Drive folder; its local importer verified the approved boundary checksum, CRS, method settings, coverage, and area arithmetic. Method and scale remain unchanged.
+  - Progress 2026-08-05: `scripts.data.extract_geoboundaries_adm2` produces separate raw-source, validated GeoJSON, and metadata/gate artifacts. `scripts.data.process_earth_engine_p0` checks the gate/hash before Earth Engine processing. Nagpur, Bengaluru Urban, and Mumbai City water, vegetation, and built-up computations completed on their validated polygons. Mumbai City’s 10 m vegetation computation used the guarded full-resolution Google Earth Engine CSV batch path; its importer verified the approved boundary checksum, CRS, method settings, coverage, and area arithmetic. Method and scale remain unchanged.
 
 - [x] **D1-C-002 — Produce representative water, vegetation, and built-up outputs**
   - Owner: Codex
@@ -315,10 +332,10 @@ Research/license gates
   - Owner: Codex
   - Priority: P0
   - Dependency: D1-C-001, D1-C-002
-  - Expected output: Nagpur district/tahsil results, Bengaluru backup, layers, quality, provenance, manifests, and checksums
+  - Expected output: Nagpur district/tahsil results plus Bengaluru Urban and Mumbai City district results, layers, quality, provenance, manifests, and checksums
   - Acceptance condition: Primary and backup payloads validate and all referenced local assets resolve
   - Fallback: Preserve the district and whichever Nagpur subdistrict passes the gate; otherwise mark child results unavailable and keep the district-level backup
-  - Progress 2026-08-03: Schema-checked, non-overwritable local Nagpur pre-publication packs were generated from the three validated report files. The v2 pack retains report checksums, water/vegetation/built sensitivity records, `quality: unknown`, the boundary disclaimer, and `NOT_COMPLETED` independent validation. A separate Bengaluru Urban v2 pack now includes importer-validated water, vegetation, and built reports plus completed pooled-Otsu, 0.20/0.30/0.40 vegetation, and built-IBI sensitivity records. Its validation record is correctly `NOT_APPLICABLE` for the Nagpur-only vegetation label frame; a separate Bengaluru probability design and all independent validation remain open. The Nagpur built sensitivity reversal is an explicit method blocker; both packs are offline evidence only, not connected to the mock-only API.
+  - Progress 2026-08-05: Schema-checked, non-overwritable local pre-publication packs exist for Nagpur, Bengaluru Urban, and Mumbai City. Each retains report checksums, water/vegetation/built sensitivity records, `quality: unknown`, the boundary disclaimer, and `NOT_COMPLETED` independent validation. Mumbai City’s default and built-IBI sensitivity results agree in direction, so its built estimate is available with the same quality limitations; the Nagpur built sensitivity reversal remains blocked. All three packs are offline evidence only and are now connected to the precomputed API/browser contract.
 
 - [ ] **D2-C-002 — Complete comparison and contract behavior**
   - Owner: Codex
@@ -335,7 +352,7 @@ Research/license gates
   - Expected output: Before/after layers, district summary, indicator charts, tahsil drill-down, quality/provenance, and interpretations
   - Acceptance condition: A user can complete the exact demo journey without knowing remote-sensing terminology
   - Fallback: Use static overlay images and accessible tables rather than live tiles
-  - Progress 2026-08-05: The dashboard now consumes generated Nagpur and Bengaluru Urban contract examples from the reviewed Earth Engine packs, and the API serves the same responses with `SPARC_DATA_MODE=precomputed`. The Nagpur built-up conflict remains unavailable. This item remains open for pack review/commit, approved layer/static assets, and a permitted child-region result; no real-time/national coverage is implied.
+  - Progress 2026-08-05: The dashboard now consumes generated Nagpur, Bengaluru Urban, and Mumbai City contract examples from the reviewed Earth Engine packs, and the API serves the same responses with `SPARC_DATA_MODE=precomputed`. The Nagpur built-up conflict remains unavailable. This item remains open for pack review/commit, approved layer/static assets, and a permitted child-region result; no real-time/national coverage is implied.
 
 - [ ] **D2-S-004 — Perform first full integration**
   - Owner: Shared

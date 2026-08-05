@@ -1,0 +1,76 @@
+{
+  "manifestVersion": "1",
+  "runId": "sparc-expansion-p0-2026-08-05",
+  "status": "REQUESTS_PREPARED",
+  "provider": "Google Earth Engine",
+  "project": "orbitwatch-503717",
+  "collection": "COPERNICUS/S2_SR_HARMONIZED",
+  "processingMethod": "scripts.data.process_earth_engine_p0; p0-v1; Sentinel-2 surface-water, vegetation, and constrained built-up indicators",
+  "boundaryRegistry": "data/metadata/boundaries/global/release-metadata.json",
+  "disclaimer": "This boundary is suitable for prototype analysis but is not an authoritative legal or cadastral boundary.",
+  "externalTaskState": "No Drive export was started by this run. Earth Engine reported that the project has exceeded its noncommercial compute quota and is in restricted mode.",
+  "resultsImported": false,
+  "contractPackBuilt": false,
+  "cities": {
+    "mumbai": {
+      "request": "data/processed/earth-engine-p0/sparc_mumbai_surface-water_vegetation_built-up_p0_v1.batch-request.json",
+      "sha256": "sha256:4a4e0b6429e7b899bc28f170790fbef54aa8b97947125a91150f00df20653b62",
+      "bytes": 25149
+    },
+    "delhi": {
+      "request": "data/processed/earth-engine-p0/sparc_delhi_surface-water_vegetation_built-up_p0_v1.batch-request.json",
+      "sha256": "sha256:c388050770d9187f4ff30469b67329ac7bb714464c8aa453f9d389426855d163",
+      "bytes": 25319
+    },
+    "chennai": {
+      "request": "data/processed/earth-engine-p0/sparc_chennai_surface-water_vegetation_built-up_p0_v1.batch-request.json",
+      "sha256": "sha256:0c1dd283ad38fabc34e24e4f4d22b6599a8492f7dadcc5be1b81704b6d59b593",
+      "bytes": 7154
+    },
+    "bhopal": {
+      "request": "data/processed/earth-engine-p0/sparc_bhopal_surface-water_vegetation_built-up_p0_v1.batch-request.json",
+      "sha256": "sha256:a07e20175c6b6d05be33236bd24b0d06a8f01724df1ef012699074ad18aebb61",
+      "bytes": 13812
+    },
+    "new-york": {
+      "request": "data/processed/earth-engine-p0/sparc_new-york_surface-water_vegetation_built-up_p0_v1.batch-request.json",
+      "sha256": "sha256:1ccb2cc9438f375f777f0831a47ac0d63bb133ce9ea86f06ea643062c570a9bd",
+      "bytes": 47484
+    },
+    "washington-dc": {
+      "request": "data/processed/earth-engine-p0/sparc_washington-dc_surface-water_vegetation_built-up_p0_v1.batch-request.json",
+      "sha256": "sha256:80d055b8afcea05cc47e0c210da21b8519e142d4cbd19a216db2b35abf620de4",
+      "bytes": 24477
+    },
+    "tokyo": {
+      "request": "data/processed/earth-engine-p0/sparc_tokyo_surface-water_vegetation_built-up_p0_v1.batch-request.json",
+      "sha256": "sha256:d764d7c4c5793c57eb22b3dc74f3c23f4ad5d8f6b5ebdd0fc3c649c2c49a1072",
+      "bytes": 70521
+    },
+    "london": {
+      "request": "data/processed/earth-engine-p0/sparc_london_surface-water_vegetation_built-up_p0_v1.batch-request.json",
+      "sha256": "sha256:75c8b3e61e4cbc5c46ee91c3c3a000567797a8c5f010fc2fe4bd821a1a011cbc",
+      "bytes": 70625
+    },
+    "cairo": {
+      "request": "data/processed/earth-engine-p0/sparc_cairo_surface-water_vegetation_built-up_p0_v1.batch-request.json",
+      "sha256": "sha256:44e68585b984601ddc64b54f57d54633f2107cf14feb79736d8ae715e2206258",
+      "bytes": 13115
+    },
+    "sydney": {
+      "request": "data/processed/earth-engine-p0/sparc_sydney_surface-water_vegetation_built-up_p0_v1.batch-request.json",
+      "sha256": "sha256:7b6a3393a6da4008147741c006d0fa58560dc74cf84af75c75d5d091b8fbe730",
+      "bytes": 12713
+    },
+    "rio-de-janeiro": {
+      "request": "data/processed/earth-engine-p0/sparc_rio-de-janeiro_surface-water_vegetation_built-up_p0_v1.batch-request.json",
+      "sha256": "sha256:8df7074ffbd948a333be835254270f5b84b80450b0cd8d65d94b0beb23d0b224",
+      "bytes": 6946
+    },
+    "reykjavik": {
+      "request": "data/processed/earth-engine-p0/sparc_reykjavik_surface-water_vegetation_built-up_p0_v1.batch-request.json",
+      "sha256": "sha256:d0baeff692c133a51eb2ff2a6fb63788ad8603d05b9ef5d4c8c1af8c2dd7ad31",
+      "bytes": 24030
+    }
+  }
+}

@@ -15,7 +15,7 @@
       "additionalProperties": false,
       "required": ["key", "name", "boundarySha256"],
       "properties": {
-        "key": { "type": "string", "enum": ["nagpur", "bengaluru-urban"] },
+        "key": { "type": "string", "enum": ["nagpur", "bengaluru-urban", "mumbai-city"] },
         "name": { "type": "string", "minLength": 1, "maxLength": 120 },
         "boundarySha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
       }

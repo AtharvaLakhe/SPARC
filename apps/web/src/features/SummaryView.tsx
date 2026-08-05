@@ -137,12 +137,15 @@ function IndicatorCard({
 export function SummaryScreen({
   summary,
   onOpenIndicator,
+  onReport,
 }: {
   summary: SummaryVM;
   onOpenIndicator: (indicatorId: string) => void;
+  onReport: () => void;
 }) {
   const periodsId = useId();
   const indicatorsId = useId();
+  const reportId = useId();
 
   return (
     <>
@@ -170,6 +173,16 @@ export function SummaryScreen({
             <IndicatorCard key={card.id} card={card} onOpen={onOpenIndicator} />
           ))}
         </ul>
+      </section>
+
+      <section className="panel report-launch" aria-labelledby={reportId}>
+        <h2 id={reportId}>Report an environmental concern</h2>
+        <p className="panel__lede">
+          Create a neutral request for inspection using this analysis and your own observation.
+        </p>
+        <button type="button" className="btn btn--primary" onClick={onReport}>
+          Report environmental concern
+        </button>
       </section>
     </>
   );

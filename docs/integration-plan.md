@@ -1,6 +1,6 @@
 # Integration plan
 
-**Status:** Integration plan; the browser/API contract now includes a validated Nagpur/Bengaluru path plus a versioned global city catalog with explicit report/export fallbacks. See [delivery status](./project-status.md) and [supported-city catalog](./city-catalog.md).
+**Status:** Integration plan; the browser/API contract now includes validated Nagpur, Bengaluru Urban, and Mumbai City paths plus a versioned global city catalog with explicit report/export fallbacks. See [delivery status](./project-status.md) and [supported-city catalog](./city-catalog.md).
 **Integrators:** Codex and Claude alternate or nominate one owner each day  
 **Branch pattern:** `integration/day-N` from the current verified `main`  
 **Primary rule:** A daily checkpoint is merged only when the same frozen contract works through both the API and demo transports.
@@ -26,7 +26,7 @@ Every entry has a country code, administrative area, centroid/bbox, boundary
 definition, analytics coverage state, processing-pack status/checksums, and a
 jurisdiction-pack reference. Run
 `\.venv\Scripts\python.exe scripts/validate_city_catalog.py` before merging a
-catalog change. The validator binds the two validated entries to the existing
+catalog change. The validator binds the three validated entries to the existing
 geoBoundaries boundary files and precomputed contract manifest; it rejects a
 fallback entry that claims an ADM boundary or a processing pack.
 

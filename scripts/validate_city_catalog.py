@@ -20,7 +20,7 @@ from urllib.parse import urlparse
 
 EXPECTED_SLUGS = {
     "nagpur", "bengaluru", "mumbai", "delhi", "chennai", "bhopal",
-    "new-york", "washington-dc", "tokyo", "london", "cairo", "sydney", "reykjavik",
+    "new-york", "washington-dc", "tokyo", "london", "cairo", "sydney", "rio-de-janeiro", "reykjavik",
 }
 SHA256_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 COUNTRY_RE = re.compile(r"^[A-Z]{2}$")
@@ -71,7 +71,10 @@ def _validate_city(
     _require(west <= centroid[0] <= east and south <= centroid[1] <= north, f"{slug}: centroid is outside bbox")
 
     boundary = city["boundary"]
-    _require(boundary.get("kind") in {"validated-adm2", "catalog-envelope"}, f"{slug}: invalid boundary kind")
+    _require(
+        boundary.get("kind") in {"validated-adm2", "validated-adm1", "validated-city", "catalog-envelope"},
+        f"{slug}: invalid boundary kind",
+    )
     _require(boundary.get("status") in {"VALIDATED", "CATALOG_ONLY"}, f"{slug}: invalid boundary status")
     for field in ("sourceName", "license", "attribution", "definition"):
         _require(isinstance(boundary.get(field), str) and boundary[field].strip(), f"{slug}: boundary {field} required")
@@ -83,7 +86,11 @@ def _validate_city(
     pack = city["processingPack"]
     _require(pack.get("status") in {"VALIDATED", "NOT_AVAILABLE"}, f"{slug}: invalid processing pack status")
     if pack["status"] == "VALIDATED":
-        _require(boundary["status"] == "VALIDATED" and boundary["kind"] == "validated-adm2", f"{slug}: a validated pack requires a validated ADM2 boundary")
+        _require(
+            boundary["status"] == "VALIDATED"
+            and boundary["kind"] in {"validated-adm2", "validated-adm1", "validated-city"},
+            f"{slug}: a validated pack requires a validated boundary",
+        )
         _require(city["analyticsCoverage"] == "FULLY_SUPPORTED", f"{slug}: validated pack must be fully supported")
         _require(isinstance(pack.get("packId"), str) and pack["packId"], f"{slug}: packId required")
         _require(isinstance(pack.get("files"), dict) and pack["files"], f"{slug}: pack files required")
@@ -99,16 +106,44 @@ def _validate_city(
         _require(asset.is_file(), f"{slug}: validated geometry asset is missing")
         _require(_sha256(asset) == boundary["sha256"].removeprefix("sha256:"), f"{slug}: geometry checksum mismatch")
         _require(pack.get("boundarySha256") == boundary["sha256"], f"{slug}: pack/boundary checksum mismatch")
-        release_entry = release.get("districts", {}).get("bengaluru-urban" if slug == "bengaluru" else slug)
+        release_key = {"bengaluru": "bengaluru-urban", "mumbai": "mumbai-city"}.get(slug, slug)
+        release_entry = release.get("districts", {}).get(release_key)
         _require(isinstance(release_entry, dict) and release_entry.get("sha256") == boundary["sha256"].removeprefix("sha256:"), f"{slug}: release metadata checksum mismatch")
     else:
-        _require(boundary["status"] == "CATALOG_ONLY" and boundary["kind"] == "catalog-envelope", f"{slug}: fallback must use a catalog envelope")
-        _require(city["analyticsCoverage"] == "REPORT_GENERATION_ONLY", f"{slug}: fallback must be report-generation-only")
-        _require(pack.get("packId") is None and pack.get("manifest") is None and pack.get("files") == {} and pack.get("checksums") == {}, f"{slug}: fallback must not claim a pack")
-        _require("not an ADM boundary" in boundary.get("definition", ""), f"{slug}: fallback boundary definition must say it is not an ADM boundary")
-        expected = "sha256:" + hashlib.sha256(json.dumps(_fallback_geometry(bbox), sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
-        _require(boundary["sha256"] == expected, f"{slug}: fallback envelope checksum mismatch")
-        _require(boundary.get("geometryAsset") is None, f"{slug}: fallback must not claim a geometry asset")
+        _require(city["analyticsCoverage"] == "REPORT_GENERATION_ONLY", f"{slug}: report-only boundary must be report-generation-only")
+        _require(
+            pack.get("packId") is None
+            and pack.get("manifest") is None
+            and pack.get("files") == {}
+            and pack.get("checksums") == {},
+            f"{slug}: report-only boundary must not claim a processing pack",
+        )
+        if boundary["status"] == "CATALOG_ONLY":
+            _require(boundary["kind"] == "catalog-envelope", f"{slug}: catalog-only boundary must use a catalog envelope")
+            _require("not an ADM boundary" in boundary.get("definition", ""), f"{slug}: fallback boundary definition must say it is not an ADM boundary")
+            expected = "sha256:" + hashlib.sha256(json.dumps(_fallback_geometry(bbox), sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+            _require(boundary["sha256"] == expected, f"{slug}: fallback envelope checksum mismatch")
+            _require(boundary.get("geometryAsset") is None, f"{slug}: fallback must not claim a geometry asset")
+            _require(pack.get("boundarySha256") is None, f"{slug}: catalog-only boundary must not claim a boundary checksum")
+        else:
+            _require(
+                boundary["kind"] in {"validated-adm2", "validated-adm1", "validated-city"},
+                f"{slug}: validated report-only boundary has an invalid kind",
+            )
+            _require(isinstance(boundary.get("geometryAsset"), str) and boundary["geometryAsset"], f"{slug}: validated geometryAsset required")
+            asset = root / boundary["geometryAsset"]
+            _require(asset.is_file(), f"{slug}: validated geometry asset is missing")
+            _require(_sha256(asset) == boundary["sha256"].removeprefix("sha256:"), f"{slug}: validated geometry checksum mismatch")
+            _require(pack.get("boundarySha256") == boundary["sha256"], f"{slug}: report-only boundary checksum mismatch")
+            gate_path = root / boundary.get("boundaryGate", "")
+            _require(gate_path.is_file(), f"{slug}: validated boundary gate is missing")
+            gate = json.loads(gate_path.read_text(encoding="utf-8"))
+            _require(gate.get("boundary", {}).get("sha256") == boundary["sha256"].removeprefix("sha256:"), f"{slug}: boundary gate checksum mismatch")
+            global_release_path = root / "data" / "metadata" / "boundaries" / "global" / "release-metadata.json"
+            _require(global_release_path.is_file(), f"{slug}: global boundary release metadata is missing")
+            global_release = json.loads(global_release_path.read_text(encoding="utf-8"))
+            release_entry = global_release.get("cities", {}).get(slug)
+            _require(isinstance(release_entry, dict) and release_entry.get("boundarySha256") == boundary["sha256"].removeprefix("sha256:"), f"{slug}: global release metadata checksum mismatch")
 
     _require(city["analyticsCoverage"] in ANALYTICS_STATES, f"{slug}: invalid analytics coverage state")
     _require(city["routingCoverage"] in ROUTING_STATES, f"{slug}: invalid routing coverage state")
@@ -122,11 +157,43 @@ def _validate_city(
         _require(city["jurisdiction"]["pack"] == "generic" and not city["jurisdiction"]["authorityIds"], f"{slug}: unsupported jurisdictions must use the generic empty authority pack")
 
 
+def _validate_boundary_registry(path: Path, root: Path) -> None:
+    registry = json.loads(path.read_text(encoding="utf-8"))
+    _require(registry.get("registryVersion") == "2026-08-05.3", "city boundary registry version is not frozen")
+    cities = registry.get("cities")
+    _require(isinstance(cities, dict), "city boundary registry cities must be an object")
+    expected = EXPECTED_SLUGS - {"nagpur", "bengaluru"}
+    _require(set(cities) == expected, "city boundary registry does not contain exactly the twelve requested expansion cities")
+    release_path = root / "data" / "metadata" / "boundaries" / "global" / "release-metadata.json"
+    _require(release_path.is_file(), "global boundary release metadata is missing")
+    release = json.loads(release_path.read_text(encoding="utf-8"))
+    for slug, record in cities.items():
+        _require(record.get("status") == "VALIDATED", f"{slug}: global boundary registry record is not validated")
+        _require(record.get("kind") in {"validated-adm1", "validated-adm2", "validated-city"}, f"{slug}: invalid global boundary kind")
+        _require(isinstance(record.get("geometryAsset"), str), f"{slug}: global geometryAsset is required")
+        asset = root / record["geometryAsset"]
+        _require(asset.is_file(), f"{slug}: global geometry asset is missing")
+        _require(isinstance(record.get("sha256"), str) and SHA256_RE.fullmatch(record["sha256"]), f"{slug}: global boundary checksum is invalid")
+        _require(_sha256(asset) == record["sha256"].removeprefix("sha256:"), f"{slug}: global geometry checksum does not match")
+        gate_path = root / record.get("boundaryGate", "")
+        _require(gate_path.is_file(), f"{slug}: global boundary gate is missing")
+        gate = json.loads(gate_path.read_text(encoding="utf-8"))
+        _require(gate.get("boundary", {}).get("sha256") == record["sha256"].removeprefix("sha256:"), f"{slug}: global boundary gate checksum does not match")
+        release_record = release.get("cities", {}).get(slug)
+        _require(isinstance(release_record, dict) and release_record.get("boundarySha256") == record["sha256"].removeprefix("sha256:"), f"{slug}: global release checksum does not match")
+        source_url = urlparse(record.get("sourceUrl", ""))
+        _require(source_url.scheme == "https" and source_url.netloc, f"{slug}: global sourceUrl must be HTTPS")
+        _require(isinstance(record.get("selectedShapeNames"), list) and record["selectedShapeNames"], f"{slug}: global feature selection is missing")
+
+
 def validate_city_catalog(path: Path, root: Path | None = None) -> dict[str, Any]:
     root = (root or path.parents[2]).resolve()
     catalog = json.loads(path.read_text(encoding="utf-8"))
     _require(isinstance(catalog, dict), "city catalog must be an object")
     _require(catalog.get("contractVersion") == "1.0.0-alpha.1", "city catalog contractVersion is not the frozen browser/API contract")
+    registry_ref = catalog.get("boundaryRegistry")
+    _require(registry_ref == "data/catalog/city-boundary-coverage.json", "city catalog boundaryRegistry is not the frozen global registry")
+    _validate_boundary_registry(root / registry_ref, root)
     cities = catalog.get("cities")
     _require(isinstance(cities, list), "city catalog cities must be an array")
     _require({item.get("slug") for item in cities} == EXPECTED_SLUGS, "city catalog does not contain exactly the requested city set")

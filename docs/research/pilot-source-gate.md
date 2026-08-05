@@ -6,7 +6,7 @@
 
 ## Google Earth Engine Sentinel-2 metadata discovery
 
-The reproducible metadata-only query is implemented in `scripts/data/discover_earth_engine.py`. It uses the authenticated offline worker and `COPERNICUS/S2_SR_HARMONIZED`, accepts only the two approved pilot keys, bounds results to 500 images and stores no provider URLs or credentials. `discover_catalog.py` remains the direct-CDSE fallback.
+The reproducible metadata-only query is implemented in `scripts/data/discover_earth_engine.py`. It uses the authenticated offline worker and `COPERNICUS/S2_SR_HARMONIZED`, accepts only the three approved district keys, bounds results to 500 images and stores no provider URLs or credentials. `discover_catalog.py` remains the direct-CDSE fallback.
 
 The search envelopes are documented government-published coordinate extents, not analytical district polygons. Counts therefore represent products intersecting the envelope, not products proven to overlap every part of the district.
 
@@ -60,6 +60,7 @@ The official OGD Platform India `Admin Boundaries` catalog was also checked as a
 |---|---|---|---|---|
 | Nagpur district | `Nagpur`, `shapeID` `76128533B3026318797185` | `Polygon`, EPSG:4326 | Representative point `79.08797740597822, 21.176853476440222` contained by geoBoundaries ADM1 `Mahārāshtra` | `f811022adbe26c7634ba4d884db3251c53bd2d23b8d55e18f6d24fe3cb3b2b33` |
 | Bengaluru Urban backup | Legacy provider name `Bangalore`, `shapeID` `76128533B76927648517269`; distinct from `Bangalore Rural` | `Polygon`, EPSG:4326 | Representative point `77.58283692418445, 12.949137851366181` contained by geoBoundaries ADM1 `Karnātaka` | `613c9f5da9e207d2acec5796488754abf0d2e48a6b341f5c0de25cbdc3ffa67a` |
+| Mumbai City district | `Mumbai`, `shapeID` `76128533B16442413169750` | `MultiPolygon`, EPSG:4326 | Representative point `72.8338038241462, 18.98076517780284` contained by geoBoundaries ADM1 `Mahārāshtra` | `c49e599f12d917e2f38ac236207cbb0a75037b389b178641e25babf45ef93fa0` |
 
 The raw archive is retained under Git-ignored `data/raw/boundaries/`; one-feature validated GeoJSON files are under `data/validated/boundaries/`; provenance, release metadata, and existing boundary-validator manifests are under `data/metadata/boundaries/`. The release metadata declares 736 ADM2 features while the downloaded GeoJSON contains 735; this discrepancy is recorded as a warning and the two selected features were individually verified.
 
@@ -67,7 +68,7 @@ Every use must display this disclaimer: **This boundary is suitable for prototyp
 
 ## P0 common-valid coverage and processing start
 
-The worker `scripts/data.process_earth_engine_p0` validates the local boundary gate and SHA-256 before querying `COPERNICUS/S2_SR_HARMONIZED`. It accepts SCL classes 4/5/6, requires two valid observations per period, calculates each index per observation before a per-period median, and compares only the common-valid footprint. It uses UTM EPSG:32644 for Nagpur and EPSG:32643 for Bengaluru Urban.
+The worker `scripts/data.process_earth_engine_p0` validates the local boundary gate and SHA-256 before querying `COPERNICUS/S2_SR_HARMONIZED`. It accepts SCL classes 4/5/6, requires two valid observations per period, calculates each index per observation before a per-period median, and compares only the common-valid footprint. It uses UTM EPSG:32644 for Nagpur and EPSG:32643 for Bengaluru Urban and Mumbai City.
 
 | Region / indicator | Result | Common-valid fraction | Status |
 |---|---:|---:|---|
@@ -76,6 +77,9 @@ The worker `scripts/data.process_earth_engine_p0` validates the local boundary g
 | Nagpur / built candidate | completed; constrained-NDBI default and IBI v2 sensitivity CSV imported | 0.9996252842573716 | Material directional disagreement (+158.47 versus −361.52 km² net); withhold a built-change finding pending independent validation and method review |
 | Nagpur / vegetation | completed through guarded 10 m full-resolution CSV batch exports; default plus 0.20/0.30/0.40 sensitivity rows imported into the local pre-publication manifest | 0.9996252931776228 | Sensitivity is material (net −27.03, −277.40, and −487.10 km² respectively); independent validation remains required; method and scale were not relaxed |
 | Nagpur / vegetation validation frame | completed blinded exploratory sample export | 100 points | Up to 25 points per mapped stable non-target, stable target, gain, and loss stratum; no map labels or NDVI values exported; independent reference labels remain absent |
+| Mumbai City / surface water | completed through the Earth Engine pre-publication pack; pooled-Otsu sensitivity imported | 0.9988461038606286 | Default net −0.7923 km²; pooled-Otsu net −0.8909 km²; same loss direction; quality remains `unknown` |
+| Mumbai City / vegetation | completed through the Earth Engine pre-publication pack; 0.20/0.30/0.40 sensitivity imported | 0.998921367253273 | Default net −0.9398 km²; all documented thresholds show loss; quality remains `unknown` |
+| Mumbai City / built-up | completed through the Earth Engine pre-publication pack; built-IBI sensitivity imported | 0.998846103860629 | Default net −1.4371 km²; IBI net −10.9685 km²; same direction, so the estimate is available with quality `unknown` |
 
 ## Gate result
 
@@ -90,7 +94,7 @@ The worker `scripts/data.process_earth_engine_p0` validates the local boundary g
 | Independent vegetation validation | Pending | A 100-point blinded exploratory frame and label template exist, but no temporally appropriate independent labels, inclusion-probability calculation, or design-consistent accuracy analysis exists |
 | Nagpur child-region identity and geometry QA | Pending | Hingna remains provisional; district-only fallback remains active |
 
-D0-C-001 passes for the two district AOIs. D1 raster processing has begun against validated district polygons, never search envelopes. P0 publication remains blocked on independent validation. The 10 m vegetation result and its fixed 0.20/0.30/0.40 sensitivity rows were produced with controlled batch/export processing and imported only after their boundary checksum, CRS, method settings, and area arithmetic matched the approved requests. The sensitivity range is material, so the default result remains `quality: unknown`.
+D0-C-001 passes for the three district AOIs. D1 raster processing has begun against validated district polygons, never search envelopes. P0 publication remains blocked on independent validation. The 10 m vegetation results and their fixed 0.20/0.30/0.40 sensitivity rows were produced with controlled batch/export processing and imported only after their boundary checksum, CRS, method settings, and area arithmetic matched the approved requests. The sensitivity ranges are material, so the default results remain `quality: unknown`.
 
 ## Sources
 

@@ -6,18 +6,19 @@ recreate routing rules.
 ## City-picker contract
 
 The picker reads the versioned [`data/catalog/supported-cities.json`](../../data/catalog/supported-cities.json)
-catalog (currently `2026-08-05.1`) and exposes thirteen quick targets:
+catalog (currently `2026-08-05.3`) and exposes fourteen quick targets:
 Nagpur, Bengaluru, Mumbai, Delhi, Chennai, Bhopal, New York, Washington DC,
-Tokyo, London, Cairo, Sydney, and Reykjavik. Each card displays its ISO
+Tokyo, London, Cairo, Sydney, Rio de Janeiro, and Reykjavik. Each card displays its ISO
 country code, administrative area, boundary definition, and coverage state.
-Cards with analytics coverage `FULLY_SUPPORTED` map to the two checked-in
-precomputed packs. All other cards enter a report/export scope with an explicit
+Cards with analytics coverage `FULLY_SUPPORTED` map to the three checked-in
+precomputed packs (Nagpur, Bengaluru Urban, and Mumbai City district). All
+other cards enter a report/export scope with an explicit
 catalog envelope. Routing coverage is separate: only cards whose routing state
 is `FULLY_SUPPORTED` may show a verified manual handoff; report-generation-only
 and unsupported routing states remain export-only. The catalog envelope is not
 an ADM, legal, or cadastral boundary.
 
-The build-free Orbit launcher uses the same thirteen names for its quick chips
+The build-free Orbit launcher uses the same fourteen names for its quick chips
 and local gazetteer handoff. Keep that list synchronized with the catalog when
 adding a city; the launcher must not imply that a geocoded point has a
 published analytical pack.
