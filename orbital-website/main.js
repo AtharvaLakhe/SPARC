@@ -1235,10 +1235,10 @@ function submit() {
 function handOff(lat, lon, name) {
   const open = () => {
     if (window.SPARC) window.SPARC.open({ lat, lon, name });
-    // No panel bundle loaded (opened straight from file://, say) — the
-    // standalone dashboard still exists, so fall back to it rather than
-    // leaving the click doing nothing.
-    else location.href = `app/#/locate?lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}`;
+    // If the panel bundle is unavailable (for example, when opened directly
+    // from file://), keep the user on the canonical globe entry instead of
+    // sending them to a second dashboard site.
+    else location.href = '/';
   };
   // Let the craft finish its slew first: watching it lock on is what explains
   // where the numbers in the panel came from.

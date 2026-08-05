@@ -27,8 +27,20 @@ class PrecomputedRepositoryTests(unittest.TestCase):
         regions = self.repository.list_regions("district", None)
         self.assertEqual([region["id"] for region in regions], [
             "district:bengaluru-urban",
+            "district:bhopal",
+            "district:cairo",
+            "district:chennai",
+            "district:delhi",
+            "district:london",
+            "district:mumbai",
             "district:mumbai-city",
             "district:nagpur",
+            "district:new-york",
+            "district:reykjavik",
+            "district:rio-de-janeiro",
+            "district:sydney",
+            "district:tokyo",
+            "district:washington-dc",
         ])
         self.assertEqual(regions[0]["bbox"], [77.32755, 12.65818, 77.82026, 13.23257])
 

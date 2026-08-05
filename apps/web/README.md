@@ -1,17 +1,21 @@
 # SPARC analytical dashboard
 
 The browser client for district-level satellite-derived environmental proxy
-indicators. This is the P0 analytical journey required by
-[`docs/project-status.md`](../../docs/project-status.md); it is a separate thing
-from [`orbital-website/`](../../orbital-website/README.md), which is a Three.js
-globe reference and consumes no SPARC data.
+indicators. This is the P0 analytical panel required by
+[`docs/project-status.md`](../../docs/project-status.md); the combined local
+server mounts it over the globe-led entry in
+[`orbital-website/`](../../orbital-website/README.md).
 
 ## Run
 
 ```bash
 npm install
-npm run dev            # http://localhost:5173
+# The canonical full experience is the globe-led combined server:
+cd ../../orbital-website && npm run serve   # http://localhost:8123/
 ```
+
+`npm run dev` remains available for panel-only frontend development at
+`http://localhost:5173`, but it is not the user-facing SPARC entry.
 
 Port 5173 is not arbitrary — it is one of the API's default allowed origins
 (`apps/api/app/config.py`). Serving on another port needs `SPARC_ALLOWED_ORIGINS`
@@ -58,6 +62,7 @@ Every `VITE_*` value reaches the browser and therefore cannot be a secret.
 | --- | --- | --- |
 | `VITE_DATA_MODE` | `demo` | `demo` reads committed fixtures offline; `api` calls FastAPI |
 | `VITE_API_BASE_URL` | `http://localhost:8000` | Origin of the API. Ignored in demo mode |
+| `VITE_BASE_PATH` | `/app/` locally, `/` on Vercel | Asset base path; Vercel is detected automatically, but this can be set explicitly for a standalone dashboard |
 
 An unrecognised value falls back to `demo` with a console warning, because the
 offline path is the one that works with no server at all.
@@ -66,7 +71,7 @@ offline path is the one that works with no server at all.
 
 | Path | Role |
 | --- | --- |
-| `src/config.ts` | public configuration and the frozen comparison windows |
+| `src/config.ts` | public configuration and the city-aware frozen comparison windows |
 | `src/contract/types.ts` | the single declaration of contract shapes for this package |
 | `src/contract/validate.ts` | Ajv boundary validation against the canonical schema |
 | `src/data/` | `DemoTransport`, `ApiTransport`, the repository facade, the error taxonomy |

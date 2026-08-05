@@ -438,7 +438,10 @@ def _bounded_scene_inventory(source: dict[str, Any], limit: int = 100) -> list[d
 
 def _sensitivity_delta(item: dict[str, Any]) -> float | None:
     default = item.get("areaSqKm", {}).get("percentChange")
-    sensitivity = item.get("sensitivity", {})
+    # Global city packs may intentionally omit optional threshold sensitivity
+    # while the default estimate remains available. Treat a null sensitivity
+    # record as no comparison data, not as a malformed object.
+    sensitivity = item.get("sensitivity") or {}
     row = sensitivity.get("row", {})
     candidate = row.get("percentChange")
     if isinstance(default, (int, float)) and isinstance(candidate, (int, float)):

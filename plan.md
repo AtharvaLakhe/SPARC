@@ -83,16 +83,12 @@ environmental estimates.”
 
 The quick-target catalog is now a versioned, validated-gated record for Nagpur,
 Bengaluru, Mumbai, Delhi, Chennai, Bhopal, New York, Washington DC, Tokyo,
-London, Cairo, Sydney, Rio de Janeiro, and Reykjavik. Nagpur, Bengaluru Urban,
-and Mumbai City are bound to the accepted geoBoundaries ADM2 geometry and
-precomputed contract manifest. The remaining entries have explicit
-centroid/bbox catalog scope, checksum metadata, and jurisdiction-pack
-references. The expansion boundary registry now contains separately pinned and
-gate-validated polygons for Delhi, Chennai, Bhopal, New York City, Washington
-DC, Tokyo, Greater London, Cairo, Sydney, Rio de Janeiro, and Reykjavik, plus a
-Mumbai City + Mumbai Suburban city scope. Those entries remain
-`REPORT_GENERATION_ONLY` until authenticated Earth Engine processing and the
-contract-pack checksum gate complete. Unsupported-country entries use
+London, Cairo, Sydney, Rio de Janeiro, and Reykjavik. All fourteen entries are
+bound to pinned geoBoundaries geometry and the generated precomputed contract
+manifest. The expansion boundary registry retains separate raw-source metadata,
+validated GeoJSON, gate manifests, and checksums. Every pack retains
+`quality: unknown`; this is contract/data-integrity validation, not independent
+scientific accuracy validation. Unsupported-country entries use
 `UNSUPPORTED_JURISDICTION` routing and export-only behavior.
 
 The catalog validator (`\.venv\Scripts\python.exe
@@ -100,27 +96,31 @@ scripts/validate_city_catalog.py`) is a release gate. It verifies the country
 codes, unique IDs, coordinate envelopes, boundary checksums, validated geometry
 assets, global boundary-registry gates, processing-pack checksums, contract
 bindings, and fallback-state rules.
-The frontend and build-free Orbit launcher consume the same city set. No
-fabricated numeric satellite values are added for cities without a validated
-pack; their report workflow uses null/`NOT_RUN` evidence and still creates the
-SPARC PDF/evidence ZIP where the reporting contract permits it.
+The frontend and build-free Orbit launcher consume the same city set. Offline
+and API precomputed modes now use the same fifteen-region fixture inventory
+(the fourteen catalog cities plus the existing Bengaluru Urban compatibility
+district). No fabricated numeric values are added; every value is tied to its
+Earth Engine request, boundary checksum, method version, and provenance record.
 
-Remaining work for this expansion:
+Expansion delivery status and remaining work:
 
-- [ ] **D1-DATA-EXPANSION — Start and import the guarded Earth Engine batch requests**
+- [x] **D1-DATA-EXPANSION — Start and import the guarded Earth Engine batch requests**
   - Owner: Codex / project owner for Earth Engine quota and Drive export approval
   - Priority: P0 for city-level analytical coverage
-  - Progress 2026-08-05: All twelve boundaries passed the selection and boundary gates. Twelve batch-export requests were prepared and checksummed under `data/processed/earth-engine-p0/`; no external Drive task was started. The configured project reported noncommercial quota restricted mode.
+  - Progress 2026-08-05: All twelve boundaries passed selection and boundary gates. The first project was quota-restricted, so its dry-run requests remain as an audit record. The verified replacement project `project-b44b6a9b-cafb-4d19-8dd` completed 36 one-indicator Earth Engine tasks in `SPARC_EE_EXPORTS_20260803`; all 36 raw CSVs passed the guarded importer, 12 three-indicator packs were built, and 60 contract examples were regenerated. Request, raw CSV, report, pack, and contract-manifest checksums are recorded in `data/metadata/earth-engine-p0-expansion-run-project-b44b6a9b.json`.
   - Expected output: one imported three-indicator report per city, boundary-bound checksums, prepublication packs, and regenerated contract examples/manifest
   - Acceptance condition: each imported report validates against its request, exact boundary checksum, fixed periods, Sentinel-2 collection, and the existing claim-safety gates
-  - Blocker: project quota must be restored and a user-approved Drive destination must be supplied before `--start-batch-export`
+  - Blocker: none for the data/contract gate. Scientific accuracy validation remains intentionally deferred; release still requires review of the generated fixtures, layer assets, and frontend presentation.
 
 - [ ] Have Claude replace the temporary local catalog/picker presentation with
   registry-driven authority and accessibility components.
-- [ ] Research and validate an external boundary and provenance record for each
-  remaining city before promoting it beyond report/export scope.
-- [ ] Produce and checksum an Earth Engine processing pack plus contract
+- [x] Research and validate an external boundary and provenance record for each
+  requested expansion city before promoting it to the precomputed pack catalog.
+- [x] Produce and checksum an Earth Engine processing pack plus contract
   examples before setting each remaining city to `FULLY_SUPPORTED` analytical coverage.
+  - Progress 2026-08-05: The replacement Earth Engine project completed all 36
+    requested exports; guarded imports, 12 three-indicator packs, catalog
+    checksums, and 60 contract examples passed the pack/repository gates.
 - [ ] Complete offline/browser acceptance checks for every quick target and the
   manual handoff/export-only branches.
 
@@ -352,7 +352,7 @@ Research/license gates
   - Expected output: Before/after layers, district summary, indicator charts, tahsil drill-down, quality/provenance, and interpretations
   - Acceptance condition: A user can complete the exact demo journey without knowing remote-sensing terminology
   - Fallback: Use static overlay images and accessible tables rather than live tiles
-  - Progress 2026-08-05: The dashboard now consumes generated Nagpur, Bengaluru Urban, and Mumbai City contract examples from the reviewed Earth Engine packs, and the API serves the same responses with `SPARC_DATA_MODE=precomputed`. The Nagpur built-up conflict remains unavailable. This item remains open for pack review/commit, approved layer/static assets, and a permitted child-region result; no real-time/national coverage is implied.
+  - Progress 2026-08-05: The dashboard and API precomputed transport now consume the same 15-region fixture inventory: the 14 catalog cities plus the existing Bengaluru Urban compatibility pack. The Nagpur built-up conflict remains unavailable. This item remains open for reviewed layer/static assets, Claude-owned reporting polish, accessibility/localization review, and a permitted child-region result; no real-time/national coverage is implied.
 
 - [ ] **D2-S-004 — Perform first full integration**
   - Owner: Shared
@@ -367,16 +367,12 @@ Research/license gates
 ## Day 3 — Reliability and Judging Readiness
 
 - [ ] **D3-S-001 — Run scientific, contract, security, and accessibility verification**
-  - Progress 2026-08-04: The Nagpur vegetation preregistration gate is implemented
-    (`scripts.data.create_probability_validation_plan`, 36 tests; full suite 80 passed).
-    It binds boundary checksum, raw ledger checksum, region, indicator, method id/version,
-    finite populations, sample sizes, seed, replacement policy, target precision, and the
-    exact rational inclusion probability, and produces a blinded reviewer CSV separately
-    from a restricted design-linkage CSV. **The gate does not pass**: the allocation
-    (target precision, per-stratum sample size, replacement policy, seed) is an undecided
-    scientific choice and was deliberately not defaulted. No Earth Engine or Drive export
-    was run. The imported v2 population ledger is not present in this repository. See
-    `docs/claude-handoff.md`.
+  - Progress 2026-08-05: The repository test suite passes (116 tests). Scientific
+    preregistration, blinded sampling, independent labels, and publication-level
+    accuracy metrics remain deliberately deferred for the hackathon track. The
+    existing claim-safety gates, method-conflict suppression, provenance checks,
+    and quality limitations remain active; no accuracy score or ground-truth claim
+    is fabricated. See `docs/claude-handoff.md` and `docs/project-status.md`.
   - Owner: Shared
   - Priority: P0
   - Dependency: D2-S-004

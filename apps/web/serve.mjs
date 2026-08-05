@@ -23,15 +23,14 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '..', '..');
 
-/* Two roots, one process.
+/* One public experience, two implementation roots.
  *
- *   /       the orbital globe, served from orbital-website/ exactly as it is.
- *           It is not rebuilt, bundled or rewritten — it is a build-free ES
- *           module page and it stays that way.
- *   /app/   the built analytical dashboard.
+ *   /       the globe-led SPARC experience, served from orbital-website/.
+ *   /app/*  compiled React panel assets loaded by the globe.
  *
- * The globe hands over at /app/#/locate?lat=..&lon=.. after the craft finishes
- * slewing onto the target. */
+ * The old standalone /app/ dashboard entry is intentionally redirected to /.
+ * Keeping that URL as a second page made the product look like two different
+ * sites. The panel still opens over the globe through window.SPARC. */
 const APP_ROOT = path.join(HERE, 'dist');
 const ORBIT_ROOT = path.join(REPO, 'orbital-website');
 const PORT = Number(process.argv[2] ?? process.env.PORT ?? 8080);
@@ -60,11 +59,8 @@ if (!fs.existsSync(APP_ROOT)) {
 /* The globe imports three.js from its own node_modules through an import map,
    so that directory has to be reachable too. */
 function resolveRequest(pathname) {
-  if (pathname === '/app' || pathname === '/app/') {
-    return { root: APP_ROOT, rel: 'index.html', spa: true };
-  }
   if (pathname.startsWith('/app/')) {
-    return { root: APP_ROOT, rel: pathname.slice(5).replace(/^[/\\]+/, ''), spa: true };
+    return { root: APP_ROOT, rel: pathname.slice(5).replace(/^[/\\]+/, ''), spa: false };
   }
   const rel = pathname === '/' ? 'index.html' : pathname.replace(/^[/\\]+/, '');
   return { root: ORBIT_ROOT, rel, spa: false };
@@ -80,6 +76,18 @@ http.createServer(async (req, res) => {
   }
   if (pathname.includes('\0')) {
     res.writeHead(400, { 'Content-Type': 'text/plain' }).end('400 invalid request path');
+    return;
+  }
+
+  // Keep old bookmarks working, but make the globe-led experience the only
+  // public page. The URL fragment is never sent to the server, so a direct
+  // /app/#/... bookmark safely lands on the globe and can target again there.
+  if (pathname === '/app' || pathname === '/app/') {
+    res.writeHead(302, {
+      Location: '/',
+      'Cache-Control': 'no-store',
+      'X-Content-Type-Options': 'nosniff',
+    }).end();
     return;
   }
 
@@ -121,7 +129,7 @@ http.createServer(async (req, res) => {
   });
   fs.createReadStream(file).pipe(res);
 }).listen(PORT, () => {
-  console.log(`SPARC  →  http://localhost:${PORT}/       (orbital globe)`);
-  console.log(`          http://localhost:${PORT}/app/   (analytical dashboard)`);
-  console.log('single process · globe, dashboard and demo data all from one origin');
+  console.log(`SPARC  →  http://localhost:${PORT}/       (globe-led dashboard)`);
+  console.log(`          /app/* serves panel assets only`);
+  console.log('single public experience · globe, dashboard and demo data from one origin');
 });

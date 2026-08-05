@@ -24,6 +24,20 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 SCHEMA_PATH = REPO_ROOT / "packages" / "contracts" / "schemas" / "prepublication-result-pack.schema.json"
 MAX_REPORT_BYTES = 2 * 1024 * 1024
 P0_INDICATORS = ("surface-water", "vegetation", "built-up")
+GLOBAL_CITY_KEYS = {
+    "mumbai",
+    "delhi",
+    "chennai",
+    "bhopal",
+    "new-york",
+    "washington-dc",
+    "tokyo",
+    "london",
+    "cairo",
+    "sydney",
+    "rio-de-janeiro",
+    "reykjavik",
+}
 LEGACY_BOUNDARY_METADATA = REPO_ROOT / "data" / "metadata" / "boundaries" / "geoBoundaries-IND-ADM2-76128533" / "release-metadata.json"
 GLOBAL_BOUNDARY_METADATA = REPO_ROOT / "data" / "metadata" / "boundaries" / "global" / "release-metadata.json"
 BOUNDARY_DISCLAIMER = "This boundary is suitable for prototype analysis but is not an authoritative legal or cadastral boundary."
@@ -131,9 +145,9 @@ def _normalise_periods(value: Any) -> dict[str, dict[str, Any]]:
     return normalized
 
 
-def _normalise_sensitivity(value: Any, indicator_id: str) -> dict[str, Any] | None:
+def _normalise_sensitivity(value: Any, indicator_id: str, *, required: bool = True) -> dict[str, Any] | None:
     if value is None:
-        if indicator_id == "vegetation":
+        if indicator_id == "vegetation" and required:
             raise ValueError("Vegetation report is missing completed sensitivity evidence")
         return None
     sensitivity = _require_dict(value, "indicators[].sensitivity")
@@ -212,7 +226,7 @@ def _normalise_sensitivity(value: Any, indicator_id: str) -> dict[str, Any] | No
     }
 
 
-def _normalise_indicator(value: Any) -> dict[str, Any]:
+def _normalise_indicator(value: Any, *, allow_missing_vegetation_sensitivity: bool = False) -> dict[str, Any]:
     indicator = _require_dict(value, "indicator")
     indicator_id = indicator.get("indicatorId")
     if indicator_id not in P0_INDICATORS:
@@ -282,6 +296,7 @@ def _normalise_indicator(value: Any) -> dict[str, Any]:
         "sensitivity": _normalise_sensitivity(
             indicator.get("thresholdSensitivity") if indicator_id == "vegetation" else indicator.get("sensitivity"),
             indicator_id,
+            required=not (allow_missing_vegetation_sensitivity and indicator_id == "vegetation"),
         ),
     }
 
@@ -309,7 +324,13 @@ def _normalise_report(report: dict[str, Any], path: Path, digest: str) -> tuple[
     indicators = report.get("indicators")
     if not isinstance(indicators, list) or not indicators:
         raise ValueError(f"Report has no indicators: {path}")
-    normalized_indicators = [_normalise_indicator(indicator) for indicator in indicators]
+    normalized_indicators = [
+        _normalise_indicator(
+            indicator,
+            allow_missing_vegetation_sensitivity=normalized_region["key"] in GLOBAL_CITY_KEYS,
+        )
+        for indicator in indicators
+    ]
     batch_export = report.get("batchExport")
     batch_task = None
     if batch_export is not None:

@@ -106,8 +106,15 @@ def _validate_city(
         _require(asset.is_file(), f"{slug}: validated geometry asset is missing")
         _require(_sha256(asset) == boundary["sha256"].removeprefix("sha256:"), f"{slug}: geometry checksum mismatch")
         _require(pack.get("boundarySha256") == boundary["sha256"], f"{slug}: pack/boundary checksum mismatch")
-        release_key = {"bengaluru": "bengaluru-urban", "mumbai": "mumbai-city"}.get(slug, slug)
-        release_entry = release.get("districts", {}).get(release_key)
+        release_key = {"nagpur": "nagpur", "bengaluru": "bengaluru-urban"}.get(slug)
+        if release_key is not None:
+            release_entry = release.get("districts", {}).get(release_key)
+        else:
+            global_release_path = root / "data" / "metadata" / "boundaries" / "global" / "release-metadata.json"
+            _require(global_release_path.is_file(), f"{slug}: global boundary release metadata is missing")
+            global_release = json.loads(global_release_path.read_text(encoding="utf-8"))
+            global_entry = global_release.get("cities", {}).get(slug)
+            release_entry = {"sha256": global_entry.get("boundarySha256")} if isinstance(global_entry, dict) else None
         _require(isinstance(release_entry, dict) and release_entry.get("sha256") == boundary["sha256"].removeprefix("sha256:"), f"{slug}: release metadata checksum mismatch")
     else:
         _require(city["analyticsCoverage"] == "REPORT_GENERATION_ONLY", f"{slug}: report-only boundary must be report-generation-only")

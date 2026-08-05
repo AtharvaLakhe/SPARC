@@ -17,7 +17,7 @@ def _catalog() -> dict:
 
 def test_city_catalog_binds_requested_set_and_packs() -> None:
     result = validate_city_catalog(CATALOG_PATH, ROOT)
-    assert result == {"catalogVersion": "2026-08-05.3", "cities": 14, "validatedPacks": 3}
+    assert result == {"catalogVersion": "2026-08-05.3", "cities": 14, "validatedPacks": 14}
 
 
 def test_city_catalog_has_country_codes_and_explicit_boundaries() -> None:
@@ -27,20 +27,15 @@ def test_city_catalog_has_country_codes_and_explicit_boundaries() -> None:
         "new-york", "washington-dc", "tokyo", "london", "cairo", "sydney", "rio-de-janeiro", "reykjavik",
     }
     assert all(len(city["countryCode"]) == 2 for city in cities)
-    assert all(city["boundary"]["kind"] in {"validated-adm2", "catalog-envelope"} for city in cities)
-    assert sum(city["boundary"]["status"] == "VALIDATED" for city in cities) == 3
+    assert all(city["boundary"]["kind"] in {"validated-adm1", "validated-adm2", "validated-city", "catalog-envelope"} for city in cities)
+    assert sum(city["boundary"]["status"] == "VALIDATED" for city in cities) == 14
     assert all(city["boundary"]["sha256"].startswith("sha256:") for city in cities)
 
 
-def test_report_only_cities_use_a_safe_contract_fallback() -> None:
-    report_only = [city for city in _catalog()["cities"] if city["analyticsCoverage"] == "REPORT_GENERATION_ONLY"]
-    assert len(report_only) == 11
-    for city in report_only:
-        assert city["processingPack"]["status"] == "NOT_AVAILABLE"
-        assert city["processingPack"]["files"] == {}
-        assert city["processingPack"]["checksums"] == {}
-        assert city["boundary"]["status"] == "CATALOG_ONLY"
-        assert "not an ADM boundary" in city["boundary"]["definition"]
+def test_requested_cities_have_contract_packs() -> None:
+    cities = _catalog()["cities"]
+    assert all(city["analyticsCoverage"] == "FULLY_SUPPORTED" for city in cities)
+    assert all(city["processingPack"]["status"] == "VALIDATED" for city in cities)
 
 
 def test_expansion_registry_has_twelve_gated_city_boundaries() -> None:

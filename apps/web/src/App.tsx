@@ -11,7 +11,7 @@
  * server with no rewrite rules — which is what the offline demo runs on. */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { config, FROZEN_PERIODS, type DataMode, type FrozenPeriod } from './config';
+import { config, FROZEN_PERIODS, frozenPeriodsForRegion, type DataMode, type FrozenPeriod } from './config';
 import type { ComparisonSelection, RegionRef } from './contract/types';
 import { DataError } from './data/errors';
 import { createTransport, Repository } from './data/repository';
@@ -39,10 +39,10 @@ type Async<T> =
   | { status: 'ready'; value: T } | { status: 'error'; error: DataError };
 
 const DEFAULT_REGION = 'district:nagpur';
+const DEFAULT_PERIOD = FROZEN_PERIODS[0]!;
 
-/* The globe lives at /, this client at /app/. Leaving the dashboard means
-   going back up a level, not to a route in here. */
-const ORBIT_URL = '../';
+/* The globe-led experience is the canonical public entry. */
+const ORBIT_URL = '/';
 
 function parseHash(hash: string): { stage: Stage; route: Route } {
   const ind = /^#\/dashboard\/([a-z0-9-]{1,64})/.exec(hash);
@@ -91,6 +91,7 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
   const repository = useMemo(() => new Repository(createTransport(dataMode)), [dataMode]);
   const catalogCity: CityCatalogEntry | null = cityForRegionId(regionId);
   const cityHasValidatedPack = isValidatedCity(catalogCity);
+  const availablePeriods = useMemo(() => frozenPeriodsForRegion(regionId), [regionId]);
 
   const selection: ComparisonSelection = useMemo(() => ({
     regionId,
@@ -217,6 +218,7 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
             regions={regions}
             onResolved={(id) => {
               setRegionId(id);
+              setPeriod(frozenPeriodsForRegion(id)[0] ?? DEFAULT_PERIOD);
               setSummary({ status: 'idle' });
               setDetail({ status: 'idle' });
               const pickedCity = cityForRegionId(id);
@@ -243,7 +245,7 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
         ) : (
           <PeriodConsole
             regionName={regionName}
-            periods={regionId.toLowerCase().includes('bengaluru') ? [FROZEN_PERIODS[1]] : [FROZEN_PERIODS[0]]}
+            periods={availablePeriods}
             onChosen={(p) => {
               setPeriod(p);
               if (panel) setPanelNav({ stage: 'dashboard', route: { name: 'summary' } });
@@ -299,7 +301,7 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
           ) : summary.status === 'error' ? (
             <ErrorView
               error={summary.error} onRetry={retry}
-              onResetPeriods={() => setPeriod(FROZEN_PERIODS[0])}
+              onResetPeriods={() => setPeriod(availablePeriods[0] ?? DEFAULT_PERIOD)}
               canUseOffline={dataMode === 'api'}
               onUseOffline={() => setDataMode('demo')}
             />
@@ -317,7 +319,7 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
             </nav>
             <ErrorView
               error={detail.error} onRetry={retry}
-              onResetPeriods={() => setPeriod(FROZEN_PERIODS[0])}
+              onResetPeriods={() => setPeriod(availablePeriods[0] ?? DEFAULT_PERIOD)}
               canUseOffline={dataMode === 'api'}
               onUseOffline={() => setDataMode('demo')}
             />

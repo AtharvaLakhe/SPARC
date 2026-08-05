@@ -29,6 +29,12 @@ function readDataMode(raw: string | undefined): DataMode {
 
 function readApiBaseUrl(raw: string | undefined): string {
   const value = (raw ?? 'http://localhost:8000').trim();
+  // The Vercel deployment hosts the FastAPI function and the static client
+  // under one origin. Keep this opt-in so local development retains its
+  // explicit localhost default and never silently calls a deployed API.
+  if (value === 'same-origin') {
+    return typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8000';
+  }
   try {
     const url = new URL(value);
     if (url.protocol !== 'http:' && url.protocol !== 'https:') {
@@ -70,6 +76,39 @@ export const FROZEN_PERIODS = [
     comparisonEnd: '2024-03-15',
     seasonLabel: 'dry season',
   },
+  {
+    id: 'summer-2019-2024',
+    label: 'Summer 2019 → 2024',
+    baselineStart: '2019-06-15',
+    baselineEnd: '2019-08-15',
+    comparisonStart: '2024-06-15',
+    comparisonEnd: '2024-08-15',
+    seasonLabel: 'summer',
+  },
 ] as const;
 
 export type FrozenPeriod = (typeof FROZEN_PERIODS)[number];
+
+/* Each packaged city has exactly one processed seasonal window. Keep this
+   mapping beside the frozen controls so the browser never offers a period
+   belonging to another city's result pack. The API remains the final gate. */
+const DRY_SEASON_REGIONS = new Set([
+  'district:bengaluru-urban',
+  'district:sydney',
+  'district:rio-de-janeiro',
+]);
+
+const SUMMER_REGIONS = new Set([
+  'district:new-york',
+  'district:washington-dc',
+  'district:tokyo',
+  'district:london',
+  'district:cairo',
+  'district:reykjavik',
+]);
+
+export function frozenPeriodsForRegion(regionId: string): readonly FrozenPeriod[] {
+  if (DRY_SEASON_REGIONS.has(regionId)) return [FROZEN_PERIODS[1]];
+  if (SUMMER_REGIONS.has(regionId)) return [FROZEN_PERIODS[2]];
+  return [FROZEN_PERIODS[0]];
+}

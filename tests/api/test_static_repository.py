@@ -17,6 +17,18 @@ class StaticRepositoryTests(unittest.TestCase):
             "district:nagpur",
             "district:bengaluru-urban",
             "district:mumbai-city",
+            "district:mumbai",
+            "district:delhi",
+            "district:chennai",
+            "district:bhopal",
+            "district:new-york",
+            "district:washington-dc",
+            "district:tokyo",
+            "district:london",
+            "district:cairo",
+            "district:sydney",
+            "district:rio-de-janeiro",
+            "district:reykjavik",
         })
         built = repository.get_indicator("district:nagpur", "built-up")
         assert built is not None
@@ -26,6 +38,9 @@ class StaticRepositoryTests(unittest.TestCase):
         assert mumbai is not None
         self.assertEqual(mumbai["data"]["status"], "complete")
         self.assertIsNotNone(mumbai["data"]["metric"]["absoluteChange"])
+        global_mumbai = repository.get_indicator("district:mumbai", "surface-water")
+        assert global_mumbai is not None
+        self.assertEqual(global_mumbai["data"]["status"], "complete")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,587 @@
+{
+  "manifestVersion": "1",
+  "runId": "sparc-expansion-p0-2026-08-05-project-b44b6a9b",
+  "status": "COMPLETE",
+  "provider": "Google Earth Engine",
+  "project": "project-b44b6a9b-cafb-4d19-8dd",
+  "driveFolder": "SPARC_EE_EXPORTS_20260803",
+  "collection": "COPERNICUS/S2_SR_HARMONIZED",
+  "processingMethod": "scripts.data.process_earth_engine_p0; p0-v1; Sentinel-2 surface-water, vegetation, and constrained built-up indicators",
+  "boundaryRegistry": "data/metadata/boundaries/global/release-metadata.json",
+  "disclaimer": "This boundary is suitable for prototype analysis but is not an authoritative legal or cadastral boundary.",
+  "taskCount": 36,
+  "taskStateLastCheckedAt": "2026-08-05T15:11:09Z",
+  "taskStateCounts": {
+    "COMPLETED": 36,
+    "RUNNING": 0,
+    "READY": 0,
+    "FAILED": 0,
+    "CANCELLED": 0
+  },
+  "resultsImported": true,
+  "contractPackBuilt": true,
+  "rawDirectory": "data/raw/earth-engine-exports",
+  "processedDirectory": "data/processed/earth-engine-p0",
+  "contractPackDirectory": "data/processed/prepublication-packs",
+  "cities": {
+    "mumbai": {
+      "surface-water": {
+        "request": "data/processed/earth-engine-p0/sparc_mumbai_surface-water_p0_v1.batch-request.json",
+        "taskId": "BIEKNP5PKPX4PW4RWRDFDXUL",
+        "taskState": "COMPLETED",
+        "requestSha256": "32bf6fe9d055de02e9bbb28a49eb309cd7dbee2f718951c5856154040f49c1f4",
+        "requestBytes": 25124,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_mumbai_surface-water_p0_v1.csv",
+        "rawCsvSha256": "7f08c39ffc809f1feeb2a857788945977455c3468831746ee3a32b6fe526a3fd",
+        "rawCsvBytes": 741,
+        "report": "data/processed/earth-engine-p0/mumbai-surface-water.json",
+        "reportSha256": "408c1962ae5eb345cb3cf03c991dfe91d0e13864698f23c3e6f0386225763b89",
+        "reportBytes": 26138
+      },
+      "vegetation": {
+        "request": "data/processed/earth-engine-p0/sparc_mumbai_vegetation_p0_v1.batch-request.json",
+        "taskId": "XBB7WVQBQJDQNQOPGKOAL6XG",
+        "taskState": "COMPLETED",
+        "requestSha256": "11e2a10d8f625ad8082ff898ebf4f3d0da2c4adf8b114d5751c458503ae52428",
+        "requestBytes": 25115,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_mumbai_vegetation_p0_v1.csv",
+        "rawCsvSha256": "f2895160ceb3ff4779eeb05155b509e00616c0180d7865cc55351988bf862b83",
+        "rawCsvBytes": 748,
+        "report": "data/processed/earth-engine-p0/mumbai-vegetation.json",
+        "reportSha256": "32a8f5ec4475a07afd59aae674df1b3a4a7d8ade5e487a48d85f1c63e5de23f3",
+        "reportBytes": 26138
+      },
+      "built-up": {
+        "request": "data/processed/earth-engine-p0/sparc_mumbai_built-up_p0_v1.batch-request.json",
+        "taskId": "6M2NKHOAV3KRFVIUQMQFIJWU",
+        "taskState": "COMPLETED",
+        "requestSha256": "d9f9f979ec128b5ae572959b21db0b7d118fe183692b58ee180895ea8ae89eb0",
+        "requestBytes": 25109,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_mumbai_built-up_p0_v1.csv",
+        "rawCsvSha256": "0b8cbb1c15a33b67ed988693ba6c37e1ddf309452dd04c36c4874a7c8f1e21cd",
+        "rawCsvBytes": 776,
+        "report": "data/processed/earth-engine-p0/mumbai-built-up.json",
+        "reportSha256": "88ed2776c01750b93932134dbddd6b89bd8deb7a41faea140e187e7acc304ae5",
+        "reportBytes": 26160
+      },
+      "contractPack": {
+        "path": "data/processed/prepublication-packs/mumbai-p0-v2.json",
+        "sha256": "30e712e58eb67a4e327e9d2447636cacdc9977ceff367d13c45ae2763e6e6390",
+        "bytes": 6540
+      }
+    },
+    "delhi": {
+      "surface-water": {
+        "request": "data/processed/earth-engine-p0/sparc_delhi_surface-water_p0_v1.batch-request.json",
+        "taskId": "LLEFWRUAAMWLSGTHOLURJOIR",
+        "taskState": "COMPLETED",
+        "requestSha256": "f849327907ac5a1256295a1bb36d45dee3b79916d9fa42822e713ebfa814d376",
+        "requestBytes": 25294,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_delhi_surface-water_p0_v1.csv",
+        "rawCsvSha256": "c1213e98ccbb0bdb71dc6934e230540056a530d3883d6557eb0d35dedc9cd472",
+        "rawCsvBytes": 747,
+        "report": "data/processed/earth-engine-p0/delhi-surface-water.json",
+        "reportSha256": "c14e42e15a86f38f5fb488db2727841d5de6b09fc6133e61c601f6a483b9ce24",
+        "reportBytes": 26298
+      },
+      "vegetation": {
+        "request": "data/processed/earth-engine-p0/sparc_delhi_vegetation_p0_v1.batch-request.json",
+        "taskId": "RO7YAQQBUEUZWDBH75PU6VQX",
+        "taskState": "COMPLETED",
+        "requestSha256": "3e8e9ade6b29ef59431caa36d2f63f8327211785f8b1296b31ec06e54903b1d0",
+        "requestBytes": 25285,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_delhi_vegetation_p0_v1.csv",
+        "rawCsvSha256": "2876eac5233815813ae73861701558eda8fb78aac88ee7f13540acb38635c50a",
+        "rawCsvBytes": 745,
+        "report": "data/processed/earth-engine-p0/delhi-vegetation.json",
+        "reportSha256": "1997074e235f91c55ca3a631511bcf8c090b202814afebf815a8231418fa77ff",
+        "reportBytes": 26298
+      },
+      "built-up": {
+        "request": "data/processed/earth-engine-p0/sparc_delhi_built-up_p0_v1.batch-request.json",
+        "taskId": "LXIOIWWR6BJXFE6UFN4CQLHP",
+        "taskState": "COMPLETED",
+        "requestSha256": "ed5d3bcfb790ca3acda81b5e4d6bf8eb223cbdc5286b4c878d3476c410efa3c4",
+        "requestBytes": 25279,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_delhi_built-up_p0_v1.csv",
+        "rawCsvSha256": "97ea89541adfc72c2dfbaecb9743d8285dcd3e2c150b3055a0204ef64639862f",
+        "rawCsvBytes": 778,
+        "report": "data/processed/earth-engine-p0/delhi-built-up.json",
+        "reportSha256": "2c6974c5a523981cf6af4af3fb84371c384f2e20f661862d597223d750958e91",
+        "reportBytes": 26314
+      },
+      "contractPack": {
+        "path": "data/processed/prepublication-packs/delhi-p0-v2.json",
+        "sha256": "0e91ddae9f2b85084dbc9688efb07d5d2ee27cc1ae19b2d7f3afa2de9cc1f66b",
+        "bytes": 6488
+      }
+    },
+    "chennai": {
+      "surface-water": {
+        "request": "data/processed/earth-engine-p0/sparc_chennai_surface-water_p0_v1.batch-request.json",
+        "taskId": "ZMTGMOMEM5FJHE6P3R7BLQFG",
+        "taskState": "COMPLETED",
+        "requestSha256": "6d20448d9c88a700c1bb0673560a1033a7e14cb0bfee3ece6cdd9762fa097209",
+        "requestBytes": 7129,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_chennai_surface-water_p0_v1.csv",
+        "rawCsvSha256": "b265736406dd9c36d2af52d0c3b020ed8d7cf8872a979265d93253ce10fb90c2",
+        "rawCsvBytes": 745,
+        "report": "data/processed/earth-engine-p0/chennai-surface-water.json",
+        "reportSha256": "0a6917debb94ecc6c1339966ea1f6f57391776d1d31f3c1c91ead4e294576c7d",
+        "reportBytes": 8151
+      },
+      "vegetation": {
+        "request": "data/processed/earth-engine-p0/sparc_chennai_vegetation_p0_v1.batch-request.json",
+        "taskId": "E2N34O5QXRNXWHDXOKHKPJ2S",
+        "taskState": "COMPLETED",
+        "requestSha256": "2bc6c54a2b8b7def3ae8d153862727c3246ca601f5bd402fffd269af9d3f7b46",
+        "requestBytes": 7120,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_chennai_vegetation_p0_v1.csv",
+        "rawCsvSha256": "ca50bfa85a2df85633fa7e979b50384dfea2c980bdf420fbb2c8a80d5dd5c99c",
+        "rawCsvBytes": 743,
+        "report": "data/processed/earth-engine-p0/chennai-vegetation.json",
+        "reportSha256": "9d25c636c46d9113d31c67e12c0b9c7ecc1febdfa6f188aef4ab9c18183cd3fc",
+        "reportBytes": 8133
+      },
+      "built-up": {
+        "request": "data/processed/earth-engine-p0/sparc_chennai_built-up_p0_v1.batch-request.json",
+        "taskId": "HMYK3F23XE2IPPQYVQZXFD2U",
+        "taskState": "COMPLETED",
+        "requestSha256": "9ecb3c2ca1b26c6fa943c27598902ce3a042caf87638d964577e75dd32d00943",
+        "requestBytes": 7114,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_chennai_built-up_p0_v1.csv",
+        "rawCsvSha256": "10a1c5a5223e882c7147cef2706ed4976da6ff543acf5dc24fdd046bdd3ee00c",
+        "rawCsvBytes": 772,
+        "report": "data/processed/earth-engine-p0/chennai-built-up.json",
+        "reportSha256": "057437eb1fb012d3a593ae6177bd02af387f974f3dfcc55aef3ca6321ed7a317",
+        "reportBytes": 8165
+      },
+      "contractPack": {
+        "path": "data/processed/prepublication-packs/chennai-p0-v2.json",
+        "sha256": "24cfc9cc1cfe903a7d0e83ae3bdd067e9582ebd116478117f2cdf2c4739c07c5",
+        "bytes": 6520
+      }
+    },
+    "bhopal": {
+      "surface-water": {
+        "request": "data/processed/earth-engine-p0/sparc_bhopal_surface-water_p0_v1.batch-request.json",
+        "taskId": "KR4RDTOYHNSJG5YS2OC27B56",
+        "taskState": "COMPLETED",
+        "requestSha256": "e8103bff95f1e2048e9ada7f7914fcf46690127e15fb91b49a8e56c3f69713fc",
+        "requestBytes": 13787,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_bhopal_surface-water_p0_v1.csv",
+        "rawCsvSha256": "425946f8d046049f79b617621939edf6786a86da901fd327cf9c55339db57bd9",
+        "rawCsvBytes": 754,
+        "report": "data/processed/earth-engine-p0/bhopal-surface-water.json",
+        "reportSha256": "5a80e39d8f2c0b49a110dada0e6e63f7e08dad79ec2536bd7c886d55f9fb1a83",
+        "reportBytes": 14810
+      },
+      "vegetation": {
+        "request": "data/processed/earth-engine-p0/sparc_bhopal_vegetation_p0_v1.batch-request.json",
+        "taskId": "IJKCH3FTN52NAKEVOPV7GAKB",
+        "taskState": "COMPLETED",
+        "requestSha256": "b1f2e4eb9a8a874ee7a36b1a64497866cdc610e1ff6ad545c01755b5b0106e9b",
+        "requestBytes": 13778,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_bhopal_vegetation_p0_v1.csv",
+        "rawCsvSha256": "2432b7fa0a726f6b5dde392d023ce45828a8a388b74e4403b04b627d943494ed",
+        "rawCsvBytes": 751,
+        "report": "data/processed/earth-engine-p0/bhopal-vegetation.json",
+        "reportSha256": "1013f86e9c7bf9be60f297ff63ed3ae9b50dafeae7cf72a766d847c3ee1aaabb",
+        "reportBytes": 14796
+      },
+      "built-up": {
+        "request": "data/processed/earth-engine-p0/sparc_bhopal_built-up_p0_v1.batch-request.json",
+        "taskId": "YVFLL5LDDL4WOSAP2VJOBNOQ",
+        "taskState": "COMPLETED",
+        "requestSha256": "16cde23722946df837db832ffc030f973f5e24d003b1d669ffe043d8494c14b5",
+        "requestBytes": 13772,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_bhopal_built-up_p0_v1.csv",
+        "rawCsvSha256": "0c2ebc9dcfcbc1be737166b2b5ef28df6ca4a7a191c1ae26da016ee59b691a61",
+        "rawCsvBytes": 774,
+        "report": "data/processed/earth-engine-p0/bhopal-built-up.json",
+        "reportSha256": "7ec378050d5c8f8ee83110af0b5bc5f7d9fba303d2cb2574f62eda64c2036e9b",
+        "reportBytes": 14818
+      },
+      "contractPack": {
+        "path": "data/processed/prepublication-packs/bhopal-p0-v2.json",
+        "sha256": "17d00e3fbd678f237e04accadc0327963519ea12fe1e643b418c66505c9e6c90",
+        "bytes": 6513
+      }
+    },
+    "new-york": {
+      "surface-water": {
+        "request": "data/processed/earth-engine-p0/sparc_new-york_surface-water_p0_v1.batch-request.json",
+        "taskId": "AHKLXFSBE72UCVBILQARQETY",
+        "taskState": "COMPLETED",
+        "requestSha256": "61b6428884d0a3b40e31400c4626ae162f149b9883009dbd8d80084ac41bb4e0",
+        "requestBytes": 47459,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_new-york_surface-water_p0_v1.csv",
+        "rawCsvSha256": "569902a7e5f5ff178edc25081ed71d21bb0f2dfa283fec38f094c77a762b0508",
+        "rawCsvBytes": 743,
+        "report": "data/processed/earth-engine-p0/new-york-surface-water.json",
+        "reportSha256": "ac8889aced539429c76004d9ee36e1ad16319fca778e0f4bebcd54e483cde29d",
+        "reportBytes": 48473
+      },
+      "vegetation": {
+        "request": "data/processed/earth-engine-p0/sparc_new-york_vegetation_p0_v1.batch-request.json",
+        "taskId": "LE22MJ6GLZUOFRNGQIHS7ITS",
+        "taskState": "COMPLETED",
+        "requestSha256": "108c55ef21f1272a568683130d8b23afb30f87541c3b7f18095bdae5594cd8fe",
+        "requestBytes": 47450,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_new-york_vegetation_p0_v1.csv",
+        "rawCsvSha256": "33557ea80b2766332223c3a1b26edfce274b80c15fd4439a05a121d0cef01c7c",
+        "rawCsvBytes": 748,
+        "report": "data/processed/earth-engine-p0/new-york-vegetation.json",
+        "reportSha256": "2336f46d53b563d0939d9642a19b1cc05aff4a81385739147042acf60fa66690",
+        "reportBytes": 48469
+      },
+      "built-up": {
+        "request": "data/processed/earth-engine-p0/sparc_new-york_built-up_p0_v1.batch-request.json",
+        "taskId": "SIFOM6IXONQLDR5GZW2CH3IA",
+        "taskState": "COMPLETED",
+        "requestSha256": "236330e561a7e7b9e7e1d847d5c923667c0140b33a679897cb0828d470b1633d",
+        "requestBytes": 47444,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_new-york_built-up_p0_v1.csv",
+        "rawCsvSha256": "55441b6cde244d297c99479eb7e957467e013bcbf82b3bfacac78c8d191d6b65",
+        "rawCsvBytes": 776,
+        "report": "data/processed/earth-engine-p0/new-york-built-up.json",
+        "reportSha256": "b7b7c51fc63cc98f9f844c33e5c101bd57b656c4dc6296e2b0d8c036d082236f",
+        "reportBytes": 48492
+      },
+      "contractPack": {
+        "path": "data/processed/prepublication-packs/new-york-p0-v2.json",
+        "sha256": "c9bdf0a33687a2469f473a579466b2af45b451aacc8242ebbc0fc7908bf0fe47",
+        "bytes": 6541
+      }
+    },
+    "washington-dc": {
+      "surface-water": {
+        "request": "data/processed/earth-engine-p0/sparc_washington-dc_surface-water_p0_v1.batch-request.json",
+        "taskId": "ERLZWXPBJQOG3YDGDNMOCR56",
+        "taskState": "COMPLETED",
+        "requestSha256": "4e87b436ba8c8497b8521b2ecc90e796aa9a265e54fc0ecaa97001fc91976500",
+        "requestBytes": 24452,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_washington-dc_surface-water_p0_v1.csv",
+        "rawCsvSha256": "5628e9ffc7b420016ab0fbef0325cc7d219310af6dd47ae56c7e5ec1358685c0",
+        "rawCsvBytes": 747,
+        "report": "data/processed/earth-engine-p0/washington-dc-surface-water.json",
+        "reportSha256": "d29a17288b6ac683d815a500714e9baa67c810f5a5925a54f5c9c293f1cb6968",
+        "reportBytes": 25473
+      },
+      "vegetation": {
+        "request": "data/processed/earth-engine-p0/sparc_washington-dc_vegetation_p0_v1.batch-request.json",
+        "taskId": "7QQVOEBPGUQ62VGL6WMRVD43",
+        "taskState": "COMPLETED",
+        "requestSha256": "e9052bd2f946c70e7b1b2c9ab11bc847cb12961d1a8a3bc98fdd17cfeaca0234",
+        "requestBytes": 24443,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_washington-dc_vegetation_p0_v1.csv",
+        "rawCsvSha256": "8566fbdd3f478b03b7e830c88d5aab6bf7a7dc7502c695ab17ed8ed4c0792f17",
+        "rawCsvBytes": 746,
+        "report": "data/processed/earth-engine-p0/washington-dc-vegetation.json",
+        "reportSha256": "964992f9a3053ec0024fca291d6eccf247eb87a0ca5cdc07ecdadf2e971c0925",
+        "reportBytes": 25463
+      },
+      "built-up": {
+        "request": "data/processed/earth-engine-p0/sparc_washington-dc_built-up_p0_v1.batch-request.json",
+        "taskId": "EOLTBOABWCAYLLCBMYCENP4V",
+        "taskState": "COMPLETED",
+        "requestSha256": "8681f47bc77bd8aa09cb929d68fa052b142df0151ad7666e957a122d7df927ba",
+        "requestBytes": 24437,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_washington-dc_built-up_p0_v1.csv",
+        "rawCsvSha256": "6954fe1d33c915f764fbfa64a546f8b6a8726d9ef9ebafc69e03015c41ff3e4b",
+        "rawCsvBytes": 774,
+        "report": "data/processed/earth-engine-p0/washington-dc-built-up.json",
+        "reportSha256": "24c8a17cf2f455806d8f4b457b56b83755d0f66a9654d59713a637df91e1d628",
+        "reportBytes": 25486
+      },
+      "contractPack": {
+        "path": "data/processed/prepublication-packs/washington-dc-p0-v2.json",
+        "sha256": "543a9ff535006efb567d9acc73061494052dc60c50a4f85c22f768eca4710252",
+        "bytes": 6570
+      }
+    },
+    "tokyo": {
+      "surface-water": {
+        "request": "data/processed/earth-engine-p0/sparc_tokyo_surface-water_p0_v1.batch-request.json",
+        "taskId": "7BCEMSZDI6R2ZFUA5XWPEB5C",
+        "taskState": "COMPLETED",
+        "requestSha256": "9c3f74eb0756f07e5cfa3113b19e46af08ca4e8d19dc539574ed3a8f3d1e3b34",
+        "requestBytes": 70496,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_tokyo_surface-water_p0_v1.csv",
+        "rawCsvSha256": "9b9196db5739a37270c698e8ee9cf1e98e1b6f587c2b8ae5d90d3f3ce89fd453",
+        "rawCsvBytes": 744,
+        "report": "data/processed/earth-engine-p0/tokyo-surface-water.json",
+        "reportSha256": "d7f2676a546ac3614f0cc884a8e9f16ffddcd670b162d44186f172ddd1da91f3",
+        "reportBytes": 71510
+      },
+      "vegetation": {
+        "request": "data/processed/earth-engine-p0/sparc_tokyo_vegetation_p0_v1.batch-request.json",
+        "taskId": "SXIQH7YIX47G5QY5QBWEO3O7",
+        "taskState": "COMPLETED",
+        "requestSha256": "33577d759641eb009e67bb81b57444b04414fdd5db0a2b73db63fd41cdba2f5e",
+        "requestBytes": 70487,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_tokyo_vegetation_p0_v1.csv",
+        "rawCsvSha256": "c566d9fc37a00b575c9cc4ed2c61df9964aebd005e3d71bcaa7e79217ccecd19",
+        "rawCsvBytes": 748,
+        "report": "data/processed/earth-engine-p0/tokyo-vegetation.json",
+        "reportSha256": "b6afbe30adac3c790248552b77af0faa6e822993945e2a80315a678b90023447",
+        "reportBytes": 71505
+      },
+      "built-up": {
+        "request": "data/processed/earth-engine-p0/sparc_tokyo_built-up_p0_v1.batch-request.json",
+        "taskId": "FM7K46BF2SKLKKJOO4IXDPRT",
+        "taskState": "COMPLETED",
+        "requestSha256": "0cce4137fba96651c013d145ae224a49d75ad36efd1577e9e212760724f40f70",
+        "requestBytes": 70481,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_tokyo_built-up_p0_v1.csv",
+        "rawCsvSha256": "c1ddfef731e332929c68585c27ade08e6feed271f842086fb7984a1c99fcd894",
+        "rawCsvBytes": 776,
+        "report": "data/processed/earth-engine-p0/tokyo-built-up.json",
+        "reportSha256": "74d5eb5c94c3e98f3163b6c14d704bed4615a57361680f8a59fa1bf15da8ec54",
+        "reportBytes": 71527
+      },
+      "contractPack": {
+        "path": "data/processed/prepublication-packs/tokyo-p0-v2.json",
+        "sha256": "8e63dba10bcff47fe22369969dfd3f78e7051f42dbecdcb0bea7c2e557c03207",
+        "bytes": 6498
+      }
+    },
+    "london": {
+      "surface-water": {
+        "request": "data/processed/earth-engine-p0/sparc_london_surface-water_p0_v1.batch-request.json",
+        "taskId": "2JXFEA3DXIOEK6G2LLD3LFP7",
+        "taskState": "COMPLETED",
+        "requestSha256": "d6c80bc508c0ecb2bf964910c39fd4d9730030652b3f41df99a2b515e44aaef6",
+        "requestBytes": 70600,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_london_surface-water_p0_v1.csv",
+        "rawCsvSha256": "c28e4b5c45a7e92b2f9e9f91d8a4192dd02ccba1e28e356d8078cad07a966efe",
+        "rawCsvBytes": 745,
+        "report": "data/processed/earth-engine-p0/london-surface-water.json",
+        "reportSha256": "43ba6543a61eca09a590a185fe541a5ae1aa9160230ecd7d492fef2447f09b99",
+        "reportBytes": 71616
+      },
+      "vegetation": {
+        "request": "data/processed/earth-engine-p0/sparc_london_vegetation_p0_v1.batch-request.json",
+        "taskId": "EQ3MYLQATPMFUXHZBYRDL7KU",
+        "taskState": "COMPLETED",
+        "requestSha256": "a4f4373bab9c6a977c3bf57a7ba196674634e47ad4092ea83d351e5fb0f0b5bb",
+        "requestBytes": 70591,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_london_vegetation_p0_v1.csv",
+        "rawCsvSha256": "18672de8cc40c791ed6a3772a1157c6d58393866802197ddc02980b90ebafb67",
+        "rawCsvBytes": 748,
+        "report": "data/processed/earth-engine-p0/london-vegetation.json",
+        "reportSha256": "7c833483962f04ae596e8b6067f8fc928ad4892a46d6f73b1b7643e5e646c711",
+        "reportBytes": 71608
+      },
+      "built-up": {
+        "request": "data/processed/earth-engine-p0/sparc_london_built-up_p0_v1.batch-request.json",
+        "taskId": "DCTUKVJ2YPAEY36F2KPOPBKH",
+        "taskState": "COMPLETED",
+        "requestSha256": "81cf3c832b8a163d2084c4a8a56e6ab1e4c94f50c49d43bdaffbc80d53b644ef",
+        "requestBytes": 70585,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_london_built-up_p0_v1.csv",
+        "rawCsvSha256": "6a63b3bbd78a26c39dffd932a5d772e8214ce98d6984ae92d667b9a293f1213d",
+        "rawCsvBytes": 775,
+        "report": "data/processed/earth-engine-p0/london-built-up.json",
+        "reportSha256": "61703137929982f23e0d2d7b9fc782f41bbbc768ce164d514434502ad51e81a3",
+        "reportBytes": 71633
+      },
+      "contractPack": {
+        "path": "data/processed/prepublication-packs/london-p0-v2.json",
+        "sha256": "7af5177dad4c2727080168985927132f28a9b71d1945c402af20c60d1fe2e5cf",
+        "bytes": 6538
+      }
+    },
+    "cairo": {
+      "surface-water": {
+        "request": "data/processed/earth-engine-p0/sparc_cairo_surface-water_p0_v1.batch-request.json",
+        "taskId": "EMPDRGBYFFHTVG44UU76ZFVA",
+        "taskState": "COMPLETED",
+        "requestSha256": "45ac44071246678b915d26ffb27c38556fa497f2b4b122a57e733c66c8f18249",
+        "requestBytes": 13090,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_cairo_surface-water_p0_v1.csv",
+        "rawCsvSha256": "509aa3978df3bc9d362de5bf13dc4db7e97b6a41bc071acaa247a5e34eed07dc",
+        "rawCsvBytes": 737,
+        "report": "data/processed/earth-engine-p0/cairo-surface-water.json",
+        "reportSha256": "dd4756aa65124b5c0075f334d4c77913091875083265a52a10f08d680a350657",
+        "reportBytes": 14106
+      },
+      "vegetation": {
+        "request": "data/processed/earth-engine-p0/sparc_cairo_vegetation_p0_v1.batch-request.json",
+        "taskId": "P64DZDVAKCI6VMY5JOCIUUKG",
+        "taskState": "COMPLETED",
+        "requestSha256": "c907c639d651578b3b94dfe341f012fe743e733ece0fc4ebd997b85a4841d0f0",
+        "requestBytes": 13081,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_cairo_vegetation_p0_v1.csv",
+        "rawCsvSha256": "5c126ddcf19944d3ec24fb20ac8f2fac79c6ad8d1a9bd584b8f4d19e8051e6a4",
+        "rawCsvBytes": 749,
+        "report": "data/processed/earth-engine-p0/cairo-vegetation.json",
+        "reportSha256": "2d11917b161203c84e92414d454678fcafe5afa309e387e4629a664b8936dff1",
+        "reportBytes": 14099
+      },
+      "built-up": {
+        "request": "data/processed/earth-engine-p0/sparc_cairo_built-up_p0_v1.batch-request.json",
+        "taskId": "QZ2XLNZHYSHWAW4AR6XMUI6N",
+        "taskState": "COMPLETED",
+        "requestSha256": "2588034fa52ea4c991ab4bade41858f863ee3e75d97245179cf36c054307d552",
+        "requestBytes": 13075,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_cairo_built-up_p0_v1.csv",
+        "rawCsvSha256": "0bd15d22483935697b5f5196871994506794dad2eab0f48b36b0a5a56e71efcd",
+        "rawCsvBytes": 776,
+        "report": "data/processed/earth-engine-p0/cairo-built-up.json",
+        "reportSha256": "61e02d95627ef27fb37b16ab8945f9e99c09cbcdcdee3f05f7801cbf40397932",
+        "reportBytes": 14121
+      },
+      "contractPack": {
+        "path": "data/processed/prepublication-packs/cairo-p0-v2.json",
+        "sha256": "625e8de3642cc4a1e7edca8f22d275eb3393af0f5423a50ea278a29df12d22dc",
+        "bytes": 6501
+      }
+    },
+    "sydney": {
+      "surface-water": {
+        "request": "data/processed/earth-engine-p0/sparc_sydney_surface-water_p0_v1.batch-request.json",
+        "taskId": "SROV7AUCUG4VU6USIX3BKMWT",
+        "taskState": "COMPLETED",
+        "requestSha256": "fa90ce94e9c7d4c252abdacedbf33760775b4ff37efdf487352ee2b4ed81cc33",
+        "requestBytes": 12688,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_sydney_surface-water_p0_v1.csv",
+        "rawCsvSha256": "14bd42aed1101214d184beac8589a55d453c95cb86053115eb6612929d777800",
+        "rawCsvBytes": 739,
+        "report": "data/processed/earth-engine-p0/sydney-surface-water.json",
+        "reportSha256": "f391fd90a6e97d96b45c7faf830eadcf0be8a448c24fd8966d017730c81fe34b",
+        "reportBytes": 13710
+      },
+      "vegetation": {
+        "request": "data/processed/earth-engine-p0/sparc_sydney_vegetation_p0_v1.batch-request.json",
+        "taskId": "DCHKNJH4HLGURYCVDQZ4SV4D",
+        "taskState": "COMPLETED",
+        "requestSha256": "c6b1b79c93a26c731fedb2e38c036fd2b59c1f1e6a2130f90d8dbbae58623c2a",
+        "requestBytes": 12679,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_sydney_vegetation_p0_v1.csv",
+        "rawCsvSha256": "899e83cee14c82b4a6c4b1c66e404e6c41b13b21035fdd45c863a398b127015e",
+        "rawCsvBytes": 745,
+        "report": "data/processed/earth-engine-p0/sydney-vegetation.json",
+        "reportSha256": "a2a2af677ff87852c24cb7b538a3f4f96694514454d2872e7747c15aeaf63e3d",
+        "reportBytes": 13702
+      },
+      "built-up": {
+        "request": "data/processed/earth-engine-p0/sparc_sydney_built-up_p0_v1.batch-request.json",
+        "taskId": "IVO4AV63MB7NVY2KCWTHIIBM",
+        "taskState": "COMPLETED",
+        "requestSha256": "092bfdd9e8d8057253161d36b8292942fefd67ba8f87276444290a8cb5f09bdb",
+        "requestBytes": 12673,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_sydney_built-up_p0_v1.csv",
+        "rawCsvSha256": "ab62e714097487b31bdf45b4808dd30ea591b94d5933805576d754d8a1f2280e",
+        "rawCsvBytes": 773,
+        "report": "data/processed/earth-engine-p0/sydney-built-up.json",
+        "reportSha256": "65791c0aef471ea8e285e6c31906dbf10103c3c22e3d1280e5f7e827001e87a1",
+        "reportBytes": 13724
+      },
+      "contractPack": {
+        "path": "data/processed/prepublication-packs/sydney-p0-v2.json",
+        "sha256": "115b2ddca7be7b5426442a6fd4fc660a4864056ec94d6452941a3f453f5c9398",
+        "bytes": 6543
+      }
+    },
+    "rio-de-janeiro": {
+      "surface-water": {
+        "request": "data/processed/earth-engine-p0/sparc_rio-de-janeiro_surface-water_p0_v1.batch-request.json",
+        "taskId": "UFIWOY4ZNBWAD4CWR46EWGO7",
+        "taskState": "COMPLETED",
+        "requestSha256": "19b06217f37688bd1919a5b58e619fe2160fae5b5eb6a9f3f757e9606bee04a3",
+        "requestBytes": 6921,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_rio-de-janeiro_surface-water_p0_v1.csv",
+        "rawCsvSha256": "17adaee1c6a218ee2bd6851af41ba24f92167ecd241970f7a01292d2cda017ce",
+        "rawCsvBytes": 749,
+        "report": "data/processed/earth-engine-p0/rio-de-janeiro-surface-water.json",
+        "reportSha256": "25f886cbb746703c1957da4caf12987fd64700b639d96670e399295f3919fbd9",
+        "reportBytes": 7941
+      },
+      "vegetation": {
+        "request": "data/processed/earth-engine-p0/sparc_rio-de-janeiro_vegetation_p0_v1.batch-request.json",
+        "taskId": "NSZRUMKVKNU7US5EXGNDAS2R",
+        "taskState": "COMPLETED",
+        "requestSha256": "3b2e7f48905d6f1538366ae21eecf8eb35bb89dab9e4baadb46250fdee84a787",
+        "requestBytes": 6912,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_rio-de-janeiro_vegetation_p0_v1.csv",
+        "rawCsvSha256": "f5fa348b9b28e4bf01c8b7c01b670779ab1f20be663a93ae297ea6e04b713eee",
+        "rawCsvBytes": 742,
+        "report": "data/processed/earth-engine-p0/rio-de-janeiro-vegetation.json",
+        "reportSha256": "81e36c796aca052218872b7dbd5879b00ace42d690fa5574bcf045f16d09d336",
+        "reportBytes": 7924
+      },
+      "built-up": {
+        "request": "data/processed/earth-engine-p0/sparc_rio-de-janeiro_built-up_p0_v1.batch-request.json",
+        "taskId": "GG2TVVV4VA24BOBAT6KV3KP6",
+        "taskState": "COMPLETED",
+        "requestSha256": "171614ba3b7e3e786c127b46ab31f26cbdd29565573a7aaa82a90119ce0316d1",
+        "requestBytes": 6906,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_rio-de-janeiro_built-up_p0_v1.csv",
+        "rawCsvSha256": "352cee17fd982dd2b7920a54260cb38dadf9c579aca8b822215f4275a13f8c47",
+        "rawCsvBytes": 779,
+        "report": "data/processed/earth-engine-p0/rio-de-janeiro-built-up.json",
+        "reportSha256": "639b77dd2a072bcf41f415a3625a7066671c6426a09ef04c5f8d587df6b37f7f",
+        "reportBytes": 7956
+      },
+      "contractPack": {
+        "path": "data/processed/prepublication-packs/rio-de-janeiro-p0-v2.json",
+        "sha256": "1dfb4feaece30956d97f8f5546e2459a6cfd044dae0e5a63e6aba9c72343b9a6",
+        "bytes": 6576
+      }
+    },
+    "reykjavik": {
+      "surface-water": {
+        "request": "data/processed/earth-engine-p0/sparc_reykjavik_surface-water_p0_v1.batch-request.json",
+        "taskId": "HPPXRBSXPYBYBGFB52MMK4JL",
+        "taskState": "COMPLETED",
+        "requestSha256": "4b00e507e65c1cce886a417e8136e70d91daf73aa66bbe4c01cf47679a760546",
+        "requestBytes": 24005,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_reykjavik_surface-water_p0_v1.csv",
+        "rawCsvSha256": "319b6aa3a67276b774197438d335afe8b55053ba27a2a759f7f53e3cc71d6944",
+        "rawCsvBytes": 741,
+        "report": "data/processed/earth-engine-p0/reykjavik-surface-water.json",
+        "reportSha256": "292ef1950dcf20fc69f3c7c7ff9897951ede5d34ab9be4f87947a76724d941cc",
+        "reportBytes": 25022
+      },
+      "vegetation": {
+        "request": "data/processed/earth-engine-p0/sparc_reykjavik_vegetation_p0_v1.batch-request.json",
+        "taskId": "JUSQ2DEJZYVTKWSIATUHVF5I",
+        "taskState": "COMPLETED",
+        "requestSha256": "51a539a2720f124c2030ab3cd9bfe6b06bf7fe0c81fc67d4a9e9d402663c34ff",
+        "requestBytes": 23996,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_reykjavik_vegetation_p0_v1.csv",
+        "rawCsvSha256": "88c5b16243ad8f480cc54064f3e678fd8ac2b48b308ce886ad16cc9ea3485954",
+        "rawCsvBytes": 741,
+        "report": "data/processed/earth-engine-p0/reykjavik-vegetation.json",
+        "reportSha256": "fd6a8a894348a1ed3b8c521f6b87f7bffdf6beaa6fdf1e98ac77eef2c6c54fd1",
+        "reportBytes": 25012
+      },
+      "built-up": {
+        "request": "data/processed/earth-engine-p0/sparc_reykjavik_built-up_p0_v1.batch-request.json",
+        "taskId": "6JS3HXXILTQ24GH7CEUAS65D",
+        "taskState": "COMPLETED",
+        "requestSha256": "cae815100eee3a4e5178baea7669a3e8c3daafe5eb91e731ffbb957ad68c4c5c",
+        "requestBytes": 23990,
+        "rawCsv": "data/raw/earth-engine-exports/sparc_reykjavik_built-up_p0_v1.csv",
+        "rawCsvSha256": "fa1c54b9351523b22bca1303048a391e7d6f79976e399661b0ca5656a87b30a7",
+        "rawCsvBytes": 770,
+        "report": "data/processed/earth-engine-p0/reykjavik-built-up.json",
+        "reportSha256": "975aca024c1bf26d07a40fd836f01b4a385823dfcfc43764e169007cc5e05481",
+        "reportBytes": 25037
+      },
+      "contractPack": {
+        "path": "data/processed/prepublication-packs/reykjavik-p0-v2.json",
+        "sha256": "e4df79888d0361f83f23b06adc381be6e4dcb1ea476d1773b38ef32066e64f56",
+        "bytes": 6541
+      }
+    }
+  },
+  "contractExamplesManifest": {
+    "path": "contracts/examples/precomputed/manifest.json",
+    "sha256": "86769828edee2c1fef81208bb2adf4a03e8e7f5ba5c5c844554ac31708fb9166",
+    "bytes": 7393,
+    "fileCount": 60
+  },
+  "extraTaskNote": "The initial surface-water --region all invocation also started existing Nagpur, Bengaluru Urban, and Mumbai City task records; the Mumbai City task was canceled. Those extra records are outside this 12-city expansion manifest."
+}

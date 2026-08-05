@@ -43,7 +43,7 @@ python -m scripts.data.extract_geoboundaries_adm2
 python -m scripts.data.process_earth_engine_p0 --region all
 ```
 
-The worker uses `COPERNICUS/S2_SR_HARMONIZED`, allows SCL classes 4/5/6 only, requires two clear observations per period, calculates indices per observation before taking a median, and compares only the common-valid footprint. Results go to ignored `data/processed/earth-engine-p0/` and are explicitly pre-publication until threshold sensitivity and independent validation complete.
+The worker uses `COPERNICUS/S2_SR_HARMONIZED`, allows SCL classes 4/5/6 only, requires two clear observations per period, calculates indices per observation before taking a median, and compares only the common-valid footprint. Results go to ignored `data/processed/earth-engine-p0/` and remain pre-publication with `quality: unknown`; no scientific accuracy claim is implied.
 
 The 12-city expansion batch requests prepared on 2026-08-05 are recorded in
 [`data/metadata/earth-engine-p0-expansion-run.json`](../../data/metadata/earth-engine-p0-expansion-run.json).
@@ -52,6 +52,16 @@ was imported, and no contract pack was built. The configured Earth Engine
 project reported that its noncommercial compute quota is in restricted mode;
 start exports only after the project owner confirms quota and an approved
 Drive destination.
+
+The quota-safe rerun using project `project-b44b6a9b-cafb-4d19-8dd` completed 36
+one-indicator exports in `SPARC_EE_EXPORTS_20260803`. Its task IDs, completed
+states, request checksums, raw CSV checksums, report checksums, and pack
+checksums are recorded in
+[`data/metadata/earth-engine-p0-expansion-run-project-b44b6a9b.json`](../../data/metadata/earth-engine-p0-expansion-run-project-b44b6a9b.json).
+The raw CSVs are preserved unchanged under ignored
+`data/raw/earth-engine-exports/`; the guarded importer produced 36 reports and
+12 three-indicator packs. Re-running the importer is safe only with the
+matching request JSON and unchanged CSV bytes.
 
 ### Interactive timeout: controlled batch export
 
@@ -222,7 +232,7 @@ python -m scripts.data.create_validation_label_template `
 
 ### Pre-publication result pack
 
-After validated local P0 reports exist, build one non-overwritable offline pack. It rechecks the report region, boundary checksum, fixed periods, Earth Engine collection, area arithmetic, unknown quality, boundary disclaimer, completed vegetation sensitivity, and report checksums before writing a new result.
+After validated local P0 reports exist, build one non-overwritable offline pack. It rechecks the report region, boundary checksum, fixed periods, Earth Engine collection, area arithmetic, unknown quality, boundary disclaimer, and report checksums before writing a new result. Optional sensitivity records are retained when available; the global expansion packs intentionally do not claim sensitivity or independent validation.
 
 ```powershell
 python -m scripts.data.build_prepublication_result_pack `
@@ -232,9 +242,10 @@ python -m scripts.data.build_prepublication_result_pack `
   --output data\processed\prepublication-packs\nagpur-p0-v1.json
 ```
 
-For Mumbai City, use the same pack gate with the three reports under
-`data\processed\earth-engine-p0\mumbai-city-*.json` and output
-`mumbai-city-p0-v2.json`. The published contract examples are then rebuilt with
-`python -m scripts.data.build_contract_pack_examples`.
+For each expansion city, use the same pack gate with the three reports under
+`data\processed\earth-engine-p0\<city>-*.json` and output
+`<city>-p0-v2.json`. Copy the accepted packs into
+`data\processed\prepublication-packs\` and rebuild the published contract
+examples with `python -m scripts.data.build_contract_pack_examples`.
 
 The output remains Git-ignored and uses [`prepublication-result-pack.schema.json`](../../packages/contracts/schemas/prepublication-result-pack.schema.json). It is an offline evidence and integration boundary, not an HTTP response and not a deployable result. The current FastAPI service must remain in `SPARC_DATA_MODE=demo` until a separately reviewed mapping and disclosure path exists.

@@ -5,6 +5,10 @@ import path from 'node:path';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, '..', '..');
+const configuredBase = process.env.VITE_BASE_PATH?.trim();
+const base = configuredBase
+  ? (configuredBase.endsWith('/') ? configuredBase : `${configuredBase}/`)
+  : process.env.VERCEL === '1' ? '/' : '/app/';
 
 export default defineConfig({
   // Relative base so a built bundle works from any path on the offline demo
@@ -12,7 +16,9 @@ export default defineConfig({
   // Absolute, because the panel bundle is loaded by the globe page at '/' while
   // its own chunks and textures live under '/app/'. A relative base would make
   // the browser look for them at the site root.
-  base: '/app/',
+  // The combined local server mounts this panel at /app/. A standalone
+  // Vercel dashboard is served from the domain root and sets VITE_BASE_PATH=/.
+  base,
   plugins: [react()],
   resolve: {
     alias: {

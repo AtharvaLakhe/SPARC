@@ -34,7 +34,16 @@ class Settings:
             "SPARC_ALLOWED_ORIGINS",
             "http://localhost:5173,http://localhost:8123",
         )
-        origins = tuple(origin.strip() for origin in origins_value.split(",") if origin.strip())
+        origins_list = [origin.strip() for origin in origins_value.split(",") if origin.strip()]
+        # Vercel supplies the deployment hostname to serverless functions.
+        # Include it without weakening the explicit-origin rule so same-origin
+        # browser requests work while wildcard CORS remains impossible.
+        vercel_url = os.getenv("VERCEL_URL", "").strip()
+        if vercel_url:
+            deployment_origin = vercel_url if "://" in vercel_url else f"https://{vercel_url}"
+            if deployment_origin not in origins_list:
+                origins_list.append(deployment_origin)
+        origins = tuple(origins_list)
         if not origins or "*" in origins:
             raise RuntimeError("SPARC_ALLOWED_ORIGINS must contain explicit origins")
 

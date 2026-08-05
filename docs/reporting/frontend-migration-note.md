@@ -10,23 +10,24 @@ catalog (currently `2026-08-05.3`) and exposes fourteen quick targets:
 Nagpur, Bengaluru, Mumbai, Delhi, Chennai, Bhopal, New York, Washington DC,
 Tokyo, London, Cairo, Sydney, Rio de Janeiro, and Reykjavik. Each card displays its ISO
 country code, administrative area, boundary definition, and coverage state.
-Cards with analytics coverage `FULLY_SUPPORTED` map to the three checked-in
-precomputed packs (Nagpur, Bengaluru Urban, and Mumbai City district). All
-other cards enter a report/export scope with an explicit
-catalog envelope. Routing coverage is separate: only cards whose routing state
+All fourteen cards currently map to checked-in three-indicator precomputed
+packs (the existing Nagpur, Bengaluru Urban, and Mumbai City compatibility
+packs plus the twelve expansion packs). Routing coverage is separate: only
+cards whose routing state
 is `FULLY_SUPPORTED` may show a verified manual handoff; report-generation-only
-and unsupported routing states remain export-only. The catalog envelope is not
-an ADM, legal, or cadastral boundary.
+and unsupported routing states remain export-only. Every pinned boundary remains
+suitable for prototype analysis only; it is not an authoritative legal or
+cadastral boundary.
 
 The build-free Orbit launcher uses the same fourteen names for its quick chips
 and local gazetteer handoff. Keep that list synchronized with the catalog when
 adding a city; the launcher must not imply that a geocoded point has a
 published analytical pack.
 
-Do not reintroduce seeded or plausible-looking numeric fallback values. A
-report-only city must render an unavailable analytical state and send a
-`NOT_RUN`/null evidence snapshot to `POST /api/v1/reports`; the generated PDF
-and ZIP remain available. This is a claim-safety requirement, not a styling
+Do not reintroduce seeded or plausible-looking numeric fallback values. If a
+future city is report-only, it must render an unavailable analytical state and
+send a `NOT_RUN`/null evidence snapshot to `POST /api/v1/reports`; the generated
+PDF and ZIP remain available. This is a claim-safety requirement, not a styling
 choice. `UNSUPPORTED_JURISDICTION` also suppresses guessed authority links.
 
 ## Request

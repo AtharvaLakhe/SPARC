@@ -16,6 +16,7 @@ from scripts.data.build_prepublication_result_pack import (
 
 
 BOUNDARY_SHA = "f811022adbe26c7634ba4d884db3251c53bd2d23b8d55e18f6d24fe3cb3b2b33"
+BENGALURU_BOUNDARY_SHA = "613c9f5da9e207d2acec5796488754abf0d2e48a6b341f5c0de25cbdc3ffa67a"
 RAW_CSV_SHA = "4" * 64
 
 
@@ -81,7 +82,7 @@ class PrepublicationResultPackTests(unittest.TestCase):
         vegetation = self._assembly_input("vegetation")
         vegetation[1]["region"]["boundarySha256"] = "0" * 64
 
-        with self.assertRaisesRegex(ValueError, "same approved region"):
+        with self.assertRaisesRegex(ValueError, "pinned checksum"):
             assemble_pack([water, vegetation])
 
     def test_does_not_apply_nagpur_label_frame_to_bengaluru_vegetation(self) -> None:
@@ -89,7 +90,7 @@ class PrepublicationResultPackTests(unittest.TestCase):
         report["region"] = {
             "key": "bengaluru-urban",
             "name": "Bengaluru Urban",
-            "boundarySha256": "b" * 64,
+            "boundarySha256": BENGALURU_BOUNDARY_SHA,
         }
         report["periods"] = {
             "baseline": {"start": "2019-01-15", "end": "2019-03-15", "endInclusive": True},

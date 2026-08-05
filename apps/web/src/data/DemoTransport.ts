@@ -20,6 +20,54 @@ import bengaluruBuiltUp from '@fixtures/precomputed/district-bengaluru-urban-bui
 import mumbaiWater from '@fixtures/precomputed/district-mumbai-city-surface-water.json';
 import mumbaiVegetation from '@fixtures/precomputed/district-mumbai-city-vegetation.json';
 import mumbaiBuiltUp from '@fixtures/precomputed/district-mumbai-city-built-up.json';
+import mumbaiGlobalSummary from '@fixtures/precomputed/district-mumbai-summary.json';
+import mumbaiGlobalWater from '@fixtures/precomputed/district-mumbai-surface-water.json';
+import mumbaiGlobalVegetation from '@fixtures/precomputed/district-mumbai-vegetation.json';
+import mumbaiGlobalBuiltUp from '@fixtures/precomputed/district-mumbai-built-up.json';
+import delhiSummary from '@fixtures/precomputed/district-delhi-summary.json';
+import delhiWater from '@fixtures/precomputed/district-delhi-surface-water.json';
+import delhiVegetation from '@fixtures/precomputed/district-delhi-vegetation.json';
+import delhiBuiltUp from '@fixtures/precomputed/district-delhi-built-up.json';
+import chennaiSummary from '@fixtures/precomputed/district-chennai-summary.json';
+import chennaiWater from '@fixtures/precomputed/district-chennai-surface-water.json';
+import chennaiVegetation from '@fixtures/precomputed/district-chennai-vegetation.json';
+import chennaiBuiltUp from '@fixtures/precomputed/district-chennai-built-up.json';
+import bhopalSummary from '@fixtures/precomputed/district-bhopal-summary.json';
+import bhopalWater from '@fixtures/precomputed/district-bhopal-surface-water.json';
+import bhopalVegetation from '@fixtures/precomputed/district-bhopal-vegetation.json';
+import bhopalBuiltUp from '@fixtures/precomputed/district-bhopal-built-up.json';
+import newYorkSummary from '@fixtures/precomputed/district-new-york-summary.json';
+import newYorkWater from '@fixtures/precomputed/district-new-york-surface-water.json';
+import newYorkVegetation from '@fixtures/precomputed/district-new-york-vegetation.json';
+import newYorkBuiltUp from '@fixtures/precomputed/district-new-york-built-up.json';
+import washingtonDcSummary from '@fixtures/precomputed/district-washington-dc-summary.json';
+import washingtonDcWater from '@fixtures/precomputed/district-washington-dc-surface-water.json';
+import washingtonDcVegetation from '@fixtures/precomputed/district-washington-dc-vegetation.json';
+import washingtonDcBuiltUp from '@fixtures/precomputed/district-washington-dc-built-up.json';
+import tokyoSummary from '@fixtures/precomputed/district-tokyo-summary.json';
+import tokyoWater from '@fixtures/precomputed/district-tokyo-surface-water.json';
+import tokyoVegetation from '@fixtures/precomputed/district-tokyo-vegetation.json';
+import tokyoBuiltUp from '@fixtures/precomputed/district-tokyo-built-up.json';
+import londonSummary from '@fixtures/precomputed/district-london-summary.json';
+import londonWater from '@fixtures/precomputed/district-london-surface-water.json';
+import londonVegetation from '@fixtures/precomputed/district-london-vegetation.json';
+import londonBuiltUp from '@fixtures/precomputed/district-london-built-up.json';
+import cairoSummary from '@fixtures/precomputed/district-cairo-summary.json';
+import cairoWater from '@fixtures/precomputed/district-cairo-surface-water.json';
+import cairoVegetation from '@fixtures/precomputed/district-cairo-vegetation.json';
+import cairoBuiltUp from '@fixtures/precomputed/district-cairo-built-up.json';
+import sydneySummary from '@fixtures/precomputed/district-sydney-summary.json';
+import sydneyWater from '@fixtures/precomputed/district-sydney-surface-water.json';
+import sydneyVegetation from '@fixtures/precomputed/district-sydney-vegetation.json';
+import sydneyBuiltUp from '@fixtures/precomputed/district-sydney-built-up.json';
+import rioDeJaneiroSummary from '@fixtures/precomputed/district-rio-de-janeiro-summary.json';
+import rioDeJaneiroWater from '@fixtures/precomputed/district-rio-de-janeiro-surface-water.json';
+import rioDeJaneiroVegetation from '@fixtures/precomputed/district-rio-de-janeiro-vegetation.json';
+import rioDeJaneiroBuiltUp from '@fixtures/precomputed/district-rio-de-janeiro-built-up.json';
+import reykjavikSummary from '@fixtures/precomputed/district-reykjavik-summary.json';
+import reykjavikWater from '@fixtures/precomputed/district-reykjavik-surface-water.json';
+import reykjavikVegetation from '@fixtures/precomputed/district-reykjavik-vegetation.json';
+import reykjavikBuiltUp from '@fixtures/precomputed/district-reykjavik-built-up.json';
 import partialData from '@fixtures/partial-data.mock.json';
 
 import {
@@ -39,6 +87,18 @@ const SUMMARIES: Record<string, unknown> = {
   'district:nagpur': nagpurSummary,
   'district:bengaluru-urban': bengaluruSummary,
   'district:mumbai-city': mumbaiSummary,
+  'district:mumbai': mumbaiGlobalSummary,
+  'district:delhi': delhiSummary,
+  'district:chennai': chennaiSummary,
+  'district:bhopal': bhopalSummary,
+  'district:new-york': newYorkSummary,
+  'district:washington-dc': washingtonDcSummary,
+  'district:tokyo': tokyoSummary,
+  'district:london': londonSummary,
+  'district:cairo': cairoSummary,
+  'district:sydney': sydneySummary,
+  'district:rio-de-janeiro': rioDeJaneiroSummary,
+  'district:reykjavik': reykjavikSummary,
 };
 
 /* Keyed by immutable region and indicator IDs, never by a caller-controlled
@@ -58,6 +118,66 @@ const COMPARISONS: Record<string, Record<string, unknown>> = {
     'surface-water': mumbaiWater,
     vegetation: mumbaiVegetation,
     'built-up': mumbaiBuiltUp,
+  },
+  'district:mumbai': {
+    'surface-water': mumbaiGlobalWater,
+    vegetation: mumbaiGlobalVegetation,
+    'built-up': mumbaiGlobalBuiltUp,
+  },
+  'district:delhi': {
+    'surface-water': delhiWater,
+    vegetation: delhiVegetation,
+    'built-up': delhiBuiltUp,
+  },
+  'district:chennai': {
+    'surface-water': chennaiWater,
+    vegetation: chennaiVegetation,
+    'built-up': chennaiBuiltUp,
+  },
+  'district:bhopal': {
+    'surface-water': bhopalWater,
+    vegetation: bhopalVegetation,
+    'built-up': bhopalBuiltUp,
+  },
+  'district:new-york': {
+    'surface-water': newYorkWater,
+    vegetation: newYorkVegetation,
+    'built-up': newYorkBuiltUp,
+  },
+  'district:washington-dc': {
+    'surface-water': washingtonDcWater,
+    vegetation: washingtonDcVegetation,
+    'built-up': washingtonDcBuiltUp,
+  },
+  'district:tokyo': {
+    'surface-water': tokyoWater,
+    vegetation: tokyoVegetation,
+    'built-up': tokyoBuiltUp,
+  },
+  'district:london': {
+    'surface-water': londonWater,
+    vegetation: londonVegetation,
+    'built-up': londonBuiltUp,
+  },
+  'district:cairo': {
+    'surface-water': cairoWater,
+    vegetation: cairoVegetation,
+    'built-up': cairoBuiltUp,
+  },
+  'district:sydney': {
+    'surface-water': sydneyWater,
+    vegetation: sydneyVegetation,
+    'built-up': sydneyBuiltUp,
+  },
+  'district:rio-de-janeiro': {
+    'surface-water': rioDeJaneiroWater,
+    vegetation: rioDeJaneiroVegetation,
+    'built-up': rioDeJaneiroBuiltUp,
+  },
+  'district:reykjavik': {
+    'surface-water': reykjavikWater,
+    vegetation: reykjavikVegetation,
+    'built-up': reykjavikBuiltUp,
   },
 };
 

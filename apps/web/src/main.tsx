@@ -35,10 +35,8 @@ class Boundary extends Component<{ children: ReactNode }, { error: Error | null 
 /* ── panel API ───────────────────────────────────────────────────────────────
    The globe is a build-free ES-module page; it cannot import React. So this
    bundle publishes a tiny imperative surface on `window.SPARC` and the globe
-   calls it. Two entry paths, one component:
-
-     · standalone at /app/  — full-page dashboard, root already in the HTML
-     · panel over the globe — mounted on demand into a fixed side drawer
+   calls it. The dashboard is mounted on demand into a fixed side drawer over
+   the canonical globe entry.
 
    Mounting lazily matters: opening the panel is the first moment the analytics
    are needed, and until then the globe should not pay for a React tree. */
@@ -151,7 +149,9 @@ declare global {
 }
 window.SPARC = { open: openPanel, close: closePanel };
 
-/* Standalone route: /app/ still renders the dashboard on its own. */
+/* Development fallback: Vite can still mount the dashboard when this bundle is
+   opened directly. The combined production server redirects /app/ to the
+   globe, so users see one public experience. */
 const standalone = document.getElementById('root');
 if (standalone) {
   createRoot(standalone).render(

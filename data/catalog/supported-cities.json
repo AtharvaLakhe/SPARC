@@ -10,11 +10,21 @@
       "name": "Nagpur",
       "countryCode": "IN",
       "country": "India",
-      "administrativeAreas": ["Maharashtra"],
+      "administrativeAreas": [
+        "Maharashtra"
+      ],
       "district": "Nagpur",
       "municipality": "Nagpur",
-      "centroid": [79.0879774, 21.1768535],
-      "bbox": [78.25182, 20.58121, 79.66161, 21.72314],
+      "centroid": [
+        79.0879774,
+        21.1768535
+      ],
+      "bbox": [
+        78.25182,
+        20.58121,
+        79.66161,
+        21.72314
+      ],
       "story": "Validated district pack with the current water and vegetation estimates.",
       "analyticsCoverage": "FULLY_SUPPORTED",
       "routingCoverage": "FULLY_SUPPORTED",
@@ -48,7 +58,15 @@
         "definition": "The validated geoBoundaries gbOpen India ADM2 polygon selected by shapeName Nagpur and state-checked as Maharashtra.",
         "geometryAsset": "data/validated/boundaries/geoBoundaries-IND-ADM2-76128533/nagpur.geojson"
       },
-      "jurisdiction": {"pack": "IN/Maharashtra", "authorityIds": ["mpcb", "nmc", "maharashtra-forest", "aaple-sarkar"]}
+      "jurisdiction": {
+        "pack": "IN/Maharashtra",
+        "authorityIds": [
+          "mpcb",
+          "nmc",
+          "maharashtra-forest",
+          "aaple-sarkar"
+        ]
+      }
     },
     {
       "slug": "bengaluru",
@@ -56,11 +74,21 @@
       "name": "Bengaluru",
       "countryCode": "IN",
       "country": "India",
-      "administrativeAreas": ["Karnataka"],
+      "administrativeAreas": [
+        "Karnataka"
+      ],
       "district": "Bengaluru Urban",
       "municipality": "Bengaluru",
-      "centroid": [77.5828369, 12.9491379],
-      "bbox": [77.32755, 12.65818, 77.82026, 13.23257],
+      "centroid": [
+        77.5828369,
+        12.9491379
+      ],
+      "bbox": [
+        77.32755,
+        12.65818,
+        77.82026,
+        13.23257
+      ],
       "story": "Validated Bengaluru Urban district pack with frozen dry-season comparisons.",
       "analyticsCoverage": "FULLY_SUPPORTED",
       "routingCoverage": "FULLY_SUPPORTED",
@@ -94,372 +122,823 @@
         "definition": "The validated geoBoundaries gbOpen India ADM2 polygon selected by shapeName Bangalore and state-checked as Karnataka.",
         "geometryAsset": "data/validated/boundaries/geoBoundaries-IND-ADM2-76128533/bengaluru-urban.geojson"
       },
-      "jurisdiction": {"pack": "IN/Karnataka", "authorityIds": ["kspcb", "aaple-sarkar"]}
+      "jurisdiction": {
+        "pack": "IN/Karnataka",
+        "authorityIds": [
+          "kspcb",
+          "aaple-sarkar"
+        ]
+      }
     },
     {
       "slug": "mumbai",
-      "regionId": "district:mumbai-city",
+      "regionId": "district:mumbai",
       "name": "Mumbai City",
       "countryCode": "IN",
       "country": "India",
-      "administrativeAreas": ["Maharashtra"],
+      "administrativeAreas": [
+        "Maharashtra"
+      ],
       "district": "Mumbai City",
       "municipality": "Mumbai",
-      "centroid": [72.8338038241462, 18.98076517780284],
-      "bbox": [72.79167, 18.88684, 72.88584, 19.05543],
-      "story": "Validated Mumbai City district pack with post-monsoon P0 comparisons.",
+      "centroid": [
+        72.879965,
+        19.07808
+      ],
+      "bbox": [
+        72.77589,
+        18.88684,
+        72.98404,
+        19.26932
+      ],
+      "story": "Precomputed three-indicator Earth Engine estimate pack; review methodology and provenance for limitations.",
       "analyticsCoverage": "FULLY_SUPPORTED",
       "routingCoverage": "FULLY_SUPPORTED",
       "processingPack": {
         "status": "VALIDATED",
-        "packId": "mumbai-city-p0-v2",
+        "packId": "mumbai-p0-v2",
         "manifest": "contracts/examples/precomputed/manifest.json",
         "files": {
-          "summary": "district-mumbai-city-summary.json",
-          "surface-water": "district-mumbai-city-surface-water.json",
-          "vegetation": "district-mumbai-city-vegetation.json",
-          "built-up": "district-mumbai-city-built-up.json"
+          "summary": "district-mumbai-summary.json",
+          "surface-water": "district-mumbai-surface-water.json",
+          "vegetation": "district-mumbai-vegetation.json",
+          "built-up": "district-mumbai-built-up.json"
         },
         "checksums": {
-          "summary": "sha256:34288c100ecdd18a0f3dae118e9201d660d09cfcef124634b9348b63c22d3d73",
-          "surface-water": "sha256:f4237eca5dac948e2acda67b902a4c0d35367298316460df747915aa3083f100",
-          "vegetation": "sha256:6d56c532ab1f7fcc8f013ac070949b4c0e588247460f29f0d5f9a1477a5b472b",
-          "built-up": "sha256:a39110590c878ce2a4ef1721a82eed880239b28127a17ffb5e2fda920fe7b46f"
+          "summary": "sha256:5261e0809bfe4074e516fe9682cc7d2cb6c3aae86df5b804b60a3bdba529a441",
+          "surface-water": "sha256:97a310f9a4beeca9d3b87f3db45748c141c79902ca42135b263ab6f07755d6ff",
+          "vegetation": "sha256:a3509ae08c664a1c947816618b00fb88f07d55651877e9048a6e425d4d727057",
+          "built-up": "sha256:70311dd78a7773a048794bd38d74200f8c10ac4741492dc47b0e3ab6084cb191"
         },
-        "boundarySha256": "sha256:c49e599f12d917e2f38ac236207cbb0a75037b389b178641e25babf45ef93fa0"
+        "boundarySha256": "sha256:8a1b7c5aceb2f1aa3695da5dfb978b37c38268957fdc4249f38b88c735947566"
+      },
+      "boundary": {
+        "kind": "validated-city",
+        "status": "VALIDATED",
+        "sourceName": "geoBoundaries gbOpen IND ADM2; source: Pathways Data Pvt. Ltd., lgdirectory.gov.in",
+        "sourceUrl": "https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/IND/ADM2/geoBoundaries-IND-ADM2_simplified.geojson",
+        "license": "Open Data Commons Open Database License 1.0",
+        "attribution": "Contains modified geoBoundaries data (Runfola et al., 2020); upstream source: Pathways Data Pvt. Ltd., lgdirectory.gov.in; source terms: ODbL 1.0.",
+        "sha256": "sha256:8a1b7c5aceb2f1aa3695da5dfb978b37c38268957fdc4249f38b88c735947566",
+        "crs": "EPSG:4326",
+        "definition": "Mumbai City plus Mumbai Suburban districts; not an authoritative legal or cadastral boundary.",
+        "geometryAsset": "data/validated/boundaries/global/mumbai.geojson",
+        "boundaryGate": "data/metadata/boundaries/global/mumbai.boundary-gate.json",
+        "selectedShapeNames": [
+          "Mumbai",
+          "Mumbai Suburban"
+        ]
+      },
+      "jurisdiction": {
+        "pack": "IN/Maharashtra",
+        "authorityIds": [
+          "mpcb",
+          "maharashtra-forest",
+          "aaple-sarkar"
+        ]
+      }
+    },
+    {
+      "slug": "delhi",
+      "regionId": "district:delhi",
+      "name": "Delhi",
+      "countryCode": "IN",
+      "country": "India",
+      "administrativeAreas": [
+        "National Capital Territory of Delhi"
+      ],
+      "district": null,
+      "municipality": "Delhi",
+      "centroid": [
+        77.0931527883755,
+        28.644249610845087
+      ],
+      "bbox": [
+        76.8389449587462,
+        28.40469199328046,
+        77.34736061800483,
+        28.883807228409715
+      ],
+      "story": "Precomputed three-indicator Earth Engine estimate pack; review methodology and provenance for limitations.",
+      "analyticsCoverage": "FULLY_SUPPORTED",
+      "routingCoverage": "REPORT_GENERATION_ONLY",
+      "processingPack": {
+        "status": "VALIDATED",
+        "packId": "delhi-p0-v2",
+        "manifest": "contracts/examples/precomputed/manifest.json",
+        "files": {
+          "summary": "district-delhi-summary.json",
+          "surface-water": "district-delhi-surface-water.json",
+          "vegetation": "district-delhi-vegetation.json",
+          "built-up": "district-delhi-built-up.json"
+        },
+        "checksums": {
+          "summary": "sha256:9ad7b7c6cf93c3afdb252b6f99ba02d10ef0f94d7e35e663e2235ceb93ac9d9e",
+          "surface-water": "sha256:fa827fb9eb620b9744413924ba62cb62a6ceb6c55d001cf39d7b8a6115c034fd",
+          "vegetation": "sha256:15056adf10ffe28f9afa17580e7aa855f209484e87a94defdbcd6430fb984c50",
+          "built-up": "sha256:9bd602f1bfb03ce1bf5b0816bb71485e70c6596ddb923b7ba5b8f52dbf0b6525"
+        },
+        "boundarySha256": "sha256:d0c4f180505809f875059fa858c1503ef14a15b482dd9a3bd0b564d5fb37aed1"
+      },
+      "boundary": {
+        "kind": "validated-adm1",
+        "status": "VALIDATED",
+        "sourceName": "geoBoundaries gbOpen IND ADM1; source: DataMeet India community, Election Commission of India",
+        "sourceUrl": "https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/IND/ADM1/geoBoundaries-IND-ADM1_simplified.geojson",
+        "license": "Creative Commons Attribution 2.5 India (CC BY 2.5 IN)",
+        "attribution": "Contains modified geoBoundaries data (Runfola et al., 2020); upstream source: DataMeet India community, Election Commission of India.",
+        "sha256": "sha256:d0c4f180505809f875059fa858c1503ef14a15b482dd9a3bd0b564d5fb37aed1",
+        "crs": "EPSG:4326",
+        "definition": "National Capital Territory of Delhi; not an authoritative legal or cadastral boundary.",
+        "geometryAsset": "data/validated/boundaries/global/delhi.geojson",
+        "boundaryGate": "data/metadata/boundaries/global/delhi.boundary-gate.json",
+        "selectedShapeNames": [
+          "Delhi"
+        ]
+      },
+      "jurisdiction": {
+        "pack": "IN/national",
+        "authorityIds": [
+          "aaple-sarkar",
+          "cpgrams"
+        ]
+      }
+    },
+    {
+      "slug": "chennai",
+      "regionId": "district:chennai",
+      "name": "Chennai",
+      "countryCode": "IN",
+      "country": "India",
+      "administrativeAreas": [
+        "Tamil Nadu"
+      ],
+      "district": "Chennai",
+      "municipality": "Chennai",
+      "centroid": [
+        80.246745,
+        13.057970000000001
+      ],
+      "bbox": [
+        80.18339,
+        12.96704,
+        80.3101,
+        13.1489
+      ],
+      "story": "Precomputed three-indicator Earth Engine estimate pack; review methodology and provenance for limitations.",
+      "analyticsCoverage": "FULLY_SUPPORTED",
+      "routingCoverage": "REPORT_GENERATION_ONLY",
+      "processingPack": {
+        "status": "VALIDATED",
+        "packId": "chennai-p0-v2",
+        "manifest": "contracts/examples/precomputed/manifest.json",
+        "files": {
+          "summary": "district-chennai-summary.json",
+          "surface-water": "district-chennai-surface-water.json",
+          "vegetation": "district-chennai-vegetation.json",
+          "built-up": "district-chennai-built-up.json"
+        },
+        "checksums": {
+          "summary": "sha256:7ed576081abf144099c41419b3ae12db6465f2101206c9bc8c613e6c5008f830",
+          "surface-water": "sha256:101754839899a64a5138b1c063a78bcd753a26cceef7f770ecc1a5c198236e21",
+          "vegetation": "sha256:8989e33c44cbaf47d0a581a0b499f2dccb42bbef6dbaa3a158608b44a970e4da",
+          "built-up": "sha256:bcb794ec29339d24fbdff74ca613d7809ed3b74a5dcd286b042f4b53159ca55f"
+        },
+        "boundarySha256": "sha256:6823af5ac115a4e07f439e4ac17d5df8805c528406a407a23e2edaeea054bf98"
       },
       "boundary": {
         "kind": "validated-adm2",
         "status": "VALIDATED",
-        "sourceName": "geoBoundaries gbOpen India ADM2; source: Pathways Data Pvt. Ltd., lgdirectory.gov.in",
-        "sourceUrl": "https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/IND/ADM2/geoBoundaries-IND-ADM2-all.zip",
-        "license": "Open Data Commons Open Database License 1.0 (source-specific boundary metadata)",
-        "attribution": "Contains modified geoBoundaries data (Runfola et al., 2020), sourced from Pathways Data Pvt. Ltd. and lgdirectory.gov.in; boundary source terms: ODbL 1.0.",
-        "sha256": "sha256:c49e599f12d917e2f38ac236207cbb0a75037b389b178641e25babf45ef93fa0",
+        "sourceName": "geoBoundaries gbOpen IND ADM2; source: Pathways Data Pvt. Ltd., lgdirectory.gov.in",
+        "sourceUrl": "https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/IND/ADM2/geoBoundaries-IND-ADM2_simplified.geojson",
+        "license": "Open Data Commons Open Database License 1.0",
+        "attribution": "Contains modified geoBoundaries data (Runfola et al., 2020); upstream source: Pathways Data Pvt. Ltd., lgdirectory.gov.in.",
+        "sha256": "sha256:6823af5ac115a4e07f439e4ac17d5df8805c528406a407a23e2edaeea054bf98",
         "crs": "EPSG:4326",
-        "definition": "The validated geoBoundaries gbOpen India ADM2 polygon selected by shapeName Mumbai and state-checked as Maharashtra.",
-        "geometryAsset": "data/validated/boundaries/geoBoundaries-IND-ADM2-76128533/mumbai-city.geojson"
+        "definition": "Chennai district; not an authoritative legal or cadastral boundary.",
+        "geometryAsset": "data/validated/boundaries/global/chennai.geojson",
+        "boundaryGate": "data/metadata/boundaries/global/chennai.boundary-gate.json",
+        "selectedShapeNames": [
+          "Chennai"
+        ]
       },
-      "jurisdiction": {"pack": "IN/Maharashtra", "authorityIds": ["mpcb", "maharashtra-forest", "aaple-sarkar"]}
-    },
-    {
-      "slug": "delhi",
-      "regionId": "city:in:delhi",
-      "name": "Delhi",
-      "countryCode": "IN",
-      "country": "India",
-      "administrativeAreas": ["National Capital Territory of Delhi"],
-      "district": null,
-      "municipality": "Delhi",
-      "centroid": [77.209, 28.6139],
-      "bbox": [76.859, 28.2639, 77.559, 28.9639],
-      "story": "City-level report/export scope; no validated Earth Engine pack is published.",
-      "analyticsCoverage": "REPORT_GENERATION_ONLY",
-      "routingCoverage": "REPORT_GENERATION_ONLY",
-      "processingPack": {"status": "NOT_AVAILABLE", "packId": null, "manifest": null, "files": {}, "checksums": {}, "boundarySha256": null},
-      "boundary": {
-        "kind": "catalog-envelope",
-        "status": "CATALOG_ONLY",
-        "sourceName": "SPARC city catalog envelope (reference only; no external geometry redistributed)",
-        "sourceUrl": "https://www.geoboundaries.org/",
-        "license": "Not applicable to the SPARC-generated envelope",
-        "attribution": "SPARC catalog; geometry is a centroid/bbox envelope, not an administrative boundary.",
-        "sha256": "sha256:5d2eb168346874f3e4b2dcf84da96761d75b5e4c0e843566dc6429627a94cd96",
-        "crs": "EPSG:4326",
-        "definition": "WGS84 envelope around the catalog centroid for report/export scope only; not an ADM boundary and not a legal or cadastral boundary.",
-        "geometryAsset": null
-      },
-      "jurisdiction": {"pack": "IN/national", "authorityIds": ["aaple-sarkar", "cpgrams"]}
-    },
-    {
-      "slug": "chennai",
-      "regionId": "city:in:chennai",
-      "name": "Chennai",
-      "countryCode": "IN",
-      "country": "India",
-      "administrativeAreas": ["Tamil Nadu"],
-      "district": "Chennai",
-      "municipality": "Chennai",
-      "centroid": [80.2707, 13.0827],
-      "bbox": [79.9707, 12.7827, 80.5707, 13.3827],
-      "story": "City-level report/export scope; no validated Earth Engine pack is published.",
-      "analyticsCoverage": "REPORT_GENERATION_ONLY",
-      "routingCoverage": "REPORT_GENERATION_ONLY",
-      "processingPack": {"status": "NOT_AVAILABLE", "packId": null, "manifest": null, "files": {}, "checksums": {}, "boundarySha256": null},
-      "boundary": {
-        "kind": "catalog-envelope",
-        "status": "CATALOG_ONLY",
-        "sourceName": "SPARC city catalog envelope (reference only; no external geometry redistributed)",
-        "sourceUrl": "https://www.geoboundaries.org/",
-        "license": "Not applicable to the SPARC-generated envelope",
-        "attribution": "SPARC catalog; geometry is a centroid/bbox envelope, not an administrative boundary.",
-        "sha256": "sha256:9521c3023b443469837e2078c2e637bb056889c8b25bea00ffbd693324186d14",
-        "crs": "EPSG:4326",
-        "definition": "WGS84 envelope around the catalog centroid for report/export scope only; not an ADM boundary and not a legal or cadastral boundary.",
-        "geometryAsset": null
-      },
-      "jurisdiction": {"pack": "IN/national", "authorityIds": ["cpgrams"]}
+      "jurisdiction": {
+        "pack": "IN/national",
+        "authorityIds": [
+          "cpgrams"
+        ]
+      }
     },
     {
       "slug": "bhopal",
-      "regionId": "city:in:bhopal",
+      "regionId": "district:bhopal",
       "name": "Bhopal",
       "countryCode": "IN",
       "country": "India",
-      "administrativeAreas": ["Madhya Pradesh"],
+      "administrativeAreas": [
+        "Madhya Pradesh"
+      ],
       "district": "Bhopal",
       "municipality": "Bhopal",
-      "centroid": [77.4126, 23.2599],
-      "bbox": [77.1626, 23.0099, 77.6626, 23.5099],
-      "story": "City-level report/export scope; no validated Earth Engine pack is published.",
-      "analyticsCoverage": "REPORT_GENERATION_ONLY",
+      "centroid": [
+        77.40928,
+        23.481409999999997
+      ],
+      "bbox": [
+        77.16788,
+        23.07004,
+        77.65068,
+        23.89278
+      ],
+      "story": "Precomputed three-indicator Earth Engine estimate pack; review methodology and provenance for limitations.",
+      "analyticsCoverage": "FULLY_SUPPORTED",
       "routingCoverage": "REPORT_GENERATION_ONLY",
-      "processingPack": {"status": "NOT_AVAILABLE", "packId": null, "manifest": null, "files": {}, "checksums": {}, "boundarySha256": null},
-      "boundary": {
-        "kind": "catalog-envelope",
-        "status": "CATALOG_ONLY",
-        "sourceName": "SPARC city catalog envelope (reference only; no external geometry redistributed)",
-        "sourceUrl": "https://www.geoboundaries.org/",
-        "license": "Not applicable to the SPARC-generated envelope",
-        "attribution": "SPARC catalog; geometry is a centroid/bbox envelope, not an administrative boundary.",
-        "sha256": "sha256:3af52ffb980dc31c8742fbdb907b974cf5a00f14f136639e91ea2d39b479e428",
-        "crs": "EPSG:4326",
-        "definition": "WGS84 envelope around the catalog centroid for report/export scope only; not an ADM boundary and not a legal or cadastral boundary.",
-        "geometryAsset": null
+      "processingPack": {
+        "status": "VALIDATED",
+        "packId": "bhopal-p0-v2",
+        "manifest": "contracts/examples/precomputed/manifest.json",
+        "files": {
+          "summary": "district-bhopal-summary.json",
+          "surface-water": "district-bhopal-surface-water.json",
+          "vegetation": "district-bhopal-vegetation.json",
+          "built-up": "district-bhopal-built-up.json"
+        },
+        "checksums": {
+          "summary": "sha256:606eec7cfc09c85a1494687750034d33b27e78276ee5ccdbec041d6d897c4d2d",
+          "surface-water": "sha256:3634a6a23c1ff0665eeeb11f90c9804cb8ce6e2c641cdbf3b0e5a4911df285f8",
+          "vegetation": "sha256:3fda8fe9ade209a6243d6a69690a104de1ddf6f9bac2fba67614af6c0533b989",
+          "built-up": "sha256:d552fc004276e6f81c528206faa4238d1fdffa9341073aa206fa2e82ddcd3f27"
+        },
+        "boundarySha256": "sha256:9fe12062ef62a91159a35a3eb24a78875e4639d0ab91972da9069353b3f9becd"
       },
-      "jurisdiction": {"pack": "IN/national", "authorityIds": ["cpgrams"]}
+      "boundary": {
+        "kind": "validated-adm2",
+        "status": "VALIDATED",
+        "sourceName": "geoBoundaries gbOpen IND ADM2; source: Pathways Data Pvt. Ltd., lgdirectory.gov.in",
+        "sourceUrl": "https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/IND/ADM2/geoBoundaries-IND-ADM2_simplified.geojson",
+        "license": "Open Data Commons Open Database License 1.0",
+        "attribution": "Contains modified geoBoundaries data (Runfola et al., 2020); upstream source: Pathways Data Pvt. Ltd., lgdirectory.gov.in.",
+        "sha256": "sha256:9fe12062ef62a91159a35a3eb24a78875e4639d0ab91972da9069353b3f9becd",
+        "crs": "EPSG:4326",
+        "definition": "Bhopal district; not an authoritative legal or cadastral boundary.",
+        "geometryAsset": "data/validated/boundaries/global/bhopal.geojson",
+        "boundaryGate": "data/metadata/boundaries/global/bhopal.boundary-gate.json",
+        "selectedShapeNames": [
+          "Bhopal"
+        ]
+      },
+      "jurisdiction": {
+        "pack": "IN/national",
+        "authorityIds": [
+          "cpgrams"
+        ]
+      }
     },
     {
       "slug": "new-york",
-      "regionId": "city:us:new-york",
+      "regionId": "district:new-york",
       "name": "New York",
       "countryCode": "US",
       "country": "United States",
-      "administrativeAreas": ["New York"],
+      "administrativeAreas": [
+        "New York"
+      ],
       "district": null,
       "municipality": "New York City",
-      "centroid": [-74.006, 40.7128],
-      "bbox": [-74.406, 40.3128, -73.606, 41.1128],
-      "story": "City-level report/export scope; no validated Earth Engine pack is published.",
-      "analyticsCoverage": "REPORT_GENERATION_ONLY",
+      "centroid": [
+        -73.98031693449997,
+        40.70684825250004
+      ],
+      "bbox": [
+        -74.26061251699997,
+        40.496111205000034,
+        -73.70002135199996,
+        40.91758530000004
+      ],
+      "story": "Precomputed three-indicator Earth Engine estimate pack; review methodology and provenance for limitations.",
+      "analyticsCoverage": "FULLY_SUPPORTED",
       "routingCoverage": "FULLY_SUPPORTED",
-      "processingPack": {"status": "NOT_AVAILABLE", "packId": null, "manifest": null, "files": {}, "checksums": {}, "boundarySha256": null},
-      "boundary": {
-        "kind": "catalog-envelope",
-        "status": "CATALOG_ONLY",
-        "sourceName": "SPARC city catalog envelope (reference only; no external geometry redistributed)",
-        "sourceUrl": "https://www.geoboundaries.org/",
-        "license": "Not applicable to the SPARC-generated envelope",
-        "attribution": "SPARC catalog; geometry is a centroid/bbox envelope, not an administrative boundary.",
-        "sha256": "sha256:988a102b57cf76a1fd1cf606535b66ed2fd53615ddb52e7776dce9b8a3cc4a1f",
-        "crs": "EPSG:4326",
-        "definition": "WGS84 envelope around the catalog centroid for report/export scope only; not an ADM boundary and not a legal or cadastral boundary.",
-        "geometryAsset": null
+      "processingPack": {
+        "status": "VALIDATED",
+        "packId": "new-york-p0-v2",
+        "manifest": "contracts/examples/precomputed/manifest.json",
+        "files": {
+          "summary": "district-new-york-summary.json",
+          "surface-water": "district-new-york-surface-water.json",
+          "vegetation": "district-new-york-vegetation.json",
+          "built-up": "district-new-york-built-up.json"
+        },
+        "checksums": {
+          "summary": "sha256:01c2456b7c697a0590cc3075082a4b740c2646f90cd4bf1c1b97c5807dabd51e",
+          "surface-water": "sha256:3196e1d21485a89d8e5adb3a29717b23e8530050d4d25c4f8a161cdf72733abc",
+          "vegetation": "sha256:e9d4b9a28a4b9f06d618806059c04fac8837c14646951d4c70581f8bec4793a4",
+          "built-up": "sha256:eb91e07598ecbec99147127690abf260ba5355c1196149aaf55a7dd4ddf2207f"
+        },
+        "boundarySha256": "sha256:f0ff13de25a11e682a9b8fef30d01be727b023ceda9209116dae13a227e9b3c9"
       },
-      "jurisdiction": {"pack": "US", "authorityIds": ["us-epa"]}
+      "boundary": {
+        "kind": "validated-city",
+        "status": "VALIDATED",
+        "sourceName": "geoBoundaries gbOpen USA ADM2; source: United States Census Bureau, MAF/TIGER Database",
+        "sourceUrl": "https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/USA/ADM2/geoBoundaries-USA-ADM2_simplified.geojson",
+        "license": "Public Domain",
+        "attribution": "Contains modified geoBoundaries data (Runfola et al., 2020); upstream source: United States Census Bureau, MAF/TIGER Database.",
+        "sha256": "sha256:f0ff13de25a11e682a9b8fef30d01be727b023ceda9209116dae13a227e9b3c9",
+        "crs": "EPSG:4326",
+        "definition": "New York City five borough counties; not an authoritative legal or cadastral boundary.",
+        "geometryAsset": "data/validated/boundaries/global/new-york.geojson",
+        "boundaryGate": "data/metadata/boundaries/global/new-york.boundary-gate.json",
+        "selectedShapeNames": [
+          "Queens",
+          "Richmond",
+          "Bronx",
+          "Kings",
+          "New York"
+        ]
+      },
+      "jurisdiction": {
+        "pack": "US",
+        "authorityIds": [
+          "us-epa"
+        ]
+      }
     },
     {
       "slug": "washington-dc",
-      "regionId": "city:us:washington-dc",
+      "regionId": "district:washington-dc",
       "name": "Washington DC",
       "countryCode": "US",
       "country": "United States",
-      "administrativeAreas": ["District of Columbia"],
+      "administrativeAreas": [
+        "District of Columbia"
+      ],
       "district": null,
       "municipality": "Washington, DC",
-      "centroid": [-77.0369, 38.9072],
-      "bbox": [-77.2869, 38.6572, -76.7869, 39.1572],
-      "story": "City-level report/export scope; no validated Earth Engine pack is published.",
-      "analyticsCoverage": "REPORT_GENERATION_ONLY",
+      "centroid": [
+        -77.01457928899998,
+        38.893385284500056
+      ],
+      "bbox": [
+        -77.11976132299998,
+        38.79165276400005,
+        -76.90939725499999,
+        38.99511780500006
+      ],
+      "story": "Precomputed three-indicator Earth Engine estimate pack; review methodology and provenance for limitations.",
+      "analyticsCoverage": "FULLY_SUPPORTED",
       "routingCoverage": "FULLY_SUPPORTED",
-      "processingPack": {"status": "NOT_AVAILABLE", "packId": null, "manifest": null, "files": {}, "checksums": {}, "boundarySha256": null},
-      "boundary": {
-        "kind": "catalog-envelope",
-        "status": "CATALOG_ONLY",
-        "sourceName": "SPARC city catalog envelope (reference only; no external geometry redistributed)",
-        "sourceUrl": "https://www.geoboundaries.org/",
-        "license": "Not applicable to the SPARC-generated envelope",
-        "attribution": "SPARC catalog; geometry is a centroid/bbox envelope, not an administrative boundary.",
-        "sha256": "sha256:ed6dafd60202d7566dd9dc120ad1246d1ee594db7138301ba63ab0bf0353b704",
-        "crs": "EPSG:4326",
-        "definition": "WGS84 envelope around the catalog centroid for report/export scope only; not an ADM boundary and not a legal or cadastral boundary.",
-        "geometryAsset": null
+      "processingPack": {
+        "status": "VALIDATED",
+        "packId": "washington-dc-p0-v2",
+        "manifest": "contracts/examples/precomputed/manifest.json",
+        "files": {
+          "summary": "district-washington-dc-summary.json",
+          "surface-water": "district-washington-dc-surface-water.json",
+          "vegetation": "district-washington-dc-vegetation.json",
+          "built-up": "district-washington-dc-built-up.json"
+        },
+        "checksums": {
+          "summary": "sha256:83e6c952a4ecdb2283ee59d8f99902b800dcb039be8e913c238ff3a6ee839b9b",
+          "surface-water": "sha256:7338cd6e8aaebd9412bdd095332f0c08d078cb82bfc063ec263758c7f014611c",
+          "vegetation": "sha256:b9e751b671e530e81ee8ca786492b2effecb7ed6197de29177a11c588f57578d",
+          "built-up": "sha256:6520e81d6d17987a0440e1fba94da05117f4739a833eb1a3e751e62186766a4d"
+        },
+        "boundarySha256": "sha256:b9e7f7435354e8b261f9f0b83e7e4053d64fce47331d560d8721938d58e14b09"
       },
-      "jurisdiction": {"pack": "US", "authorityIds": ["us-epa"]}
+      "boundary": {
+        "kind": "validated-adm1",
+        "status": "VALIDATED",
+        "sourceName": "geoBoundaries gbOpen USA ADM1; source: United States Census Bureau, MAF/TIGER Database",
+        "sourceUrl": "https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/USA/ADM1/geoBoundaries-USA-ADM1_simplified.geojson",
+        "license": "Public Domain",
+        "attribution": "Contains modified geoBoundaries data (Runfola et al., 2020); upstream source: United States Census Bureau, MAF/TIGER Database.",
+        "sha256": "sha256:b9e7f7435354e8b261f9f0b83e7e4053d64fce47331d560d8721938d58e14b09",
+        "crs": "EPSG:4326",
+        "definition": "District of Columbia; not an authoritative legal or cadastral boundary.",
+        "geometryAsset": "data/validated/boundaries/global/washington-dc.geojson",
+        "boundaryGate": "data/metadata/boundaries/global/washington-dc.boundary-gate.json",
+        "selectedShapeNames": [
+          "District of Columbia"
+        ]
+      },
+      "jurisdiction": {
+        "pack": "US",
+        "authorityIds": [
+          "us-epa"
+        ]
+      }
     },
     {
       "slug": "tokyo",
-      "regionId": "city:jp:tokyo",
+      "regionId": "district:tokyo",
       "name": "Tokyo",
       "countryCode": "JP",
       "country": "Japan",
-      "administrativeAreas": ["Tokyo"],
+      "administrativeAreas": [
+        "Tokyo"
+      ],
       "district": null,
       "municipality": "Tokyo",
-      "centroid": [139.6503, 35.6762],
-      "bbox": [139.2003, 35.2262, 140.1003, 36.1262],
-      "story": "City-level report/export scope; no validated Earth Engine pack or verified authority pack is published.",
-      "analyticsCoverage": "REPORT_GENERATION_ONLY",
+      "centroid": [
+        146.46471425,
+        30.0615587
+      ],
+      "bbox": [
+        138.9428648,
+        24.224733,
+        153.9865637,
+        35.8983844
+      ],
+      "story": "Precomputed three-indicator Earth Engine estimate pack; review methodology and provenance for limitations.",
+      "analyticsCoverage": "FULLY_SUPPORTED",
       "routingCoverage": "UNSUPPORTED_JURISDICTION",
-      "processingPack": {"status": "NOT_AVAILABLE", "packId": null, "manifest": null, "files": {}, "checksums": {}, "boundarySha256": null},
-      "boundary": {
-        "kind": "catalog-envelope",
-        "status": "CATALOG_ONLY",
-        "sourceName": "SPARC city catalog envelope (reference only; no external geometry redistributed)",
-        "sourceUrl": "https://www.geoboundaries.org/",
-        "license": "Not applicable to the SPARC-generated envelope",
-        "attribution": "SPARC catalog; geometry is a centroid/bbox envelope, not an administrative boundary.",
-        "sha256": "sha256:ab6f3e883e8729888bd270e174fabd1171e353f1f6fa3e59d83e69c1b1c397ad",
-        "crs": "EPSG:4326",
-        "definition": "WGS84 envelope around the catalog centroid for report/export scope only; not an ADM boundary and not a legal or cadastral boundary.",
-        "geometryAsset": null
+      "processingPack": {
+        "status": "VALIDATED",
+        "packId": "tokyo-p0-v2",
+        "manifest": "contracts/examples/precomputed/manifest.json",
+        "files": {
+          "summary": "district-tokyo-summary.json",
+          "surface-water": "district-tokyo-surface-water.json",
+          "vegetation": "district-tokyo-vegetation.json",
+          "built-up": "district-tokyo-built-up.json"
+        },
+        "checksums": {
+          "summary": "sha256:39d5eb0e69b0263ca8311e1765c9649b8e31246943e051df58644310a3476a53",
+          "surface-water": "sha256:1bcf0193262807c9dda8a0a5c5585f802c28a8ee4fda18355fba93867f4d031d",
+          "vegetation": "sha256:926dcec83353722d0fbbb29e3a6d6df228538f57f1d01ad7ddc5877817a59fc4",
+          "built-up": "sha256:810d668b65b9bbaab8c88498a605487a9e91540eaab0e7ab85ad11e596810c33"
+        },
+        "boundarySha256": "sha256:da8bea82f8f52db7f08e04d02cc76c59a314229ab46f19431426637e80c09e87"
       },
-      "jurisdiction": {"pack": "generic", "authorityIds": []}
+      "boundary": {
+        "kind": "validated-adm1",
+        "status": "VALIDATED",
+        "sourceName": "geoBoundaries gbOpen JPN ADM1",
+        "sourceUrl": "https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/JPN/ADM1/geoBoundaries-JPN-ADM1_simplified.geojson",
+        "license": "Open Data Commons Open Database License 1.0",
+        "attribution": "Contains modified geoBoundaries data (Runfola et al., 2020); see the pinned geoBoundaries source metadata.",
+        "sha256": "sha256:da8bea82f8f52db7f08e04d02cc76c59a314229ab46f19431426637e80c09e87",
+        "crs": "EPSG:4326",
+        "definition": "Tokyo prefecture; not an authoritative legal or cadastral boundary.",
+        "geometryAsset": "data/validated/boundaries/global/tokyo.geojson",
+        "boundaryGate": "data/metadata/boundaries/global/tokyo.boundary-gate.json",
+        "selectedShapeNames": [
+          "Tokyo"
+        ]
+      },
+      "jurisdiction": {
+        "pack": "generic",
+        "authorityIds": []
+      }
     },
     {
       "slug": "london",
-      "regionId": "city:gb:london",
+      "regionId": "district:london",
       "name": "London",
       "countryCode": "GB",
       "country": "United Kingdom",
-      "administrativeAreas": ["England"],
+      "administrativeAreas": [
+        "England"
+      ],
       "district": null,
       "municipality": "London",
-      "centroid": [-0.1278, 51.5074],
-      "bbox": [-0.4778, 51.1574, 0.2222, 51.8574],
-      "story": "City-level report/export scope; no validated Earth Engine pack is published.",
-      "analyticsCoverage": "REPORT_GENERATION_ONLY",
+      "centroid": [
+        -0.087862460334735,
+        51.48931645437989
+      ],
+      "bbox": [
+        -0.509720585402481,
+        51.28676013985681,
+        0.333995664733011,
+        51.69187276890297
+      ],
+      "story": "Precomputed three-indicator Earth Engine estimate pack; review methodology and provenance for limitations.",
+      "analyticsCoverage": "FULLY_SUPPORTED",
       "routingCoverage": "FULLY_SUPPORTED",
-      "processingPack": {"status": "NOT_AVAILABLE", "packId": null, "manifest": null, "files": {}, "checksums": {}, "boundarySha256": null},
-      "boundary": {
-        "kind": "catalog-envelope",
-        "status": "CATALOG_ONLY",
-        "sourceName": "SPARC city catalog envelope (reference only; no external geometry redistributed)",
-        "sourceUrl": "https://www.geoboundaries.org/",
-        "license": "Not applicable to the SPARC-generated envelope",
-        "attribution": "SPARC catalog; geometry is a centroid/bbox envelope, not an administrative boundary.",
-        "sha256": "sha256:d003738c269498bd39cee9a8967b478ac1df239423dca6dfa15a15ec40c16bc2",
-        "crs": "EPSG:4326",
-        "definition": "WGS84 envelope around the catalog centroid for report/export scope only; not an ADM boundary and not a legal or cadastral boundary.",
-        "geometryAsset": null
+      "processingPack": {
+        "status": "VALIDATED",
+        "packId": "london-p0-v2",
+        "manifest": "contracts/examples/precomputed/manifest.json",
+        "files": {
+          "summary": "district-london-summary.json",
+          "surface-water": "district-london-surface-water.json",
+          "vegetation": "district-london-vegetation.json",
+          "built-up": "district-london-built-up.json"
+        },
+        "checksums": {
+          "summary": "sha256:6d30eddd5382579bf5c1a66c9e195492758c76f88d5fad5c4967299e366c8aff",
+          "surface-water": "sha256:8890a7c2f1be9229d2653336cbb522ec73b9a304b85d269d5d590d9ab5f08c6d",
+          "vegetation": "sha256:7f2398e25d67f7b3caf6f1ea4690afc2c3236192ea5402ac22d8d58e98a7e461",
+          "built-up": "sha256:df3ce79c66bcf3e078810cb1e171650c9a01def836860a1cce02d49aa231541d"
+        },
+        "boundarySha256": "sha256:a04301bed285711cd713af60459eff0c249b4a9e02e3441786befa568d0922e7"
       },
-      "jurisdiction": {"pack": "GB/England", "authorityIds": ["environment-agency-england"]}
+      "boundary": {
+        "kind": "validated-city",
+        "status": "VALIDATED",
+        "sourceName": "geoBoundaries gbOpen GBR ADM2; source: Office for National Statistics Open Geography Portal",
+        "sourceUrl": "https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/GBR/ADM2/geoBoundaries-GBR-ADM2_simplified.geojson",
+        "license": "Open Government Licence v3.0",
+        "attribution": "Contains modified geoBoundaries data (Runfola et al., 2020); upstream source: Office for National Statistics Open Geography Portal.",
+        "sha256": "sha256:a04301bed285711cd713af60459eff0c249b4a9e02e3441786befa568d0922e7",
+        "crs": "EPSG:4326",
+        "definition": "Greater London boroughs and the City of London; not an authoritative legal or cadastral boundary.",
+        "geometryAsset": "data/validated/boundaries/global/london.geojson",
+        "boundaryGate": "data/metadata/boundaries/global/london.boundary-gate.json",
+        "selectedShapeNames": [
+          "City of London",
+          "Barking and Dagenham",
+          "Barnet",
+          "Bexley",
+          "Brent",
+          "Bromley",
+          "Camden",
+          "Croydon",
+          "Ealing",
+          "Enfield",
+          "Greenwich",
+          "Hackney",
+          "Hammersmith and Fulham",
+          "Haringey",
+          "Harrow",
+          "Havering",
+          "Hillingdon",
+          "Hounslow",
+          "Islington",
+          "Kensington and Chelsea",
+          "Kingston upon Thames",
+          "Lambeth",
+          "Lewisham",
+          "Merton",
+          "Newham",
+          "Redbridge",
+          "Richmond upon Thames",
+          "Southwark",
+          "Sutton",
+          "Tower Hamlets",
+          "Waltham Forest",
+          "Wandsworth",
+          "Westminster"
+        ]
+      },
+      "jurisdiction": {
+        "pack": "GB/England",
+        "authorityIds": [
+          "environment-agency-england"
+        ]
+      }
     },
     {
       "slug": "cairo",
-      "regionId": "city:eg:cairo",
+      "regionId": "district:cairo",
       "name": "Cairo",
       "countryCode": "EG",
       "country": "Egypt",
-      "administrativeAreas": ["Cairo Governorate"],
+      "administrativeAreas": [
+        "Cairo Governorate"
+      ],
       "district": null,
       "municipality": "Cairo",
-      "centroid": [31.2357, 30.0444],
-      "bbox": [30.8857, 29.6944, 31.5857, 30.3944],
-      "story": "City-level report/export scope; no validated Earth Engine pack or verified authority pack is published.",
-      "analyticsCoverage": "REPORT_GENERATION_ONLY",
+      "centroid": [
+        31.564913750000002,
+        30.034611499999997
+      ],
+      "bbox": [
+        31.2208221,
+        29.7483062,
+        31.9090054,
+        30.3209168
+      ],
+      "story": "Precomputed three-indicator Earth Engine estimate pack; review methodology and provenance for limitations.",
+      "analyticsCoverage": "FULLY_SUPPORTED",
       "routingCoverage": "UNSUPPORTED_JURISDICTION",
-      "processingPack": {"status": "NOT_AVAILABLE", "packId": null, "manifest": null, "files": {}, "checksums": {}, "boundarySha256": null},
-      "boundary": {
-        "kind": "catalog-envelope",
-        "status": "CATALOG_ONLY",
-        "sourceName": "SPARC city catalog envelope (reference only; no external geometry redistributed)",
-        "sourceUrl": "https://www.geoboundaries.org/",
-        "license": "Not applicable to the SPARC-generated envelope",
-        "attribution": "SPARC catalog; geometry is a centroid/bbox envelope, not an administrative boundary.",
-        "sha256": "sha256:531f3ddfa37f7ff0b8d54d6f8cbd8f4dd56eef85f24783a66e8adbd624319300",
-        "crs": "EPSG:4326",
-        "definition": "WGS84 envelope around the catalog centroid for report/export scope only; not an ADM boundary and not a legal or cadastral boundary.",
-        "geometryAsset": null
+      "processingPack": {
+        "status": "VALIDATED",
+        "packId": "cairo-p0-v2",
+        "manifest": "contracts/examples/precomputed/manifest.json",
+        "files": {
+          "summary": "district-cairo-summary.json",
+          "surface-water": "district-cairo-surface-water.json",
+          "vegetation": "district-cairo-vegetation.json",
+          "built-up": "district-cairo-built-up.json"
+        },
+        "checksums": {
+          "summary": "sha256:45f154201288669e1a5ff873d96d3207d1f36a2c9b2b3d343cd20f7d4637ca95",
+          "surface-water": "sha256:31f3d0cf5abcb0457732f48a780fc910e977a650da431ce159cfa6145187287b",
+          "vegetation": "sha256:e81784cd9ca7d4db6871090716781cd4a2767bf8746e588cc5ba0ab340aa6e7f",
+          "built-up": "sha256:c1f9cdf8bd0e63f78b7dd6f9004b94ac32e0993f7a4d5c00ea685cd7fb091fac"
+        },
+        "boundarySha256": "sha256:d357b7e6cd299e409535c1d9662957b3e30bbc3c486c3fe35b6fce151efcc934"
       },
-      "jurisdiction": {"pack": "generic", "authorityIds": []}
+      "boundary": {
+        "kind": "validated-adm1",
+        "status": "VALIDATED",
+        "sourceName": "geoBoundaries gbOpen EGY ADM1; source: OpenStreetMap, Wambacher",
+        "sourceUrl": "https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/EGY/ADM1/geoBoundaries-EGY-ADM1_simplified.geojson",
+        "license": "Open Data Commons Open Database License 1.0",
+        "attribution": "Contains modified geoBoundaries data (Runfola et al., 2020); upstream source: OpenStreetMap, Wambacher.",
+        "sha256": "sha256:d357b7e6cd299e409535c1d9662957b3e30bbc3c486c3fe35b6fce151efcc934",
+        "crs": "EPSG:4326",
+        "definition": "Cairo Governorate; not an authoritative legal or cadastral boundary.",
+        "geometryAsset": "data/validated/boundaries/global/cairo.geojson",
+        "boundaryGate": "data/metadata/boundaries/global/cairo.boundary-gate.json",
+        "selectedShapeNames": [
+          "Cairo Governorate"
+        ]
+      },
+      "jurisdiction": {
+        "pack": "generic",
+        "authorityIds": []
+      }
     },
     {
       "slug": "sydney",
-      "regionId": "city:au:sydney",
+      "regionId": "district:sydney",
       "name": "Sydney",
       "countryCode": "AU",
       "country": "Australia",
-      "administrativeAreas": ["New South Wales"],
+      "administrativeAreas": [
+        "New South Wales"
+      ],
       "district": null,
       "municipality": "Sydney",
-      "centroid": [151.2093, -33.8688],
-      "bbox": [150.8093, -34.2688, 151.6093, -33.4688],
-      "story": "City-level report/export scope; no validated Earth Engine pack or verified authority pack is published.",
-      "analyticsCoverage": "REPORT_GENERATION_ONLY",
+      "centroid": [
+        151.20435465900005,
+        -33.88890939749996
+      ],
+      "bbox": [
+        151.17498844400006,
+        -33.92431947799997,
+        151.23372087400003,
+        -33.853499316999944
+      ],
+      "story": "Precomputed three-indicator Earth Engine estimate pack; review methodology and provenance for limitations.",
+      "analyticsCoverage": "FULLY_SUPPORTED",
       "routingCoverage": "UNSUPPORTED_JURISDICTION",
-      "processingPack": {"status": "NOT_AVAILABLE", "packId": null, "manifest": null, "files": {}, "checksums": {}, "boundarySha256": null},
-      "boundary": {
-        "kind": "catalog-envelope",
-        "status": "CATALOG_ONLY",
-        "sourceName": "SPARC city catalog envelope (reference only; no external geometry redistributed)",
-        "sourceUrl": "https://www.geoboundaries.org/",
-        "license": "Not applicable to the SPARC-generated envelope",
-        "attribution": "SPARC catalog; geometry is a centroid/bbox envelope, not an administrative boundary.",
-        "sha256": "sha256:606b1af8b80e6a766dadb6757902708b47ef74ca1cddd2e740af15b8b5c9f3aa",
-        "crs": "EPSG:4326",
-        "definition": "WGS84 envelope around the catalog centroid for report/export scope only; not an ADM boundary and not a legal or cadastral boundary.",
-        "geometryAsset": null
+      "processingPack": {
+        "status": "VALIDATED",
+        "packId": "sydney-p0-v2",
+        "manifest": "contracts/examples/precomputed/manifest.json",
+        "files": {
+          "summary": "district-sydney-summary.json",
+          "surface-water": "district-sydney-surface-water.json",
+          "vegetation": "district-sydney-vegetation.json",
+          "built-up": "district-sydney-built-up.json"
+        },
+        "checksums": {
+          "summary": "sha256:ca4fa3434b326d79f0b398d20d6ef3c2c4ffa859113dc28c993ad116b77d1586",
+          "surface-water": "sha256:27f5c4f91c86d478d4e8bb558b1945421c77c47e67aec3ea370e94344397bed3",
+          "vegetation": "sha256:bea544f0a922eb16b732cdef5e7691a00a3fc49c8dfdafb913912da424ac261a",
+          "built-up": "sha256:e18aebafa6d2e342ebe31499e9f27b688eb5176a3784a94210a9f9fa03b4aea1"
+        },
+        "boundarySha256": "sha256:c7364215360f907bfe5a2db399f0d7b3dddc85c6d4e2c3f706236973eb7240f1"
       },
-      "jurisdiction": {"pack": "generic", "authorityIds": []}
+      "boundary": {
+        "kind": "validated-adm2",
+        "status": "VALIDATED",
+        "sourceName": "geoBoundaries gbOpen AUS ADM2; source: Australian Bureau of Statistics",
+        "sourceUrl": "https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/AUS/ADM2/geoBoundaries-AUS-ADM2_simplified.geojson",
+        "license": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+        "attribution": "Contains modified geoBoundaries data (Runfola et al., 2020); upstream source: Australian Bureau of Statistics.",
+        "sha256": "sha256:c7364215360f907bfe5a2db399f0d7b3dddc85c6d4e2c3f706236973eb7240f1",
+        "crs": "EPSG:4326",
+        "definition": "City of Sydney local government area; not an authoritative legal or cadastral boundary.",
+        "geometryAsset": "data/validated/boundaries/global/sydney.geojson",
+        "boundaryGate": "data/metadata/boundaries/global/sydney.boundary-gate.json",
+        "selectedShapeNames": [
+          "Sydney"
+        ]
+      },
+      "jurisdiction": {
+        "pack": "generic",
+        "authorityIds": []
+      }
     },
     {
       "slug": "rio-de-janeiro",
-      "regionId": "city:br:rio-de-janeiro",
+      "regionId": "district:rio-de-janeiro",
       "name": "Rio de Janeiro",
       "countryCode": "BR",
       "country": "Brazil",
-      "administrativeAreas": ["Rio de Janeiro"],
+      "administrativeAreas": [
+        "Rio de Janeiro"
+      ],
       "district": null,
       "municipality": "Rio de Janeiro",
-      "centroid": [-43.1729, -22.9068],
-      "bbox": [-43.5729, -23.3068, -42.7729, -22.5068],
-      "story": "City-level report/export scope; no validated Earth Engine pack or verified authority pack is published.",
-      "analyticsCoverage": "REPORT_GENERATION_ONLY",
+      "centroid": [
+        -43.44869995099995,
+        -22.91217040999993
+      ],
+      "bbox": [
+        -43.795410155999946,
+        -23.07501220699993,
+        -43.10198974599996,
+        -22.749328612999932
+      ],
+      "story": "Precomputed three-indicator Earth Engine estimate pack; review methodology and provenance for limitations.",
+      "analyticsCoverage": "FULLY_SUPPORTED",
       "routingCoverage": "UNSUPPORTED_JURISDICTION",
-      "processingPack": {"status": "NOT_AVAILABLE", "packId": null, "manifest": null, "files": {}, "checksums": {}, "boundarySha256": null},
-      "boundary": {
-        "kind": "catalog-envelope",
-        "status": "CATALOG_ONLY",
-        "sourceName": "SPARC city catalog envelope (reference only; no external geometry redistributed)",
-        "sourceUrl": "https://www.geoboundaries.org/",
-        "license": "Not applicable to the SPARC-generated envelope",
-        "attribution": "SPARC catalog; geometry is a centroid/bbox envelope, not an administrative boundary.",
-        "sha256": "sha256:ddf26e5304f2309be9024f57e7b1230b7aaad4b616e27451d9b3d0d101fad633",
-        "crs": "EPSG:4326",
-        "definition": "WGS84 envelope around the catalog centroid for report/export scope only; not an ADM boundary and not a legal or cadastral boundary.",
-        "geometryAsset": null
+      "processingPack": {
+        "status": "VALIDATED",
+        "packId": "rio-de-janeiro-p0-v2",
+        "manifest": "contracts/examples/precomputed/manifest.json",
+        "files": {
+          "summary": "district-rio-de-janeiro-summary.json",
+          "surface-water": "district-rio-de-janeiro-surface-water.json",
+          "vegetation": "district-rio-de-janeiro-vegetation.json",
+          "built-up": "district-rio-de-janeiro-built-up.json"
+        },
+        "checksums": {
+          "summary": "sha256:5bde39b999abf32e94ecda44068e35f43cea68ed81c91945f95d10817d2f81af",
+          "surface-water": "sha256:21bb44764434ea3f132e58d9ef91236e6ac1463a641dd6e8badb631be582dc26",
+          "vegetation": "sha256:4c5c2019d3d94a2087059321a6b3e624919628d2b133c7b4a59f13a4fa7e30e3",
+          "built-up": "sha256:828577f8e3b54eaa2a8f334f81f3d25c35fdec1f799349fb1b23428f9bb4146d"
+        },
+        "boundarySha256": "sha256:25c53e0391ce041840b673f9caf5895463e95cfe599f3a2e3f01b6d79999311b"
       },
-      "jurisdiction": {"pack": "generic", "authorityIds": []}
+      "boundary": {
+        "kind": "validated-adm2",
+        "status": "VALIDATED",
+        "sourceName": "geoBoundaries gbOpen BRA ADM2; source: Instituto Brasileiro de Geografia e Estatística (IBGE), OCHA ROLAC",
+        "sourceUrl": "https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/BRA/ADM2/geoBoundaries-BRA-ADM2_simplified.geojson",
+        "license": "Creative Commons Attribution 3.0 Intergovernmental Organisations (CC BY 3.0 IGO)",
+        "attribution": "Contains modified geoBoundaries data (Runfola et al., 2020); upstream source: Instituto Brasileiro de Geografia e Estatística (IBGE), OCHA ROLAC.",
+        "sha256": "sha256:25c53e0391ce041840b673f9caf5895463e95cfe599f3a2e3f01b6d79999311b",
+        "crs": "EPSG:4326",
+        "definition": "Rio de Janeiro municipality; not an authoritative legal or cadastral boundary.",
+        "geometryAsset": "data/validated/boundaries/global/rio-de-janeiro.geojson",
+        "boundaryGate": "data/metadata/boundaries/global/rio-de-janeiro.boundary-gate.json",
+        "selectedShapeNames": [
+          "Rio de Janeiro"
+        ]
+      },
+      "jurisdiction": {
+        "pack": "generic",
+        "authorityIds": []
+      }
     },
     {
       "slug": "reykjavik",
-      "regionId": "city:is:reykjavik",
+      "regionId": "district:reykjavik",
       "name": "Reykjavik",
       "countryCode": "IS",
       "country": "Iceland",
-      "administrativeAreas": ["Capital Region"],
+      "administrativeAreas": [
+        "Capital Region"
+      ],
       "district": null,
       "municipality": "Reykjavik",
-      "centroid": [-21.9426, 64.1466],
-      "bbox": [-22.1926, 63.8966, -21.6926, 64.3966],
-      "story": "City-level report/export scope; no validated Earth Engine pack or verified authority pack is published.",
-      "analyticsCoverage": "REPORT_GENERATION_ONLY",
+      "centroid": [
+        -21.692888040063846,
+        64.15247885718549
+      ],
+      "bbox": [
+        -21.98383292304192,
+        63.98984905235025,
+        -21.40194315708577,
+        64.31510866202072
+      ],
+      "story": "Precomputed three-indicator Earth Engine estimate pack; review methodology and provenance for limitations.",
+      "analyticsCoverage": "FULLY_SUPPORTED",
       "routingCoverage": "UNSUPPORTED_JURISDICTION",
-      "processingPack": {"status": "NOT_AVAILABLE", "packId": null, "manifest": null, "files": {}, "checksums": {}, "boundarySha256": null},
-      "boundary": {
-        "kind": "catalog-envelope",
-        "status": "CATALOG_ONLY",
-        "sourceName": "SPARC city catalog envelope (reference only; no external geometry redistributed)",
-        "sourceUrl": "https://www.geoboundaries.org/",
-        "license": "Not applicable to the SPARC-generated envelope",
-        "attribution": "SPARC catalog; geometry is a centroid/bbox envelope, not an administrative boundary.",
-        "sha256": "sha256:4f6be3d78ee2fc8d83601e5f2adef035b710c9a10713c204883aa6ee1a1222b3",
-        "crs": "EPSG:4326",
-        "definition": "WGS84 envelope around the catalog centroid for report/export scope only; not an ADM boundary and not a legal or cadastral boundary.",
-        "geometryAsset": null
+      "processingPack": {
+        "status": "VALIDATED",
+        "packId": "reykjavik-p0-v2",
+        "manifest": "contracts/examples/precomputed/manifest.json",
+        "files": {
+          "summary": "district-reykjavik-summary.json",
+          "surface-water": "district-reykjavik-surface-water.json",
+          "vegetation": "district-reykjavik-vegetation.json",
+          "built-up": "district-reykjavik-built-up.json"
+        },
+        "checksums": {
+          "summary": "sha256:cefc0d2d4bfe3e272addb12dd542911e11c08a6b717fc3eb4f0e43139010176e",
+          "surface-water": "sha256:aefee9c2e36d963755504026490a3c4fc571883e9a7bf17bac59fb0215ff4842",
+          "vegetation": "sha256:91d0a98c8ac57b64df22b678eb6592d781c70cb859fa50f377415c51f080e66f",
+          "built-up": "sha256:7dc67bdbef21e9c46a4594cf48b6d26713eb71afdfd641b703d01e523669f849"
+        },
+        "boundarySha256": "sha256:62ab3d4281f3898254d819a71312cc6f57e9b98dccef3ff421a9db832ada128a"
       },
-      "jurisdiction": {"pack": "generic", "authorityIds": []}
+      "boundary": {
+        "kind": "validated-adm2",
+        "status": "VALIDATED",
+        "sourceName": "geoBoundaries gbOpen ISL ADM2; source: National Land Survey of Iceland",
+        "sourceUrl": "https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/ISL/ADM2/geoBoundaries-ISL-ADM2_simplified.geojson",
+        "license": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+        "attribution": "Contains modified geoBoundaries data (Runfola et al., 2020); upstream source: National Land Survey of Iceland.",
+        "sha256": "sha256:62ab3d4281f3898254d819a71312cc6f57e9b98dccef3ff421a9db832ada128a",
+        "crs": "EPSG:4326",
+        "definition": "Reykjavíkurborg municipality; not an authoritative legal or cadastral boundary.",
+        "geometryAsset": "data/validated/boundaries/global/reykjavik.geojson",
+        "boundaryGate": "data/metadata/boundaries/global/reykjavik.boundary-gate.json",
+        "selectedShapeNames": [
+          "Reykjavíkurborg"
+        ]
+      },
+      "jurisdiction": {
+        "pack": "generic",
+        "authorityIds": []
+      }
     }
   ]
 }

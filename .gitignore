@@ -23,6 +23,7 @@ node_modules/
 dist/
 .vite/
 coverage/
+vercel-output/
 
 # Geospatial working data: manifests and intentionally reviewed demo files may be committed
 data/raw/**
@@ -45,4 +46,3 @@ Thumbs.db
 *.log
 .idea/
 .vscode/
-

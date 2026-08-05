@@ -1,19 +1,20 @@
 # SPARC deployment guide
 
-**Status:** deployment specification only; the repository has no deployable application or launcher  
-**Primary profile:** local HTTP, precomputed demo bundle  
-**Optional profile:** static web hosting plus FastAPI after the local release is verified
+**Status:** Vercel bundle build verified; corrected preview deployed; production promotion requires an explicit release approval
+**Primary profile:** local HTTP, precomputed result packs
+**Cloud profile:** Vercel static dashboard plus FastAPI function (P0 limitations apply)
 
 ## 1. Current-state warning
 
-The repository currently contains documentation, contracts, schemas and synthetic examples only. It has no `package.json`, Python project manifest, Vite application, FastAPI module, container definition, production data pack or launch script. Therefore:
+The repository now contains a Vite dashboard, FastAPI function entrypoint, precomputed result packs, and Vercel assembly configuration. Therefore:
 
-- I cannot confirm a working install, build, start, deploy or rollback command from the current codebase.
-- `START-DEMO.cmd` and the URL convention below are required future release artifacts, not files that exist today.
-- No endpoint, cloud service or demo bundle described here has been deployed.
-- Contract mocks must not be labelled as real Nagpur findings.
+- `npm run vercel-build` and the API/dashboard tests have been run locally.
+- `vercel.json`, `package.json`, `scripts/vercel/assemble.mjs`, `api/index.py`, and `requirements.txt` define the cloud build.
+- A corrected Vercel preview has built successfully; preview URLs may be protected by Vercel Authentication.
+- Production report creation still requires `GEMINI_API_KEY` to be configured in Vercel Project Settings if Gemini drafting is enabled.
+- Contract mocks must not be labelled as real satellite findings.
 
-An implementation pull request must replace every “to be recorded” command with the command actually run and attach its output before this guide can be called operational.
+The local runbook remains the recovery path and must be kept runnable even when the cloud deployment is unavailable.
 
 ## 2. Deployment profiles
 
@@ -187,30 +188,36 @@ Required controls:
 
 An API health check proves process liveness only. It must not call providers, reveal configuration or be treated as scientific-data validation.
 
-## 9. Optional cloud profile
+## 9. Vercel cloud profile
 
-No cloud vendor is selected. A cloud deployment is admissible only after the local candidate passes and must use provider-neutral requirements:
+The repository has a Vercel deployment path. `npm run vercel-build` builds the browser bundle and `scripts/vercel/assemble.mjs` places the dashboard under `/app/`; `api/index.py` is the FastAPI function under `/api/*`. The routing rules in `vercel.json` send API paths to the function and allow static files to pass through first.
+
+Configure these values in Vercel Project Settings, never in committed files:
+
+- `GEMINI_API_KEY` (optional; required only for Gemini-assisted report drafting);
+- `GEMINI_MODEL` (optional model override).
+
+The browser uses same-origin API calls. `SPARC_DATA_MODE=precomputed` serves the checked-in result packs. Report records remain process-local and ephemeral in this P0 deployment; a durable shared store is still required before production-scale reporting.
+
+The deployment must provide:
 
 - static assets over HTTPS with immutable hashed caching;
-- HTML/manifest cache policy that allows a compatible update;
-- FastAPI behind HTTPS with request-size, timeout and rate limits;
-- private server/worker secrets from the platform secret store;
+- FastAPI request-size, timeout and rate limits;
+- private secrets from Vercel Project Settings;
 - explicit CORS, security headers and sanitized observability;
-- immutable result objects separated from query metadata;
-- health/readiness checks that do not make expensive provider calls;
-- deployment version, dataset version and schema version visible for support;
+- deployment, dataset and schema versions visible for support;
 - rollback to a known compatible application-and-data pair.
 
 Do not provision PostGIS, a queue or dynamic tile service merely to satisfy a diagram. Add them only when measured production requirements justify operational cost and complexity.
 
 ## 10. Cloud release and rollback gates
 
-1. Deploy to an isolated preview/staging target using exact commands recorded by the implementation owner.
-2. Verify all `contracts/openapi.yaml` operations enabled by that profile.
+1. Deploy to an isolated Vercel preview using the Vercel deployment integration.
+2. Verify `/app/`, `/api/v1/health`, `/api/v1/regions`, the three published district journeys, and report artifact download.
 3. Verify browser content, mode badge, provenance and data versions over HTTPS.
 4. Check no private origin, credential, source map or raw stack trace is public.
 5. Force API `500`, upstream `503`, missing layer and old-manifest/new-shell mismatch.
-6. Promote the same immutable artifacts; do not rebuild between staging and release.
+6. Promote the same immutable artifacts only after explicit production approval; do not rebuild between staging and release.
 7. Preserve the previous compatible application and dataset versions.
 8. On failure, route back to the preserved pair; do not mix a new shell with an old incompatible schema.
 

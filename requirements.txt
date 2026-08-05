@@ -1,0 +1,5 @@
+fastapi==0.137.1
+pydantic==2.13.4
+Pillow==12.3.0
+reportlab==5.0.0
+python-multipart==0.0.32

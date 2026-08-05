@@ -5,7 +5,7 @@ export type AnalyticsCoverage = 'FULLY_SUPPORTED' | 'REPORT_GENERATION_ONLY';
 export type RoutingCoverage = 'FULLY_SUPPORTED' | 'REPORT_GENERATION_ONLY' | 'UNSUPPORTED_JURISDICTION';
 
 export interface CityBoundaryDefinition {
-  kind: 'validated-adm2' | 'catalog-envelope';
+  kind: 'validated-adm1' | 'validated-adm2' | 'validated-city' | 'catalog-envelope';
   status: 'VALIDATED' | 'CATALOG_ONLY';
   sourceName: string;
   sourceUrl: string;

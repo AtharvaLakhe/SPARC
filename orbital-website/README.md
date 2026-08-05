@@ -11,14 +11,16 @@ place by name or by latitude/longitude.
 cd orbital-website && npm install
 cd ../apps/web && npm install && npm run build
 cd ../../orbital-website && npm run serve
-# http://localhost:8123/       globe
-# http://localhost:8123/app/   analytical dashboard
+# http://localhost:8123/       globe-led SPARC dashboard
 ```
 
 `npm run serve` starts the single combined SPARC server from `apps/web/serve.mjs`.
-It must be served over HTTP — the ES module import map won't resolve over `file://`.
+The globe is the only public page; selecting a target opens the analytical
+dashboard as a panel over it. `/app/` is retained only as a redirect for old
+bookmarks, while `/app/*` serves compiled panel assets. It must be served over
+HTTP — the ES module import map won't resolve over `file://`.
 Do not run `node server.mjs` for the full SPARC experience: that legacy
-globe-only server intentionally has no `/app/` mount and will return `404 app/`.
+server does not include the compiled SPARC panel assets.
 
 ## Test
 

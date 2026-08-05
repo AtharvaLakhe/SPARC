@@ -8,14 +8,14 @@ SPARC outputs are **satellite-derived SDG proxy indicators**, not official UN SD
 
 ## Repository status
 
-Implementation has started from the frozen planning package. The FastAPI service supports a safe default offline fixture path and an explicit `SPARC_DATA_MODE=precomputed` path that maps the reviewed Earth Engine packs into the frozen contract; neither path performs request-time raster processing, database access, provider calls, or live job creation. `orbital-website/` is a separately owned Three.js UI reference supplied by the user and is not yet the analytical dashboard or API client. The evidence-based current stage, remaining gates, and missing dashboard work are tracked in the [delivery status](docs/project-status.md).
+Implementation has started from the frozen planning package. The globe-led site in `orbital-website/` is the single public entry and opens the React analytical dashboard as a panel over the globe. The FastAPI service supports a safe default offline fixture path and an explicit `SPARC_DATA_MODE=precomputed` path that maps the reviewed Earth Engine packs into the frozen contract; neither path performs request-time raster processing, database access, provider calls, or live job creation. The evidence-based current stage, remaining gates, and missing dashboard work are tracked in the [delivery status](docs/project-status.md).
 
 The selected pilot is **Nagpur district** with **Bengaluru Urban** as a smaller backup. P0 covers surface-water, vegetation/green-cover, and built-up-area proxies. Land-surface temperature and surface urban heat island analysis are P1.
 
 ## High-level architecture
 
 ```text
-Browser/client (analytical dashboard; Orbital is the visual reference)
+Browser/client (globe-led SPARC dashboard)
   ├─ DemoTransport → local manifest + JSON/GeoJSON/image assets
   └─ ApiTransport  → FastAPI /api/v1 contract
                           ├─ default bounded fixture repository
