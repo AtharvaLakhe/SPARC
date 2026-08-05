@@ -1,12 +1,27 @@
 # SPARC source register
 
-**Status:** planning baseline  
-**Evidence cut-off:** 2026-08-03
-**Last access check:** 2026-08-03
+**Status:** implementation register
+**Evidence cut-off:** 2026-08-05
+**Last access check:** 2026-08-05
 
 This register is the bibliography and provenance ledger for SPARC's research documents. The short source IDs are used as citations throughout `docs/`. A source is included only when it is a product-owner specification, government data page, legal notice, or original peer-reviewed method paper. A living web page with no displayed publication date is recorded as **undated living documentation** rather than assigned an invented date.
 
 Entries identify source evidence and license records. The pinned geoBoundaries India ADM2 release is the exception: its raw archive, selected district features, gate manifests, and checksums are recorded under `data/`.
+
+## Reporting authority sources
+
+The following official pages were checked for the limited jurisdiction packs on
+2026-08-05. They are routing sources only; SPARC still performs manual handoff.
+
+- **US-EPA:** [Report a Violation](https://www.epa.gov/report-violation)
+- **California EPA:** [CalEPA](https://calepa.ca.gov/)
+- **England:** [GOV.UK report an environmental problem](https://www.gov.uk/report-environmental-problem)
+- **Northern Ireland DAERA:** [Environmental Incident Reporting System](https://www.daera-ni.gov.uk/articles/daera-environmental-incident-reporting-system)
+- **India CPCB:** [Central Pollution Control Board](https://cpcb.nic.in/)
+- **Karnataka KSPCB:** [Karnataka State Pollution Control Board](https://kspcb.karnataka.gov.in/)
+
+This register does not imply global authority coverage. Records without a
+verified pack remain `REPORT_GENERATION_ONLY` or `UNSUPPORTED_JURISDICTION`.
 
 ## Administrative-boundary sources
 
@@ -437,6 +452,60 @@ Entries identify source evidence and license records. The pinned geoBoundaries I
 - **Used for:** government fallback discovery only. The page describes state, district and block boundaries, but its catalog API and ZIP download were disabled at inspection time; no artifact version, fields, checksum, geometry or resource-specific applicability of the Government Open Data License could be verified. It is not an approved processing input yet.
 
 ## Open-source license sources
+
+## Reporting authority sources
+
+These are official entry points for the manual-handoff registry. They are
+operational links, not permission for SPARC to automate submission. Registry
+records must be reverified before any real-world use.
+
+<a id="mpcb-complaints"></a>
+### MPCB-COMPLAINTS
+
+- **Title/owner:** Maharashtra Pollution Control Board FAQ and complaint redressal procedure
+- **URLs:** https://www.mpcb.gov.in/en/faq and https://www.mpcb.gov.in/en/node/6132
+- **Accessed:** 2026-08-04
+- **Used for:** pollution issue scope, regional-office/manual route, and the prohibition on treating a citizen complaint as proof of a violation.
+
+<a id="nmc-grievance"></a>
+### NMC-GRIEVANCE
+
+- **Title/owner:** Nagpur Municipal Corporation Grievance Redressal System
+- **URL:** https://nmcnagpur.gov.in/grievance/complaint_form.php
+- **Accessed:** 2026-08-04
+- **Used for:** municipal complaint handoff. The portal currently begins with mobile OTP; SPARC does not handle or automate that OTP.
+
+<a id="maharashtra-forest"></a>
+### MAHARASHTRA-FOREST
+
+- **Title/owner:** Maharashtra Forest Department
+- **URLs:** https://mahaforest.gov.in/home/index/en and https://mahaforest.gov.in/fcawebsite/contactus
+- **Accessed:** 2026-08-04
+- **Used for:** forest, tree-felling, wildlife, and forest-encroachment manual routing.
+
+<a id="aaple-sarkar"></a>
+### AAPLE-SARKAR
+
+- **Title/owner:** Government of Maharashtra Aaple Sarkar portal
+- **URLs:** https://aaplesarkar.mahaonline.gov.in/ and https://aaplesarkar.mahaonline.gov.in/en/CommonForm/ContactUs
+- **Accessed:** 2026-08-04
+- **Used for:** state grievance and department-escalation handoff.
+
+<a id="cpgrams"></a>
+### CPGRAMS
+
+- **Title/owner:** Centralized Public Grievance Redress and Monitoring System, Government of India
+- **URLs:** https://pgportal.gov.in/, https://pgportal.gov.in/Home/LodgeGrievance, and https://pgportal.gov.in/Home/ContactUs
+- **Accessed:** 2026-08-04
+- **Used for:** eligible central/state public-service grievance escalation. The portal states that registered users must lodge grievances through the portal and that grievance email is not accepted.
+
+<a id="ngt"></a>
+### NGT
+
+- **Title/owner:** National Green Tribunal
+- **URL:** https://www.greentribunal.gov.in/
+- **Accessed:** 2026-08-04
+- **Used for:** legal/judicial escalation reference only. SPARC does not generate or submit an NGT filing.
 
 These are candidate-library license records, not approved dependencies. Each exact selected version, native binary, driver, codec, transformation grid, and transitive dependency still requires a release audit.
 

@@ -61,6 +61,15 @@ export const FROZEN_PERIODS = [
     comparisonEnd: '2024-12-15',
     seasonLabel: 'post-monsoon',
   },
+  {
+    id: 'dry-season-2019-2024',
+    label: 'Dry season 2019 → 2024',
+    baselineStart: '2019-01-15',
+    baselineEnd: '2019-03-15',
+    comparisonStart: '2024-01-15',
+    comparisonEnd: '2024-03-15',
+    seasonLabel: 'dry season',
+  },
 ] as const;
 
 export type FrozenPeriod = (typeof FROZEN_PERIODS)[number];

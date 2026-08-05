@@ -18,7 +18,7 @@
 
 import nagpurGeo from '@validated/nagpur.geojson?raw';
 import bengaluruGeo from '@validated/bengaluru-urban.geojson?raw';
-import { cityForRegionId } from '../demo/cities';
+import { cityForRegionId } from '../catalog/cities';
 
 /** [lon, lat] */
 export type LonLat = [number, number];
@@ -89,14 +89,11 @@ export function shapeForRegion(
     }
   }
 
-  // Generated demo district — bounding box only.
+  // Catalog city envelope — bounding box only and explicitly approximate.
   const city = cityForRegionId(regionId);
   if (city) {
     return {
-      rings: boxRings([
-        city.lon - city.span, city.lat - city.span,
-        city.lon + city.span, city.lat + city.span,
-      ]),
+      rings: boxRings(city.bbox),
       approximate: true,
       label: city.name,
     };

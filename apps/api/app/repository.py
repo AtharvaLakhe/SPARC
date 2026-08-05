@@ -1,4 +1,11 @@
-"""Allowlisted, immutable access to committed synthetic contract examples."""
+"""Allowlisted, immutable access to the local result inventory.
+
+The repository still serves the existing contract fixtures until the
+Earth-Engine precomputed-pack adapter is wired in.  It also applies the
+documented Nagpur built-up method gate at the API boundary so a contradictory
+indicator cannot leak through a direct API request while the browser is
+already suppressing it.
+"""
 
 from __future__ import annotations
 
@@ -14,6 +21,11 @@ COMPARISON_FILES = {
     "built-up": "built-up-comparison.mock.json",
     "lst": "lst-comparison.mock.json",
 }
+
+BUILT_UP_CONFLICT_REASON = (
+    "Estimated land-cover change is unavailable because the two documented "
+    "Nagpur methods reverse direction."
+)
 
 
 class MockResultRepository:
@@ -76,7 +88,10 @@ class MockResultRepository:
     def get_summary(self, region_id: str) -> dict[str, Any] | None:
         if self._summary["data"]["region"]["id"] != region_id:
             return None
-        return deepcopy(self._summary)
+        payload = deepcopy(self._summary)
+        if _is_nagpur_region(region_id):
+            _withhold_built_up_summary(payload)
+        return payload
 
     def list_indicators(self, region_id: str) -> list[dict[str, Any]] | None:
         summary = self.get_summary(region_id)
@@ -86,7 +101,10 @@ class MockResultRepository:
         payload = self._comparisons.get(indicator_id)
         if not payload or payload["data"]["region"]["id"] != region_id:
             return None
-        return deepcopy(payload)
+        result = deepcopy(payload)
+        if indicator_id == "built-up" and _is_nagpur_region(region_id):
+            _withhold_built_up_detail(result)
+        return result
 
     def get_time_series(self, region_id: str, indicator_id: str) -> dict[str, Any] | None:
         data = self._time_series["data"]
@@ -128,6 +146,50 @@ class MockResultRepository:
         return deepcopy(self._summary["meta"])
 
 
+def _is_nagpur_region(region_id: str) -> bool:
+    """Match the opaque region suffix without trusting a request as a path."""
+
+    return region_id.casefold().split(":")[-1] == "nagpur"
+
+
+def _withhold_built_up_summary(payload: dict[str, Any]) -> None:
+    for item in payload["data"].get("indicators", []):
+        if item.get("indicator", {}).get("id") != "built-up":
+            continue
+        metric = item.setdefault("metric", {})
+        metric.update(
+            baselineValue=None,
+            comparisonValue=None,
+            absoluteChange=None,
+            percentChange=None,
+            unavailableReason=BUILT_UP_CONFLICT_REASON,
+        )
+        item["status"] = "unavailable"
+
+
+def _withhold_built_up_detail(payload: dict[str, Any]) -> None:
+    data = payload["data"]
+    metric = data.setdefault("metric", {})
+    metric.update(
+        baselineValue=None,
+        comparisonValue=None,
+        absoluteChange=None,
+        percentChange=None,
+        unavailableReason=BUILT_UP_CONFLICT_REASON,
+    )
+    data["status"] = "unavailable"
+    interpretation = data.setdefault("interpretation", {})
+    interpretation.update(
+        summary=BUILT_UP_CONFLICT_REASON,
+        caveats=[BUILT_UP_CONFLICT_REASON],
+        suggestedActions=["Request independent inspection before drawing a land-cover conclusion."],
+    )
+    quality = data.setdefault("quality", {})
+    warnings = quality.setdefault("warnings", [])
+    if BUILT_UP_CONFLICT_REASON not in warnings:
+        warnings.append(BUILT_UP_CONFLICT_REASON)
+
+
 def envelope(data: Any, meta: dict[str, Any], self_url: str, related: list[str]) -> dict[str, Any]:
     return {
         "data": deepcopy(data),
@@ -143,4 +205,3 @@ def apply_request_context(payload: dict[str, Any], request_id: str, self_url: st
     if self_url is not None and "links" in result:
         result["links"]["self"] = self_url
     return result
-

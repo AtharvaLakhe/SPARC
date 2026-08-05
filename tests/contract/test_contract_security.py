@@ -30,6 +30,9 @@ EXAMPLE_SCHEMA = {
     "layer-descriptor": "LayerResponse",
     "processing-job": "JobResponse",
     "api-error": "ProblemDetails",
+    "report": "ReportResponse",
+    "authorities": "AuthorityListResponse",
+    "jurisdictions": "JurisdictionListResponse",
 }
 
 RELATIVE_FIELDS = [

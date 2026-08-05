@@ -7,6 +7,7 @@ import './panel.css';
 import './cards.css';
 import './picker.css';
 import './viz.css';
+import './reporting/reporting.css';
 
 /* Top-level boundary. A render crash must not leave a blank page: the whole
    point of the offline demo is that it degrades to something a presenter can

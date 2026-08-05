@@ -21,7 +21,8 @@
       "@fixtures/*": ["../../contracts/examples/*"],
       "@globe/*": ["../../orbital-website/*"],
       "@boundaries/*": ["../../data/metadata/boundaries/geoBoundaries-IND-ADM2-76128533/*"],
-      "@validated/*": ["../../data/validated/boundaries/geoBoundaries-IND-ADM2-76128533/*"]
+      "@validated/*": ["../../data/validated/boundaries/geoBoundaries-IND-ADM2-76128533/*"],
+      "@citycatalog/*": ["../../data/catalog/*"]
     }
   },
   "include": ["src", "vite.config.ts"]

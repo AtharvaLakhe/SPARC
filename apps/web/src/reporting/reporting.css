@@ -1,0 +1,121 @@
+/* CODEX PROTOTYPE HANDOFF: visual baseline for Claude to polish. */
+
+.report-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(2, 5, 10, 0.78);
+  backdrop-filter: blur(6px);
+}
+
+.report-dialog {
+  width: min(46rem, 100%);
+  max-height: min(92vh, 54rem);
+  overflow-y: auto;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  background: linear-gradient(160deg, var(--panel), var(--bg));
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 2rem 5rem rgba(0, 0, 0, 0.55);
+}
+.report-dialog__topline { display: flex; justify-content: space-between; gap: 1rem; align-items: start; }
+.report-dialog__eyebrow, .report-section__kicker {
+  margin: 0 0 0.4rem;
+  color: var(--accent);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.report-dialog h2 { margin: 0 0 0.35rem; font-size: clamp(1.35rem, 3vw, 1.8rem); }
+.report-dialog__lede { margin: 0 0 1.25rem; color: var(--dim); max-width: 60ch; }
+
+.report-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.4rem;
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+}
+.report-steps__item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.45rem 0.3rem;
+  border-bottom: 2px solid var(--line);
+  color: var(--dim);
+  font-size: 0.75rem;
+}
+.report-steps__item--active { border-bottom-color: var(--accent); color: var(--ink); }
+.report-steps__number {
+  display: grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  flex: 0 0 auto;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 0.68rem;
+}
+
+.report-section h3 { margin: 0 0 0.35rem; font-size: 1.15rem; }
+.report-section__hint { margin: 0 0 1rem; color: var(--dim); font-size: 0.87rem; }
+.report-choice-list { display: grid; gap: 0.55rem; }
+.report-choice {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel-2);
+  cursor: pointer;
+}
+.report-choice--selected { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.report-choice input { margin-top: 0.25rem; }
+.report-choice strong, .report-choice small { display: block; }
+.report-choice small { margin-top: 0.15rem; color: var(--dim); font-size: 0.8rem; }
+.report-metadata { display: flex; flex-wrap: wrap; gap: 0.35rem 0.65rem; align-items: baseline; margin: 1rem 0 0; font-size: 0.85rem; }
+.report-metadata span, .report-review span { color: var(--dim); font-size: 0.78rem; }
+.report-metadata code { color: var(--dim); font-size: 0.72rem; }
+
+.report-field { display: grid; gap: 0.35rem; margin: 0.9rem 0; font-size: 0.85rem; font-weight: 600; }
+.report-field textarea, .report-field select {
+  width: 100%;
+  resize: vertical;
+  font: inherit;
+  padding: 0.65rem 0.75rem;
+  color: var(--ink);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.report-field small, .report-upload small { color: var(--dim); font-size: 0.75rem; font-weight: 400; }
+.report-upload { display: grid; justify-items: start; gap: 0.35rem; margin: 1rem 0; cursor: pointer; }
+.report-upload input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.report-review { display: grid; gap: 0.5rem; margin: 0.8rem 0 1rem; padding: 0.75rem; background: var(--panel-2); border-radius: var(--radius); }
+.report-review p { display: grid; grid-template-columns: minmax(7rem, 0.35fr) 1fr; gap: 0.75rem; margin: 0; font-size: 0.87rem; overflow-wrap: anywhere; }
+.report-checks { display: grid; gap: 0.7rem; margin: 1rem 0; font-size: 0.85rem; }
+.report-checks label { display: flex; gap: 0.55rem; align-items: flex-start; }
+.report-checks input { margin-top: 0.3rem; }
+.report-success { margin: 1rem 0; color: var(--ok); font-weight: 700; }
+.report-status-notice { margin: 0.75rem 0; color: var(--dim); font-size: 0.8rem; }
+.report-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.55rem; margin-top: 1.5rem; }
+.report-actions--downloads { justify-content: flex-start; margin-top: 1rem; }
+.report-actions .btn:disabled { cursor: not-allowed; opacity: 0.45; }
+
+@media (max-width: 34rem) {
+  .report-overlay { padding: 0; place-items: stretch; }
+  .report-dialog { max-height: 100vh; border-radius: 0; }
+  .report-steps__item { flex-direction: column; align-items: flex-start; font-size: 0.68rem; }
+  .report-review p { grid-template-columns: 1fr; gap: 0.15rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .report-overlay { backdrop-filter: none; }
+}

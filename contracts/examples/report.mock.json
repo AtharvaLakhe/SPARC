@@ -1,0 +1,76 @@
+{
+  "data": {
+    "id": "report:0123456789abcdef0123456789abcdef",
+    "status": "READY_FOR_DOWNLOAD",
+    "createdAt": "2026-08-04T12:00:00Z",
+    "expiresAt": "2026-08-05T12:00:00Z",
+    "payload": {
+      "regionId": "mock:district:nagpur",
+      "coordinates": { "longitude": 79.08, "latitude": 21.15 },
+      "boundary": {
+        "sourceName": "geoBoundaries gbOpen India ADM2",
+        "sourceUrl": "https://www.geoboundaries.org/",
+        "license": "ODbL 1.0 with required attribution and share-alike review",
+        "attribution": "Contains modified boundary data from geoBoundaries / William & Mary geoLab.",
+        "sha256": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "disclaimer": "This boundary is suitable for prototype analysis but is not an authoritative legal or cadastral boundary.",
+        "geometry": { "type": "Polygon", "coordinates": [[[79.0, 21.0], [79.1, 21.0], [79.1, 21.1], [79.0, 21.0]]] }
+      },
+      "concernCode": "pollution.water",
+      "evidence": {
+        "indicatorId": "surface-water",
+        "baseline": 100.0,
+        "comparison": 92.0,
+        "value": -8.0,
+        "unit": "km2",
+        "methodId": "sentinel-2-mndwi",
+        "methodVersion": "1.0.0",
+        "processingRunId": "mock:run:nagpur-water",
+        "evidenceSha256": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "qualityStatus": "exploratory",
+        "validationStatus": "EXPLORATORY_ONLY",
+        "qualityLevel": "unknown",
+        "methodsConflict": false
+      },
+      "observation": "The mapped proxy appears lower in the comparison period; please verify the site in the field.",
+      "locale": "en",
+      "consent": {
+        "reviewed": true,
+        "truthfulness": true,
+        "locationSharing": true,
+        "attachmentsSharing": true,
+        "manualSubmission": true,
+        "privacyNoticeVersion": "2026-08-04"
+      },
+      "attachments": [],
+      "municipalConfirmed": false
+    },
+    "eligibility": {
+      "status": "ELIGIBLE_WITH_LIMITATION",
+      "claimMode": "VERIFICATION_ONLY",
+      "reason": "Evidence is exploratory, unavailable, low quality, or not independently validated."
+    },
+    "authorityRoutes": {
+      "primary": { "authorityId": "mpcb", "name": "Maharashtra Pollution Control Board", "rank": 1, "rationale": "Pollution or hazardous-waste concern matches MPCB scope.", "jurisdictionConfidence": "high", "officialUrl": "https://www.mpcb.gov.in/en/faq", "manualOnly": true, "escalationOnly": false },
+      "secondary": [],
+      "selectionRequired": false,
+      "reason": "Route is based on the selected pollution issue code."
+    },
+    "artifacts": [
+      { "id": "pdf", "mediaType": "application/pdf", "bytes": 1024, "checksum": "sha256:1111111111111111111111111111111111111111111111111111111111111111" },
+      { "id": "zip", "mediaType": "application/zip", "bytes": 2048, "checksum": "sha256:2222222222222222222222222222222222222222222222222222222222222222", "manifestChecksum": "sha256:3333333333333333333333333333333333333333333333333333333333333333" }
+    ],
+    "handoff": null,
+    "acknowledgement": null
+  },
+  "meta": {
+    "schemaVersion": "1.0.0",
+    "requestId": "req:mock-report",
+    "generatedAt": "2026-08-04T12:00:00Z",
+    "dataMode": "demo",
+    "partial": false,
+    "mock": true,
+    "warnings": ["This is a synthetic reporting response and does not submit a complaint."]
+  },
+  "links": { "self": "/api/v1/reports/report:0123456789abcdef0123456789abcdef", "related": [] }
+}

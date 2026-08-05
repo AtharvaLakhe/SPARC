@@ -1174,10 +1174,18 @@ addEventListener('keydown', (e) => {
   }
 });
 
-const QUICK = ['Tokyo', 'New York', 'London', 'Cairo', 'Sydney', 'Rio de Janeiro', 'Reykjavik', 'Mumbai'];
-$('chips').innerHTML = QUICK.map((q) => `<button type="button">${q}</button>`).join('');
+/* Keep the orbit launcher aligned with the SPARC city catalog. The dashboard
+   adds country codes and boundary/coverage state; the orbit remains a compact
+   name-only launcher and passes the place name to the local gazetteer. */
+const QUICK = [
+  ['Nagpur', 'IN'], ['Bengaluru', 'IN'], ['Mumbai', 'IN'], ['Delhi', 'IN'],
+  ['Chennai', 'IN'], ['Bhopal', 'IN'], ['New York', 'US'], ['Washington DC', 'US'],
+  ['Tokyo', 'JP'], ['London', 'GB'], ['Cairo', 'EG'], ['Sydney', 'AU'], ['Reykjavik', 'IS'],
+];
+$('chips').innerHTML = QUICK.map(([name, code]) => `<button type="button" data-place="${name}">${name}<small>${code}</small></button>`).join('');
 $('chips').addEventListener('click', (e) => {
-  if (e.target.tagName === 'BUTTON') { queryEl.value = e.target.textContent; submit(); }
+  const button = e.target instanceof Element ? e.target.closest('button[data-place]') : null;
+  if (button) { queryEl.value = button.dataset.place || ''; submit(); }
 });
 
 function renderSuggestions(q) {

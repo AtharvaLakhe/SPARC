@@ -37,6 +37,7 @@ export default defineConfig({
       '@boundaries': path.resolve(
         repoRoot, 'data', 'metadata', 'boundaries', 'geoBoundaries-IND-ADM2-76128533',
       ),
+      '@citycatalog': path.resolve(repoRoot, 'data', 'catalog'),
     },
   },
   server: {

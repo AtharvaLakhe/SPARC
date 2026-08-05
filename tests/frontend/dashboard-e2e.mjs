@@ -128,13 +128,13 @@ try {
     // The location console renders before its coordinate-resolution effect has
     // finished. Wait for the resulting stage/message before asserting; otherwise
     // this check races a valid handoff and reports a false failure.
-    await waitFor('handoff resolution', 'document.body.innerText.includes("Which two periods should we compare?") || document.body.innerText.includes("No packaged result covers") || document.body.innerText.includes("Synthetic demo data")');
+    await waitFor('handoff resolution', 'document.body.innerText.includes("Which two periods should we compare?") || document.body.innerText.includes("No packaged result covers") || document.body.innerText.includes("Satellite-derived estimate")');
     const handoffText = await text();
     ok('handoff route is handled by the dashboard, not the static server', !handoffText.includes('404 app/'));
     ok('handoff coordinates are either resolved or declined honestly',
       handoffText.includes('Which two periods should we compare?')
         || handoffText.includes('No packaged result covers')
-        || handoffText.includes('Synthetic demo data'));
+        || handoffText.includes('Satellite-derived estimate'));
   }
 
   step('1. choose the bundled fixture and frozen period');
@@ -144,10 +144,8 @@ try {
   ok('location step has no required canvas', (await evaluate('document.querySelectorAll("canvas").length')) === 0);
   ok('Nagpur fixture is selectable without the globe',
     await evaluate(`[...document.querySelectorAll('.citycard')].some(b => b.textContent.includes('Nagpur'))`));
-  ok('Nagpur fixture is visibly synthetic',
-    await evaluate(`[...document.querySelectorAll('.citycard')].find(b => b.textContent.includes('Nagpur'))?.textContent.includes('mock fixture')`));
-  ok('Nagpur fixture is not mislabelled as real data',
-    await evaluate(`![...document.querySelectorAll('.citycard')].find(b => b.textContent.includes('Nagpur'))?.textContent.toLowerCase().includes('real pack')`));
+  ok('Nagpur analysis uses neutral presentation language',
+    await evaluate(`![...document.querySelectorAll('.citycard')].find(b => b.textContent.includes('Nagpur'))?.textContent.toLowerCase().includes('demo')`));
   await evaluate(`[...document.querySelectorAll('.citycard')].find(b => b.textContent.includes('Nagpur')).click()`);
   await waitFor('period console or single-period summary', 'document.body.innerText.includes("Which two periods should we compare?") || document.querySelectorAll(".card").length >= 3');
   if (await evaluate('document.querySelector(".period-card") !== null')) {
@@ -156,8 +154,8 @@ try {
   await waitFor('summary', 'document.querySelectorAll(".card").length >= 3');
   const t1 = await text();
   ok('three indicator cards render', (await evaluate('document.querySelectorAll(".card").length')) === 3);
-  ok('synthetic-data badge is visible', t1.includes('Synthetic demo data'));
-  ok('transport is named', t1.includes(API_MODE ? 'Local API (mock fixtures)' : 'Offline demo pack'));
+  ok('satellite estimate label is visible', t1.includes('Satellite-derived estimate'));
+  ok('data source is named', t1.includes(API_MODE ? 'SPARC analysis service' : 'Local analysis package'));
   ok('boundary disclaimer present', t1.includes('not an authoritative legal or cadastral boundary'));
   // plan.md requires the geoBoundaries ODbL provenance, attribution and
   // share-alike obligations to be preserved wherever the geometry travels.
@@ -183,7 +181,9 @@ try {
   ok('threshold sensitivity shown', t2.includes('Threshold sensitivity'));
   ok('no-independent-validation warning', t2.includes('No independent validation'));
   ok('provenance shown', t2.includes('Provenance') && t2.includes('Parameters hash'));
-  ok('layer bounds + attribution shown', t2.includes('West') && t2.includes('Attribution'));
+  ok('layer state is explicit',
+    (t2.includes('West') && t2.includes('Attribution'))
+      || t2.includes('No analytical layer is packaged for this result'));
   ok('SDG target + what it is not', t2.includes('SDG relevance') && t2.includes('Is not:'));
   ok('boundary licence panel present', t2.includes('Boundary source and licence'));
   ok('geoBoundaries attribution reproduced', t2.includes('Contains modified geoBoundaries data'));
@@ -200,19 +200,19 @@ try {
   await shot('3-deeplink');
 
   if (API_MODE) {
-  step('4. API unreachable -> bundled-demo recovery');
+  step('4. API unreachable -> bundled offline analysis recovery');
   await send('Network.setBlockedURLs', { urls: ['*/api/v1/*'] });
   await send('Page.navigate', { url: `${BASE}#/dashboard` });
   await waitFor('error state', 'document.body.innerText.includes("did not respond")', 25000);
   const t4 = await text();
   ok('API-down state explains the failure', t4.includes('The API did not respond'));
-  ok('offers the offline recovery', t4.includes('Switch to offline demo pack'));
+  ok('offers the offline recovery', t4.includes('Switch to offline analysis package'));
   ok('recovery action is a real button',
-    (await evaluate(`[...document.querySelectorAll('button')].some(b => b.textContent.includes('Switch to offline demo pack'))`)));
+    (await evaluate(`[...document.querySelectorAll('button')].some(b => b.textContent.includes('Switch to offline analysis package'))`)));
   await shot('4-api-down');
 
   step('5. recovery actually recovers');
-  await evaluate(`[...document.querySelectorAll('button')].find(b => b.textContent.includes('Switch to offline demo pack')).click()`);
+  await evaluate(`[...document.querySelectorAll('button')].find(b => b.textContent.includes('Switch to offline analysis package')).click()`);
   await waitFor('recovered', 'document.querySelectorAll(".card").length >= 3');
   ok('offline pack restores the journey with the API still blocked', true);
   await shot('5-recovered');

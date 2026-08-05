@@ -1,0 +1,33 @@
+{
+  "data": {
+    "registryVersion": "2026-08-04",
+    "authorities": [
+      {
+        "registryVersion": "2026-08-04",
+        "id": "mpcb",
+        "name": "Maharashtra Pollution Control Board",
+        "jurisdiction": "Maharashtra pollution regulation; regional and sub-regional offices",
+        "issueCodes": ["pollution.air", "pollution.water", "pollution.industrial", "pollution.noise", "waste.hazardous"],
+        "officialUrl": "https://www.mpcb.gov.in/en/faq",
+        "submissionMethod": "manual_portal_or_regional_office",
+        "requirements": ["review the complaint", "use the official portal or regional office route"],
+        "contacts": ["https://www.mpcb.gov.in/en/"],
+        "escalation": ["Aaple Sarkar", "CPGRAMS where a central/state service escalation is appropriate"],
+        "verificationDate": "2026-08-04",
+        "captchaOtpApiNotes": "No documented SPARC API; portal method and any CAPTCHA/OTP remain user-operated.",
+        "localeUrls": ["https://www.mpcb.gov.in/en/faq"],
+        "escalationOnly": false
+      }
+    ]
+  },
+  "meta": {
+    "schemaVersion": "1.0.0",
+    "requestId": "req:mock-authorities",
+    "generatedAt": "2026-08-04T12:00:00Z",
+    "dataMode": "demo",
+    "partial": false,
+    "mock": true,
+    "warnings": ["Authority URLs require verification before real-world use."]
+  },
+  "links": { "self": "/api/v1/authorities", "related": [] }
+}

@@ -15,7 +15,7 @@ import { useId } from 'react';
 import { barFractions, styleFor } from '../indicators';
 import { sdgChips, SDG_SCOPE_NOTE } from '../sdg';
 import type { IndicatorCardView, PeriodView, SummaryView as SummaryVM } from '../viewmodel/mapper';
-import { QualityPill, StatusPill, Value } from './Primitives';
+import { StatusPill, Value } from './Primitives';
 
 function PeriodBlock({ title, period }: { title: string; period: PeriodView }) {
   return (
@@ -83,7 +83,6 @@ function IndicatorCard({
             <span key={chip} className="pill pill--sdg">{chip}</span>
           ))}
           <StatusPill status={card.status} />
-          <QualityPill level={card.qualityLevel} />
         </p>
 
         {/* The headline. Direction is written in words as well as shown by the
@@ -153,7 +152,7 @@ export function SummaryScreen({
           <span className="panel__sub"> · {summary.regionType}</span>
         </h2>
         <p className="panel__lede">
-          Same-season comparison between two fixed composite windows. Both
+          Analysis period: same-season comparison between two fixed composite windows. Both
           windows use the same method, so the difference is not an artefact of
           changing how the measurement was made.
         </p>
@@ -164,7 +163,7 @@ export function SummaryScreen({
       </section>
 
       <section className="panel" aria-labelledby={indicatorsId}>
-        <h2 id={indicatorsId}>Indicators</h2>
+        <h2 id={indicatorsId}>Satellite-derived estimates</h2>
         <p className="panel__lede">{SDG_SCOPE_NOTE}</p>
         <ul className="cards">
           {summary.indicators.map((card) => (

@@ -38,6 +38,7 @@ tags:
   - name: Layers
   - name: Processing
   - name: Metadata
+  - name: Reporting
 security: []
 paths:
   /api/v1/health:
@@ -620,6 +621,252 @@ paths:
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
 
+  /api/v1/reports:
+    post:
+      operationId: createReport
+      tags: [Reporting]
+      summary: Create a bounded, claim-safe environmental concern report.
+      description: |
+        P0 is an offline-first local path. It generates a neutral inspection or
+        verification request and never submits to an authority, bypasses CAPTCHA/OTP,
+        or stores government credentials. Multipart uploads are bounded and local-only.
+        `geminiConsent` is explicit. When enabled, the server sends only selected
+        non-identifying report text and analysis context to the configured Gemini
+        provider; complainant details, contacts, attachments, exact coordinates,
+        signature and date are appended locally after drafting.
+      x-sparc-maturity: mock-p0
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/ReportCreate'
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [report]
+              properties:
+                report:
+                  type: string
+                  description: JSON-encoded ReportCreate object.
+                attachments:
+                  type: array
+                  maxItems: 6
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '201':
+          description: Report created in ephemeral P0 storage.
+          headers:
+            Location:
+              schema: { type: string, maxLength: 400, pattern: '^(?:/(?!/)|\./)[A-Za-z0-9][A-Za-z0-9._~:-]*(?:/[A-Za-z0-9][A-Za-z0-9._~:-]*)*$' }
+            X-Report-Access:
+              schema: { type: string, minLength: 32, maxLength: 128 }
+          content:
+            application/json:
+              schema:
+                $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/ReportResponse'
+        '413': { $ref: '#/components/responses/PayloadTooLarge' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+
+  /api/v1/reports/{reportId}:
+    get:
+      operationId: getReport
+      tags: [Reporting]
+      summary: Read an ephemeral report by opaque ID.
+      x-sparc-maturity: mock-p0
+      security:
+        - ReportAccess: []
+      parameters:
+        - $ref: '#/components/parameters/ReportId'
+        - $ref: '#/components/parameters/ReportAccess'
+      responses:
+        '200':
+          description: Report state and artifact metadata.
+          content:
+            application/json:
+              schema:
+                $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/ReportResponse'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '410': { $ref: '#/components/responses/Gone' }
+
+    delete:
+      operationId: deleteReport
+      tags: [Reporting]
+      summary: Delete an ephemeral report and its artifacts.
+      description: P0 local deletion; durable authenticated deletion is a later phase.
+      x-sparc-maturity: mock-p0
+      security:
+        - ReportAccess: []
+      parameters:
+        - $ref: '#/components/parameters/ReportId'
+        - $ref: '#/components/parameters/ReportAccess'
+      responses:
+        '204': { description: Report deleted. }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/reports/{reportId}/artifacts/{artifactId}:
+    get:
+      operationId: getReportArtifact
+      tags: [Reporting]
+      summary: Download a verified PDF or ZIP artifact.
+      x-sparc-maturity: mock-p0
+      security:
+        - ReportAccess: []
+      parameters:
+        - $ref: '#/components/parameters/ReportId'
+        - name: artifactId
+          in: path
+          required: true
+          schema: { type: string, enum: [pdf, zip] }
+        - $ref: '#/components/parameters/ReportAccess'
+      responses:
+        '200':
+          description: Verified artifact bytes.
+          content:
+            application/pdf: { schema: { type: string, format: binary } }
+            application/zip: { schema: { type: string, format: binary } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '410': { $ref: '#/components/responses/Gone' }
+
+  /api/v1/reports/{reportId}/submit-handoff:
+    post:
+      operationId: submitReportHandoff
+      tags: [Reporting]
+      summary: Record a user's manual handoff to an allowlisted official portal.
+      description: SPARC returns an official URL but never submits, proxies, scrapes, or automates portal controls.
+      x-sparc-maturity: mock-p0
+      security:
+        - ReportAccess: []
+      parameters:
+        - $ref: '#/components/parameters/ReportId'
+        - $ref: '#/components/parameters/ReportAccess'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [authorityId, confirmReview]
+              properties:
+                authorityId: { type: string, minLength: 2, maxLength: 80, pattern: '^[a-z0-9-]+$' }
+                confirmReview: { type: boolean, const: true }
+      responses:
+        '200':
+          description: Handoff recorded without external submission.
+          content:
+            application/json:
+              schema:
+                $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/ReportResponse'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /api/v1/reports/{reportId}/acknowledgement:
+    post:
+      operationId: acknowledgeReport
+      tags: [Reporting]
+      summary: Store a user-entered external acknowledgement.
+      description: SPARC does not verify the external reference or claim that an authority accepted the report.
+      x-sparc-maturity: mock-p0
+      security:
+        - ReportAccess: []
+      parameters:
+        - $ref: '#/components/parameters/ReportId'
+        - $ref: '#/components/parameters/ReportAccess'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [authorityId, status, confirmedUserEntered]
+              properties:
+                authorityId: { type: string, minLength: 2, maxLength: 80, pattern: '^[a-z0-9-]+$' }
+                status: { type: string, enum: [SUBMITTED, NOT_SUBMITTED, UNKNOWN] }
+                externalReference: { type: [string, 'null'], maxLength: 160 }
+                submittedAt: { type: [string, 'null'], format: date-time, maxLength: 35 }
+                confirmedUserEntered: { type: boolean, const: true }
+      responses:
+        '200':
+          description: User-entered acknowledgement stored.
+          content:
+            application/json:
+              schema:
+                $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/ReportResponse'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /api/v1/authorities:
+    get:
+      operationId: listAuthorities
+      tags: [Reporting]
+      summary: List the versioned manual-handoff authority registry.
+      x-sparc-maturity: mock-p0
+      parameters:
+        - name: issueCode
+          in: query
+          required: false
+          schema: { type: string, maxLength: 80, pattern: '^[a-z0-9]+(?:\.[a-z0-9_]+)+$' }
+      responses:
+        '200':
+          description: Allowlisted authorities and source metadata.
+          content:
+            application/json:
+              schema:
+                $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/AuthorityListResponse'
+
+  /api/v1/jurisdictions:
+    get:
+      operationId: listJurisdictions
+      tags: [Reporting]
+      summary: List the limited verified jurisdiction packs and coverage states.
+      description: The registry is not global coverage. Unsupported locations remain export-only and never receive guessed authorities.
+      x-sparc-maturity: mock-p0
+      parameters:
+        - name: countryCode
+          in: query
+          required: false
+          schema: { type: string, pattern: '^[A-Z]{2}$' }
+      responses:
+        '200':
+          description: Versioned jurisdiction-pack records.
+          content:
+            application/json:
+              schema:
+                $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/JurisdictionListResponse'
+
+  /api/v1/authorities/{authorityId}:
+    get:
+      operationId: getAuthority
+      tags: [Reporting]
+      summary: Read one versioned manual-handoff authority record.
+      x-sparc-maturity: mock-p0
+      parameters:
+        - name: authorityId
+          in: path
+          required: true
+          schema: { type: string, minLength: 2, maxLength: 80, pattern: '^[a-z0-9-]+$' }
+      responses:
+        '200':
+          description: Authority record.
+          content:
+            application/json:
+              schema:
+                $ref: '../packages/contracts/schemas/sparc.schema.json#/$defs/AuthorityResponse'
+        '404': { $ref: '#/components/responses/NotFound' }
+
 components:
   securitySchemes:
     AdminToken:
@@ -627,12 +874,35 @@ components:
       scheme: bearer
       bearerFormat: opaque-admin-token
       description: Planned P1 server-side administrative credential; never stored in browser code.
+    ReportAccess:
+      type: apiKey
+      in: header
+      name: X-Report-Access
+      description: Short-lived opaque P0 report capability token; never a government credential and never placed in a URL.
   headers:
     ETag:
       description: Strong or weak validator for immutable result content.
       schema:
         type: string
   parameters:
+    ReportId:
+      name: reportId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 39
+        maxLength: 80
+        pattern: '^report:[a-f0-9]{32}$'
+    ReportAccess:
+      name: X-Report-Access
+      in: header
+      required: true
+      schema:
+        type: string
+        minLength: 32
+        maxLength: 128
+        pattern: '^[A-Za-z0-9_-]{32,128}$'
     RegionId:
       name: regionId
       in: path

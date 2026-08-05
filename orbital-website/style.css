@@ -327,6 +327,7 @@ body.ready #hud-top, body.ready #hud-bottom { opacity: 1; }
   border-color: var(--accent);
   background: rgba(88, 183, 255, 0.08);
 }
+.chips button small { margin-left: 0.45rem; color: var(--accent); font-size: 0.85em; letter-spacing: 0.06em; }
 
 /* ── target label pinned to the globe ─────────────────────────────────────
    The element is positioned on the tip of the 3D mast, so the panel sits

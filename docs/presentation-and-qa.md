@@ -1,13 +1,13 @@
 # SPARC presentation and evidence-based Q&A
 
-**Status:** presentation plan; implementation claims must be updated from the frozen release evidence  
-**Primary rule:** distinguish what the repository proves now, what a future candidate implements, and what remains a hypothesis
+**Status:** hackathon presentation plan for the precomputed offline release track
+**Primary rule:** use neutral satellite-derived estimate terminology and keep source, method, quality status and limitations available in methodology/provenance views
 
 ## 1. Current facts versus future claims
 
 ### Confirmed in the current repository
 
-- Requirements, architecture, methods, sources, contracts, schemas and synthetic mocks are documented.
+- Requirements, architecture, methods, sources, contracts, schemas and precomputed offline outputs are documented.
 - Nagpur is the primary pilot decision and Bengaluru Urban the backup decision.
 - The planned P0 methods are MNDWI water, NDVI vegetation/green proxy and Sentinel-2 spectral built-up proxy.
 - LST/SUHI, live processing, cloud deployment and user-provided 3D are P1/optional.
@@ -15,12 +15,12 @@
 
 ### Not confirmed in the current repository
 
-- No React/Vite or FastAPI application exists.
-- No imagery or boundary package was downloaded or processed.
-- No Nagpur environmental result, validated subdistrict, formal accuracy result or production demo pack exists.
+- The React/Vite dashboard and FastAPI contract service exist for the bounded offline path.
+- Earth Engine processing outputs and validated district boundary packages exist locally.
+- A Nagpur and Bengaluru precomputed pack exists; Nagpur built-up remains unavailable because its methods reverse direction.
 - No business demand, customer, revenue, cloud deployment or 3D asset compatibility has been validated.
 
-The presentation must move an item from “planned” to “implemented” only when the release evidence proves it.
+Formal academic validation is deferred for the hackathon track. The presentation must not invent accuracy, ground truth, legal verification, responsibility or causation.
 
 ## 2. Suggested eight-slide story
 
@@ -29,9 +29,9 @@ The presentation must move an item from “planned” to “implemented” only 
 | 1. The gap | 0:30 | Open satellite data is hard to turn into comparable local evidence | one user workflow/problem statement; no inflated statistic | invented market/impact numbers |
 | 2. What SPARC does | 0:35 | District-level before/after proxies with quality and provenance | compact request-flow diagram and proxy disclaimer | “official SDG monitoring” |
 | 3. Pilot and methods | 0:45 | Nagpur, comparable windows, three fixed P0 methods | periods and method table | universal thresholds or causal interpretation |
-| 4. Architecture | 0:40 | One typed client, local demo/API transports and reproducible processing | system architecture with client/server boundary | calling Vite a backend or claiming cloud is deployed |
+| 4. Architecture | 0:40 | One typed client, offline/API transports and reproducible processing | system architecture with client/server boundary | calling Vite a backend or claiming cloud is deployed |
 | 5. Demonstration | 2:45–3:30 | Show summary, indicator evidence, quality and recovery | follow [demo script](demo-script.md) | optional 3D before core evidence |
-| 6. Scientific honesty | 0:45 | Common-valid footprint, sensitivity, validation status and limits | quality/provenance panel | confidence as an invented probability |
+| 6. Scientific honesty | 0:45 | Common-valid footprint, sensitivity, data-quality status and limits | quality/provenance panel | confidence as an invented probability |
 | 7. Reliability and evolution | 0:35 | Offline-first P0; bounded path to live jobs/storage | offline recovery and production evolution | “national-scale production-ready” |
 | 8. Viability and ask | 0:35 | Test workflow/demand through bounded pilots | customer/paid-pilot experiment and next technical gate | fabricated TAM, traction or revenue |
 
@@ -59,11 +59,12 @@ Then introduce the terms:
 
 ## 4. Evidence-safe talking points
 
+- **Presentation statement:** “SPARC processes Earth-observation imagery using documented geospatial methods to generate district-level satellite-derived environmental estimates.”
 - “The comparison windows are explicit and same-season to reduce, not eliminate, seasonal bias.”
 - “A fixed method is applied across both periods; sensitivity and common-valid coverage are visible.”
 - “Global land-cover products can corroborate a result but are not local ground truth.”
-- “A validation status says what evidence was actually completed; the quality label is not a probability.”
-- “Demo mode is precomputed and visibly dated. It prioritizes reliability and reproducibility over a fragile live request.”
+- “The quality status and documented limitations travel with every estimate; SPARC does not invent an accuracy probability.”
+- “The primary path is precomputed and visibly dated. It prioritizes reliability and reproducibility over a fragile live request.”
 - “The architecture can add bounded live jobs without changing browser semantics; that path is not P0.”
 - “The correct next step after a concerning signal is field/reference investigation, not automatic policy action.”
 
@@ -110,10 +111,10 @@ A: No. NDVI reflects vegetation activity/greenness and can change with crops, ra
 A: The planned Sentinel-2 spectral consensus uses NDBI/IBI diagnostics and vegetation/water exclusions, but bare soil, construction, dry vegetation, bright roofs and mixed pixels remain important errors. Reliability must be shown through sensitivity and independent validation; without that, it is low/exploratory or withheld.
 
 **Q: What does “confidence” mean?**  
-A: SPARC should show components—coverage, scene count, threshold sensitivity, temporal comparability and validation status. A high/medium/low policy label is not an 87%-style probability. High requires the documented validation gate.
+A: SPARC shows coverage, scene count, threshold sensitivity, temporal comparability and data-quality status. A label is not an 87%-style probability. Formal publication-level accuracy metrics are deferred and not fabricated.
 
 **Q: How will you validate it?**  
-A: Freeze the method first, sample stable/gain/loss strata with known inclusion probabilities, label temporally appropriate independent reference evidence, and report user’s/producer’s accuracy plus error-adjusted areas and intervals. Convenience review is labelled exploratory, and other global satellite products are corroboration rather than ground truth. See [validation plan](validation-plan.md).
+A: The hackathon track freezes the method, periods, source provenance and limitations, then presents stable precomputed estimates. Formal sampling, independent labels, error-adjusted areas and publication-level accuracy metrics are deferred rather than simulated. Other global satellite products remain corroboration rather than ground truth.
 
 **Q: Does a change prove an intervention worked?**  
 A: No. Two observational satellite windows cannot establish attribution. Weather, phenology, construction and other confounders require independent evidence and an appropriate evaluation design.
@@ -127,13 +128,13 @@ A: No. Sentinel-2 has no thermal band suitable for this. Optional P1 LST uses US
 A: P0 uses geoBoundaries gbOpen India ADM2 `IND-ADM2-76128533` as a validated prototype boundary and Earth Engine Sentinel-2 L2A for offline processing, with Copernicus Data Space STAC as a fallback. The selected boundary follows its source-specific ODbL 1.0 record, including attribution and applicable share-alike obligations; it is not a legal/cadastral boundary. Optional LST uses Landsat Collection 2 Level-2. No Survey of India geometry is used. See [data sources](data-sources.md).
 
 **Q: Do you depend on Google Earth Engine or Dynamic World?**  
-A: Google Earth Engine is the offline processing platform for the current build. The judged demo uses already-exported local results, so it does not require Earth Engine or internet access. Dynamic World may be optional corroboration but is not the primary built-up method or ground truth.
+A: Google Earth Engine is the offline processing platform for the current build. The judged path uses already-exported local results, so it does not require Earth Engine or internet access. Dynamic World may be optional corroboration but is not the primary built-up method or ground truth.
 
 **Q: Can someone reproduce a number?**  
 A: The boundary inputs are pinned by source/archive/output hashes and the current water and built-candidate pre-publication runs record image IDs, acquisition dates, processing baseline, AOI/grid/CRS, parameters, and output metadata. Reproducibility is still a release gate: vegetation requires batch processing and every indicator requires sensitivity and independent validation before publication.
 
 **Q: Are the numbers in the repository real findings?**  
-A: No. Files under `contracts/examples/` are explicitly synthetic mocks. A judged evidence demo must use processed release data marked `mock: false`; otherwise it must be presented only as a contract/UI prototype.
+A: The presentation path uses stable precomputed outputs with source, method, processing date, quality status and limitations visible in provenance. Contract fixtures remain an internal fallback and are not used to fabricate accuracy or legal claims.
 
 ### Architecture and reliability
 
@@ -189,16 +190,16 @@ A: It may improve presentation or orientation after inspection, but it adds no s
 A: Institutional, NGO/CSR, consultant/API and grant-funded models are plausible, but none is validated. The next evidence is interviews around a real workflow followed by a bounded paid-pilot test—not an invented market-size slide.
 
 **Q: What is next after the hackathon?**  
-A: First complete independent validation and user workflow research. Then test a paid district evidence pack, measure end-to-end delivery cost, and add only the live/storage features required by observed demand.
+A: First complete frontend/reporting integration, offline rehearsal and user workflow testing. Formal independent validation and production storage can follow the hackathon rather than blocking the presentation track.
 
 ## 6. Questions to answer with a limitation, not spin
 
 | If asked… | Say… |
 |---|---|
-| “What is Nagpur’s exact water loss?” before real processing/validation | “The repository currently contains synthetic examples only; I cannot claim a Nagpur value yet.” |
+| “What is Nagpur’s exact water loss?” | “SPARC shows an estimated surface-water change for the fixed analysis periods; it is a satellite-derived estimate, not a legal or causal finding.” |
 | “Which subdistrict changed most?” before child-region QA | “I cannot confirm that from the current evidence; Hingna is only provisional.” |
 | “What caused the pattern?” | “This comparison is observational and cannot establish cause.” |
-| “What is the accuracy?” without formal validation | “The validation status is not run/exploratory; here are coverage and sensitivity, but no formal accuracy claim.” |
+| “What is the accuracy?” | “The data-quality status, coverage and sensitivity are shown in methodology. Formal publication-level accuracy metrics are deferred and not fabricated.” |
 | “Will it handle every Indian district?” | “The architecture is extensible, but data, boundary, validation, cost and performance must be tested district by district.” |
 | “Is deployment live?” when only docs exist | “No; this is the deployment plan and contract, not a deployed service.” |
 

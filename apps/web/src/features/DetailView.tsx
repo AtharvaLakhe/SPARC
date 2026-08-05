@@ -9,7 +9,7 @@
 import { useId } from 'react';
 import { sdgLinksFor } from '../sdg';
 import type { DetailView as DetailVM } from '../viewmodel/mapper';
-import { Callout, QualityPill, StatusPill, Value } from './Primitives';
+import { Callout, StatusPill, Value } from './Primitives';
 import { QualityPanel, ProvenancePanel } from './Disclosure';
 import { BoundaryProvenancePanel } from './BoundaryProvenance';
 import { LayerView } from './LayerView';
@@ -68,7 +68,6 @@ export function DetailScreen({
         <p className="panel__lede">{detail.proxyLabel}</p>
         <p className="card__pills">
           <StatusPill status={detail.status} />
-          <QualityPill level={detail.quality.level} />
         </p>
 
         {detail.partial || detail.status === 'partial' ? (
@@ -83,19 +82,19 @@ export function DetailScreen({
 
         <dl className="metrics">
           <div>
-            <dt>Baseline · {detail.baseline.range}</dt>
+            <dt>Analysis period · baseline · {detail.baseline.range}</dt>
             <dd><Value value={detail.metric.baseline} /></dd>
           </div>
           <div>
-            <dt>Comparison · {detail.comparison.range}</dt>
+            <dt>Analysis period · comparison · {detail.comparison.range}</dt>
             <dd><Value value={detail.metric.comparison} /></dd>
           </div>
           <div>
-            <dt>Absolute change</dt>
+            <dt>Estimated change</dt>
             <dd><Value value={detail.metric.absoluteChange} /></dd>
           </div>
           <div>
-            <dt>Relative change</dt>
+            <dt>Estimated relative change</dt>
             <dd><Value value={detail.metric.percentChange} /></dd>
           </div>
         </dl>
@@ -144,11 +143,13 @@ export function DetailScreen({
         syntheticLayers={detail.badge.grade === 'synthetic'}
         accent={styleFor(detail.indicatorId).accent}
       />
-      <Choropleth
-        indicatorId={detail.indicatorId}
-        centroid={detail.region.centroid}
-        regionName={detail.region.name.replace(/ — .*$/, '')}
-      />
+      {detail.badge.grade === 'published' ? (
+        <Choropleth
+          indicatorId={detail.indicatorId}
+          centroid={detail.region.centroid}
+          regionName={detail.region.name.replace(/ — .*$/, '')}
+        />
+      ) : null}
       <ProvenancePanel provenance={detail.provenance} />
       <BoundaryProvenancePanel />
     </>

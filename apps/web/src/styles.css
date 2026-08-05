@@ -175,6 +175,22 @@ body {
 
 /* ── panels ──────────────────────────────────────────────────────────────── */
 .main { display: block; }
+
+/* City-catalog fallback scope. It deliberately has no metric cards: a missing
+   processing pack is a report/export state, not a reason to invent values. */
+.fallback-city { max-width: 72rem; margin: 0 auto; }
+.fallback-city h1 { margin: 0.25rem 0 0.45rem; font-size: clamp(1.7rem, 4vw, 2.6rem); }
+.fallback-city__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(19rem, 100%), 1fr)); gap: 0.9rem; margin-top: 1.3rem; }
+.fallback-city__card { padding: 1.1rem 1.2rem; }
+.fallback-city__card h2 { margin: 0 0 0.55rem; font-size: 1rem; }
+.fallback-city__card p { color: var(--dim); line-height: 1.55; }
+.fallback-city__status { color: var(--warn) !important; font-weight: 650; }
+.fallback-city__facts { display: grid; gap: 0.6rem; margin: 1rem 0 0; }
+.fallback-city__facts div { display: grid; grid-template-columns: minmax(8rem, 0.8fr) 1fr; gap: 0.7rem; }
+.fallback-city__facts dt { color: var(--dim); font-size: 0.75rem; }
+.fallback-city__facts dd { margin: 0; font-size: 0.8rem; overflow-wrap: anywhere; }
+.fallback-city__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-top: 1.3rem; }
+.fallback-city__note { flex: 1 1 20rem; margin: 0; color: var(--dim); font-size: 0.8rem; }
 .panel {
   margin: 1.25rem 0;
   padding: 1.1rem 1.2rem;

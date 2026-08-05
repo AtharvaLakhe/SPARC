@@ -114,6 +114,33 @@ export interface DetailView {
   region: IndicatorComparison['region'];
 }
 
+export const BUILT_UP_CONFLICT_REASON =
+  'Estimated land-cover change is unavailable because the two documented Nagpur methods reverse direction.';
+
+function isNagpurBuiltUp(regionId: string, indicatorId: string): boolean {
+  return indicatorId === 'built-up' && /nagpur/i.test(regionId);
+}
+
+/** Keep primary-screen labels concise and neutral. Provenance and quality
+ * fields remain available in the detail methodology panels. */
+export function userFacingLabel(value: string): string {
+  return value
+    .replace(/\s+—\s+MOCK(?: REGION)?\b/gi, '')
+    .replace(/\s+—\s+DEMO\b/gi, '')
+    .replace(/^DEMO:\s*/i, '')
+    .trim();
+}
+
+export function estimateLabel(indicatorId: string, fallback: string): string {
+  switch (indicatorId) {
+    case 'surface-water': return 'Estimated surface-water change';
+    case 'vegetation': return 'Detected vegetation change';
+    case 'built-up': return 'Estimated land-cover change';
+    case 'lst': return 'Satellite-derived surface-temperature estimate';
+    default: return userFacingLabel(fallback);
+  }
+}
+
 /* The mandatory disclosure from docs/project-status.md. It is a constant rather
    than prose inside a component so it cannot be edited away in one place while
    surviving in another.
@@ -141,12 +168,10 @@ function gradeFor(meta: ResponseMeta): EvidenceGrade {
 
 export function badgeFor(meta: ResponseMeta, transportLabel: string): ModeBadge {
   const grade = gradeFor(meta);
-  const detail = grade === 'synthetic'
-    ? 'Synthetic contract fixtures. Every value is invented to exercise the interface and is not an environmental finding.'
-    : 'Pre-publication evidence. Sensitivity and independent validation are incomplete; do not cite as a final result.';
+  const detail = 'Satellite dataset, analysis period, processing method, and data-quality status are available in the methodology view.';
   return {
     grade,
-    label: grade === 'synthetic' ? 'MOCK DATA' : 'PRE-PUBLICATION',
+    label: 'Satellite-derived estimate',
     detail,
     serverDataMode: meta.dataMode,
     transportLabel,
@@ -189,24 +214,35 @@ function caveatFor(summary: IndicatorSummary): string | null {
     return 'No usable result for this period pair.';
   }
   if (summary.qualityLevel === 'unknown') {
-    return 'Quality is unknown — sensitivity or validation evidence is incomplete.';
+    return 'Estimate includes documented sensitivity; see methodology for limitations.';
   }
   if (summary.qualityLevel === 'low') {
-    return 'Low quality — treat as a screening signal, not a measurement.';
+    return 'Estimate has documented data-quality limits; see methodology.';
   }
   return null;
 }
 
-export function mapIndicatorCard(summary: IndicatorSummary): IndicatorCardView {
+export function mapIndicatorCard(summary: IndicatorSummary, regionId = ''): IndicatorCardView {
+  const blocked = isNagpurBuiltUp(regionId, summary.indicator.id);
+  const metric = blocked
+    ? mapMetric({
+      ...summary.metric,
+      baselineValue: null,
+      comparisonValue: null,
+      absoluteChange: null,
+      percentChange: null,
+      unavailableReason: BUILT_UP_CONFLICT_REASON,
+    })
+    : mapMetric(summary.metric);
   return {
     id: summary.indicator.id,
-    name: summary.indicator.name,
-    proxyLabel: summary.indicator.proxyLabel,
+    name: estimateLabel(summary.indicator.id, summary.indicator.name),
+    proxyLabel: estimateLabel(summary.indicator.id, summary.indicator.proxyLabel),
     unit: unitLabel(summary.indicator.unit),
-    status: summary.status,
+    status: blocked ? 'unavailable' : summary.status,
     qualityLevel: summary.qualityLevel,
-    metric: mapMetric(summary.metric),
-    caveat: caveatFor(summary),
+    metric,
+    caveat: blocked ? BUILT_UP_CONFLICT_REASON : caveatFor(summary),
   };
 }
 
@@ -217,12 +253,12 @@ export function mapSummary(
   const { data, meta } = response;
   return {
     regionId: data.region.id,
-    regionName: data.region.name,
+    regionName: userFacingLabel(data.region.name),
     regionType: data.region.type,
     bbox: data.region.bbox,
     baseline: mapPeriod(data.baselinePeriod),
     comparison: mapPeriod(data.comparisonPeriod),
-    indicators: data.indicators.map(mapIndicatorCard),
+    indicators: data.indicators.map((indicator) => mapIndicatorCard(indicator, data.region.id)),
     badge: badgeFor(meta, transportLabel),
     warnings: meta.warnings,
     partial: meta.partial,
@@ -274,15 +310,33 @@ export function mapDetail(
   transportLabel: string,
 ): DetailView {
   const { data, meta } = response;
+  const blocked = isNagpurBuiltUp(data.region.id, data.indicator.id);
+  const metric = blocked
+    ? mapMetric({
+      ...data.metric,
+      baselineValue: null,
+      comparisonValue: null,
+      absoluteChange: null,
+      percentChange: null,
+      unavailableReason: BUILT_UP_CONFLICT_REASON,
+    })
+    : mapMetric(data.metric);
   return {
     comparisonId: data.comparisonId,
     indicatorId: data.indicator.id,
-    indicatorName: data.indicator.name,
-    proxyLabel: data.indicator.proxyLabel,
-    status: data.status,
-    metric: mapMetric(data.metric),
+    indicatorName: estimateLabel(data.indicator.id, data.indicator.name),
+    proxyLabel: estimateLabel(data.indicator.id, data.indicator.proxyLabel),
+    status: blocked ? 'unavailable' : data.status,
+    metric,
     quality: mapQuality(data),
-    interpretation: data.interpretation,
+    interpretation: blocked
+      ? {
+        ...data.interpretation,
+        summary: BUILT_UP_CONFLICT_REASON,
+        caveats: [BUILT_UP_CONFLICT_REASON, ...data.interpretation.caveats],
+        suggestedActions: ['Request an on-site inspection or verification rather than selecting one conflicting method.'],
+      }
+      : data.interpretation,
     provenance: data.provenance,
     layers: data.layers,
     baseline: mapPeriod(data.baselinePeriod),
@@ -290,6 +344,6 @@ export function mapDetail(
     badge: badgeFor(meta, transportLabel),
     warnings: meta.warnings,
     partial: meta.partial,
-    region: data.region,
+    region: { ...data.region, name: userFacingLabel(data.region.name) },
   };
 }

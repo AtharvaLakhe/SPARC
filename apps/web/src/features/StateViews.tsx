@@ -30,7 +30,7 @@ interface Recovery {
 const RECOVERY: Record<DataErrorKind, Recovery> = {
   offline: {
     title: 'The browser is offline',
-    body: 'The offline demo pack is bundled with this page and needs no network. Switching to it restores the full journey.',
+    body: 'The offline analysis package is bundled with this page and needs no network. Switching to it restores the full journey.',
     actions: ['offline'],
   },
   unreachable: {
@@ -117,7 +117,7 @@ export function ErrorView({
         <div className="state__actions">
           {recovery.actions.includes('offline') && canUseOffline && onUseOffline ? (
             <button type="button" className="btn btn--primary" onClick={onUseOffline}>
-              Switch to offline demo pack
+              Switch to offline analysis package
             </button>
           ) : null}
           {recovery.actions.includes('reset-periods') && onResetPeriods ? (

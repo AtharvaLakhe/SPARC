@@ -1,6 +1,6 @@
 # Integration plan
 
-**Status:** Integration plan; contract fixtures and a mock-only API runtime exist, but no real/pre-publication pack or analytical frontend is integrated. See [delivery status](./project-status.md).
+**Status:** Integration plan; the browser/API contract now includes a validated Nagpur/Bengaluru path plus a versioned global city catalog with explicit report/export fallbacks. See [delivery status](./project-status.md) and [supported-city catalog](./city-catalog.md).
 **Integrators:** Codex and Claude alternate or nominate one owner each day  
 **Branch pattern:** `integration/day-N` from the current verified `main`  
 **Primary rule:** A daily checkpoint is merged only when the same frozen contract works through both the API and demo transports.
@@ -18,6 +18,25 @@ The integration boundary contains five independently testable parts:
 5. the local HTTP release bundle and end-to-end demo journey owned jointly.
 
 The P0 serving path has no database requirement. Raster processing does not run inside request handlers. External catalog/data APIs are used only by a server-side or offline processing adapter and are not required for the judged offline journey.
+
+### City-catalog integration gate
+
+The quick-target picker reads [`data/catalog/supported-cities.json`](../data/catalog/supported-cities.json).
+Every entry has a country code, administrative area, centroid/bbox, boundary
+definition, analytics coverage state, processing-pack status/checksums, and a
+jurisdiction-pack reference. Run
+`\.venv\Scripts\python.exe scripts/validate_city_catalog.py` before merging a
+catalog change. The validator binds the two validated entries to the existing
+geoBoundaries boundary files and precomputed contract manifest; it rejects a
+fallback entry that claims an ADM boundary or a processing pack.
+
+For `FULLY_SUPPORTED` entries, the browser can render the accepted precomputed
+summary and the server can return verified authority routes. For
+`REPORT_GENERATION_ONLY` entries, the browser shows a report/export scope and
+the report workflow sends null/`NOT_RUN` evidence snapshots to the server. No
+mock numeric value is presented as satellite-derived. For
+`UNSUPPORTED_JURISDICTION`, export remains available but portal handoff is not
+offered unless a future verified jurisdiction pack is added.
 
 ## 2. Entry conditions
 

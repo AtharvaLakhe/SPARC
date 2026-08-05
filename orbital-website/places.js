@@ -19,6 +19,7 @@ export const PLACES = [
   { name: 'Nagpur', country: 'India', lat: 21.1458, lon: 79.0882 },
   { name: 'Kolkata', country: 'India', lat: 22.5726, lon: 88.3639 },
   { name: 'Chennai', country: 'India', lat: 13.0827, lon: 80.2707 },
+  { name: 'Bhopal', country: 'India', lat: 23.2599, lon: 77.4126 },
   { name: 'Hyderabad', country: 'India', lat: 17.3850, lon: 78.4867 },
   { name: 'Pune', country: 'India', lat: 18.5204, lon: 73.8567 },
   { name: 'Ahmedabad', country: 'India', lat: 23.0225, lon: 72.5714 },

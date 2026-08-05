@@ -31,6 +31,7 @@ SPARC addresses an access and interpretation problem: satellite data exists, but
 - Plain-language, non-causal interpretation.
 - Dataset attribution, source-item provenance, method version, and quality evidence.
 - Stable OpenAPI/JSON Schema contract and frontend-ready mocks.
+- Offline-first “Report Environmental Concern” contract/server slice: strict claim-safe evidence review, ranked authority routing, deterministic PDF/ZIP evidence packages, manual portal handoff, and ephemeral device-scoped records. It never submits complaints or handles government credentials, CAPTCHA, or OTP.
 - Precomputed, local-HTTP, internet-independent demonstration path.
 - Responsive, keyboard-accessible UI with non-WebGL alternatives.
 - A documented, non-blocking plan for user-provided 3D assets.
@@ -47,6 +48,66 @@ SPARC addresses an access and interpretation problem: satellite data exists, but
 ### Non-goals
 
 - Official UN SDG reporting, causal attribution, unrestricted user-defined AOIs, real-time guarantees, Kubernetes, unnecessary authentication, required 3D navigation, external model acquisition, or production-scale infrastructure during the prototype.
+
+### Reporting delivery boundary
+
+The reporting contract, jurisdiction packs, adapter interfaces, and Codex-owned server modules are implemented for P0 and documented in `docs/reporting/`. The browser now creates the SPARC-generated PDF/evidence package; Claude owns polish, registry-driven authority selection, accessibility, localization, and acknowledgement UI. P1 is required before durable production reporting: authenticated ownership, encrypted private storage, configurable deletion jobs, RBAC, accepted immutable result-pack integration, and release rehearsal. Automated authority APIs, portal scraping, legal escalation, and machine translation remain P2 exclusions.
+
+### Hackathon execution priority (2026-08-05)
+
+Formal scientific validation is deliberately deferred for the remaining
+hackathon work. Do not spend additional time on preregistration, blinded
+sampling, independent manual labels, academic validation studies, or
+publication-level accuracy metrics. The release track instead prioritizes:
+
+1. Stable precomputed Nagpur and Bengaluru outputs through the frozen contract;
+   the API adapter is available with `SPARC_DATA_MODE=precomputed`, while the
+   offline browser bundle still needs the approved packaged response assets.
+2. Neutral dashboard terminology: “Satellite-derived estimate”, “Estimated
+   surface-water change”, “Detected vegetation change”, “Estimated land-cover
+   change”, “Analysis period”, “Data source”, and “Processing method”.
+3. Frontend dashboard completion and reporting-wizard integration.
+4. Verified PDF/evidence-pack downloads, allowlisted manual portal handoff,
+   offline operation, presentation, and Q&A rehearsal.
+
+The technical provenance view must retain dataset, acquisition periods, method
+version, thresholds, boundary source, processing date, data-quality status, and
+known limitations. The contradictory Nagpur built-up result remains unavailable;
+no method may be selected merely because its direction is more convenient.
+The presentation statement is: “SPARC processes Earth-observation imagery using
+documented geospatial methods to generate district-level satellite-derived
+environmental estimates.”
+
+### City catalog expansion (2026-08-05)
+
+The quick-target catalog is now a versioned, validated-gated record for Nagpur,
+Bengaluru, Mumbai, Delhi, Chennai, Bhopal, New York, Washington DC, Tokyo,
+London, Cairo, Sydney, and Reykjavik. Nagpur and Bengaluru are bound to the
+accepted geoBoundaries ADM2 geometry and precomputed contract manifest. The
+remaining entries have explicit centroid/bbox envelopes, checksum metadata,
+and jurisdiction-pack references, but are `REPORT_GENERATION_ONLY` until a
+separate boundary and Earth Engine processing gate passes. Unsupported-country
+entries use `UNSUPPORTED_JURISDICTION` routing and export-only behavior.
+
+The catalog validator (`\.venv\Scripts\python.exe
+scripts/validate_city_catalog.py`) is a release gate. It verifies the country
+codes, unique IDs, coordinate envelopes, boundary checksums, validated geometry
+assets, processing-pack checksums, contract bindings, and fallback-state rules.
+The frontend and build-free Orbit launcher consume the same city set. No
+fabricated numeric satellite values are added for cities without a validated
+pack; their report workflow uses null/`NOT_RUN` evidence and still creates the
+SPARC PDF/evidence ZIP where the reporting contract permits it.
+
+Remaining work for this expansion:
+
+- [ ] Have Claude replace the temporary local catalog/picker presentation with
+  registry-driven authority and accessibility components.
+- [ ] Research and validate an external boundary and provenance record for each
+  city before promoting it beyond report/export scope.
+- [ ] Produce and checksum an Earth Engine processing pack plus contract
+  examples before setting any city to `FULLY_SUPPORTED` analytical coverage.
+- [ ] Complete offline/browser acceptance checks for every quick target and the
+  manual handoff/export-only branches.
 
 ## Pilot and Period Decisions
 
@@ -91,7 +152,7 @@ Quality is categorical and evidence-based. A high grade requires independent val
 - React/TypeScript/Vite browser with MapLibre and Recharts.
 - Planned FastAPI/Pydantic API.
 - Separate geoprocessing package/CLI for bounded, repeatable preprocessing.
-- Static immutable demo results for P0; no runtime database.
+- Static immutable precomputed results for P0; no runtime database.
 - GeoPackage for vector handoff; JSON/GeoJSON and PNG/WebP/small XYZ layers for demo delivery.
 - Future object storage/CDN plus PostGIS metadata only when operational requirements justify them.
 
@@ -103,11 +164,11 @@ selection → POST /api/v1/comparisons → validation → deterministic result l
 → immutable result + provenance → shared API response → browser rendering
 ```
 
-### Precomputed demo mode
+### Offline precomputed mode
 
 ```text
 selection → canonical request key → local manifest → checksum/schema validation
-→ local response/layers → shared view model → browser rendering with demo badge
+→ local response/layers → shared view model → browser rendering with source/methodology disclosure
 ```
 
 Live failure may fall back only on defined network/timeout/503 cases and must visibly change the data-mode label.
@@ -250,7 +311,7 @@ Research/license gates
 
 ## Day 2 — End-to-End Prototype
 
-- [ ] **D2-C-001 — Complete P0 zonal results and demo packs**
+- [ ] **D2-C-001 — Complete P0 zonal results and precomputed packs**
   - Owner: Codex
   - Priority: P0
   - Dependency: D1-C-001, D1-C-002
@@ -274,7 +335,7 @@ Research/license gates
   - Expected output: Before/after layers, district summary, indicator charts, tahsil drill-down, quality/provenance, and interpretations
   - Acceptance condition: A user can complete the exact demo journey without knowing remote-sensing terminology
   - Fallback: Use static overlay images and accessible tables rather than live tiles
-  - Progress 2026-08-04: The mock-backed district journey is implemented and browser-verified. The city picker and optional globe district overlay now improve synthetic-fixture navigation, but the bundled Nagpur card and generated cities are explicitly mock data; they do not load local pre-publication packs or establish real-time/national coverage. This item remains open because accepted pre-publication packs, approved layer/static assets, the Bengaluru backup journey, and a permitted child-region result are not yet available.
+  - Progress 2026-08-05: The dashboard now consumes generated Nagpur and Bengaluru Urban contract examples from the reviewed Earth Engine packs, and the API serves the same responses with `SPARC_DATA_MODE=precomputed`. The Nagpur built-up conflict remains unavailable. This item remains open for pack review/commit, approved layer/static assets, and a permitted child-region result; no real-time/national coverage is implied.
 
 - [ ] **D2-S-004 — Perform first full integration**
   - Owner: Shared

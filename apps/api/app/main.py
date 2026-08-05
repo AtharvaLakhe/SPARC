@@ -1,4 +1,4 @@
-"""SPARC's read-only, demo-backed P0 HTTP API."""
+"""SPARC's read-only P0 HTTP API."""
 
 from __future__ import annotations
 
@@ -29,7 +29,9 @@ from .errors import (
 from .limits import FixedWindowRateLimiter
 from .middleware import RequestBodyLimitMiddleware
 from .models import ComparisonRequest, OPAQUE_ID_PATTERN, PeriodInput, validate_period_pair
+from .static_repository import StaticPrecomputedRepository
 from .repository import MockResultRepository, apply_request_context, envelope
+from ..reporting.routes import router as reporting_router
 
 
 APP_VERSION = "1.0.0-alpha.1"
@@ -44,7 +46,11 @@ ResourceIdPath = Annotated[
 ]
 
 settings = Settings.from_environment()
-repository = MockResultRepository(settings.examples_root)
+repository = (
+    StaticPrecomputedRepository(settings.precomputed_examples_root)
+    if settings.use_precomputed
+    else MockResultRepository(settings.examples_root)
+)
 comparison_limiter = FixedWindowRateLimiter(settings.comparison_requests_per_minute)
 
 app = FastAPI(
@@ -59,14 +65,22 @@ app.add_middleware(
     allow_origins=list(settings.allowed_origins),
     allow_credentials=False,
     allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Accept", "Content-Type", "Idempotency-Key", "If-None-Match", "X-Request-ID"],
-    expose_headers=["ETag", "X-Request-ID"],
+    allow_headers=[
+        "Accept",
+        "Content-Type",
+        "Idempotency-Key",
+        "If-None-Match",
+        "X-Request-ID",
+        "X-Report-Access",
+    ],
+    expose_headers=["ETag", "X-Request-ID", "X-Report-Access"],
 )
 app.add_middleware(RequestBodyLimitMiddleware, max_bytes=settings.max_request_bytes)
 app.add_exception_handler(SparcError, sparc_error_handler)
 app.add_exception_handler(RequestValidationError, validation_error_handler)
 app.add_exception_handler(StarletteHTTPException, http_error_handler)
 app.add_exception_handler(Exception, internal_error_handler)
+app.include_router(reporting_router)
 
 
 @app.middleware("http")
@@ -121,8 +135,14 @@ def _periods_from_query(
 def _require_available_periods(
     baseline: PeriodInput,
     comparison: PeriodInput,
+    region_id: str | None = None,
 ) -> None:
-    available_baseline, available_comparison = repository.summary_periods
+    region_summary = repository.get_summary(region_id) if region_id else None
+    if region_summary:
+        available_baseline = region_summary["data"]["baselinePeriod"]
+        available_comparison = region_summary["data"]["comparisonPeriod"]
+    else:
+        available_baseline, available_comparison = repository.summary_periods
     expected = (
         available_baseline["startDate"],
         available_baseline["endDate"],
@@ -197,7 +217,7 @@ def get_region_summary(
     baseline, comparison = _periods_from_query(
         baseline_start, baseline_end, comparison_start, comparison_end
     )
-    _require_available_periods(baseline, comparison)
+    _require_available_periods(baseline, comparison, region_id)
     payload = repository.get_summary(region_id)
     if payload is None:
         raise SparcError(404, "SUMMARY_NOT_FOUND", "No published summary exists for the requested region.")
@@ -222,7 +242,7 @@ def list_region_indicators(
     baseline, comparison = _periods_from_query(
         baseline_start, baseline_end, comparison_start, comparison_end
     )
-    _require_available_periods(baseline, comparison)
+    _require_available_periods(baseline, comparison, region_id)
     indicators = repository.list_indicators(region_id)
     if indicators is None:
         raise SparcError(404, "INDICATORS_NOT_FOUND", "No published indicators exist for the requested region.")
@@ -250,7 +270,7 @@ def get_region_indicator(
     baseline, comparison = _periods_from_query(
         baseline_start, baseline_end, comparison_start, comparison_end
     )
-    _require_available_periods(baseline, comparison)
+    _require_available_periods(baseline, comparison, region_id)
     payload = repository.get_indicator(region_id, indicator_id)
     if payload is None:
         raise SparcError(404, "INDICATOR_NOT_FOUND", "No published indicator result matches the request.")
@@ -308,7 +328,11 @@ def create_comparison(request: Request, comparison: ComparisonRequest) -> Respon
             "Live processing is disabled; request an available demo result.",
             headers={"Retry-After": "300"},
         )
-    _require_available_periods(comparison.baseline_period, comparison.comparison_period)
+    _require_available_periods(
+        comparison.baseline_period,
+        comparison.comparison_period,
+        comparison.region_id,
+    )
     payload = repository.get_summary(comparison.region_id)
     if payload is None:
         raise SparcError(404, "RESULT_NOT_AVAILABLE", "No precomputed result matches the request.")

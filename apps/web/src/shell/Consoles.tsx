@@ -12,6 +12,7 @@ import { parseQuery } from '@globe/geo.js';
 import type { RegionRef } from '../contract/types';
 import { FROZEN_PERIODS, type FrozenPeriod } from '../config';
 import { CityPicker } from './CityPicker';
+import { catalogRegions, cityForCoordinate } from '../catalog/cities';
 
 /** Great-circle distance in km. */
 function haversineKm(aLat: number, aLon: number, bLat: number, bLon: number): number {
@@ -43,7 +44,7 @@ export function LocationConsole({
   onCancel: () => void;
   /** Coordinates the globe already collected, if the user arrived that way. */
   handoff?: { lat: number; lon: number; name: string } | null;
-  /** Generated city fixtures only exist in DemoTransport. */
+  /** Kept for compatibility; catalog quick targets are available in both modes. */
   showDemoCities?: boolean;
 }) {
   const [query, setQuery] = useState('');
@@ -52,15 +53,15 @@ export function LocationConsole({
 
   useEffect(() => { inputRef.current?.focus(); }, []);
 
+  const catalog = catalogRegions();
+
   /* Arriving from the globe, the location question has already been answered —
-     so answer it rather than asking again. If the target it picked has no
-     packaged district, this falls through to the same honest refusal a typed
-     query gets, with the console already open to fix it. */
+     so answer it rather than asking again. The city catalogue is intentionally
+     separate from published analytical districts: a catalog envelope can open
+     report/export workflow, but it never upgrades itself to an analysis pack. */
   const consumed = useRef(false);
   useEffect(() => {
-    // Wait for the list. Resolving against a partial one produces a confident
-    // "no packaged result covers X" for a district that is simply not loaded yet.
-    if (!handoff || consumed.current || regions.length === 0) return;
+    if (!handoff || consumed.current) return;
     consumed.current = true;
     setQuery(handoff.name);
     resolve(handoff.lat, handoff.lon, handoff.name);
@@ -78,14 +79,16 @@ export function LocationConsole({
     const covering = coveringRegion(regions, lat, lon);
     if (covering) { onResolved(covering.id); return; }
 
-    const nearest = regions
+    const city = cityForCoordinate(lat, lon);
+    if (city) { onResolved(city.regionId); return; }
+
+    const nearest = [...regions, ...catalog]
       .map((r) => ({ r, km: haversineKm(lat, lon, r.centroid[1], r.centroid[0]) }))
       .sort((a, b) => a.km - b.km)[0];
 
     setMessage(
       nearest
-        ? `No packaged result covers ${label}. SPARC only serves districts that have been `
-          + `processed and gated — the nearest is ${nearest.r.name}, about `
+        ? `No published scope covers ${label}. The nearest catalog target is ${nearest.r.name}, about `
           + `${Math.round(nearest.km).toLocaleString()} km away. Pick a district below to continue.`
         : `No packaged result covers ${label}.`,
     );
@@ -150,7 +153,7 @@ export function LocationConsole({
           ) : null}
           <CityPicker
             onPick={onResolved}
-            mockRegion={regions.find((r) => r.id.includes('nagpur')) ?? regions[0] ?? null}
+            regions={regions}
             showDemoCities={showDemoCities}
           />
         </div>
@@ -161,10 +164,12 @@ export function LocationConsole({
 
 export function PeriodConsole({
   regionName,
+  periods = FROZEN_PERIODS,
   onChosen,
   onBack,
 }: {
   regionName: string;
+  periods?: readonly FrozenPeriod[];
   onChosen: (period: FrozenPeriod) => void;
   onBack: () => void;
 }) {
@@ -181,7 +186,7 @@ export function PeriodConsole({
         </p>
 
         <ul className="period-list">
-          {FROZEN_PERIODS.map((p) => (
+          {periods.map((p) => (
             <li key={p.id}>
               <button type="button" className="period-card" onClick={() => onChosen(p)}>
                 <span className="period-card__season">{p.seasonLabel}</span>

@@ -1,6 +1,6 @@
 # SPARC API
 
-This is the first implementation slice: a read-only FastAPI service backed by the committed synthetic contract examples. It performs no raster processing, database access, provider calls, or live job creation.
+This is a read-only FastAPI service. By default it serves the bounded contract fixtures; with `SPARC_DATA_MODE=precomputed` it serves the reviewed Nagpur and Bengaluru Urban Earth Engine packs through the same contract. It performs no request-time raster processing, database access, provider calls, or live job creation.
 
 ## Run locally
 
@@ -10,7 +10,34 @@ From the repository root:
 python -m uvicorn apps.api.app.main:app --host 127.0.0.1 --port 8000
 ```
 
+To use the reviewed precomputed packs locally, set the mode before starting
+the server:
+
+```powershell
+$env:SPARC_DATA_MODE="precomputed"
+python -m uvicorn apps.api.app.main:app --host 127.0.0.1 --port 8000
+```
+
+The runtime reads the generated, checksum-listed responses under
+`contracts/examples/precomputed/`. Regenerate those artifacts only after an
+approved processing-pack change:
+
+```powershell
+python scripts/data/build_contract_pack_examples.py
+```
+
 The default allowed browser origins are `http://localhost:5173` and the supplied Orbital UI reference at `http://localhost:8123`. Override them with a comma-separated `SPARC_ALLOWED_ORIGINS` value. Do not use `*`.
+
+## Optional Gemini report drafting
+
+Set `GEMINI_API_KEY` and optionally `GEMINI_MODEL` in the server environment.
+The key is never accepted from the browser, logged, or included in a report.
+When the user explicitly consents, the API sends only the selected report text
+and non-identifying analysis context to Gemini using the server-side
+`generateContent` request. Complainant name, address, contact details,
+attachments, exact coordinates, signature and date are appended locally after
+the draft returns. If Gemini is unavailable, requests that opted into Gemini
+fail safely rather than silently claiming that Gemini drafted the report.
 
 ## Request flow
 
@@ -19,12 +46,12 @@ HTTP request
 → request ID and size checks
 → FastAPI/Pydantic syntax and type validation
 → date and comparison domain validation
-→ allowlisted in-memory catalogue lookup
-→ immutable synthetic JSON response
+→ allowlisted catalogue lookup
+→ bounded fixture or precomputed-pack JSON response
 → sanitized Problem Details on failure
 ```
 
-`POST /api/v1/comparisons` only resolves precomputed mock results. `modePreference: live` is rejected, and the administrative processing-creation route is not implemented.
+`POST /api/v1/comparisons` only resolves the selected bounded result inventory. `modePreference: live` is rejected, and the administrative processing-creation route is not implemented.
 
 ## Tests
 

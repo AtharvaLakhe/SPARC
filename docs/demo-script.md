@@ -1,17 +1,17 @@
 # SPARC demonstration script
 
-**Status:** rehearsal specification; no runnable application or real pilot pack exists yet  
+**Status:** rehearsal specification for the local precomputed-output track
 **Target length:** 5–7 minutes  
-**Primary path:** Nagpur, precomputed demo data over local HTTP  
+**Primary path:** Nagpur, precomputed satellite-derived estimates over local HTTP
 **Recovery path:** Bengaluru Urban and static/table fallbacks
 
 ## 1. Non-negotiable presenter rules
 
-1. Contract examples are synthetic. Do not read their numbers as Nagpur findings.
-2. Use the 5–7 minute evidence script only after the release pack contains processed real data with `mock: false`, checksums, provenance and a recorded validation status.
-3. Say “satellite-derived proxy,” not “official SDG indicator.”
-4. Say “the mapped proxy changed,” not “our intervention caused” or “SPARC proves.”
-5. Say “precomputed demo data” when using the judged path; do not say “live” or “real-time.”
+1. Use only the stable precomputed output pack with checksums, provenance, source metadata and known limitations.
+2. Say “satellite-derived estimate,” not “official SDG indicator.”
+3. Say “the estimated surface pattern changed,” not “our intervention caused” or “SPARC proves.”
+4. Keep the Nagpur built-up result unavailable because its two methods reverse direction.
+5. Do not describe any result as officially verified, ground-truth confirmed, legally proven, confirmed deforestation, confirmed pollution, confirmed illegal encroachment, or proof of responsibility or causation.
 6. Land-surface temperature is P1, Landsat-derived surface temperature—not air temperature—and is omitted unless it passes its release gate.
 7. Hingna is only the provisional child-region candidate. The final script names whichever Nagpur subdistrict passes boundary and data QA; if none passes, use the district-only branch and disclose it.
 8. Optional user-provided 3D is never required. Skip it unless the actual files have passed license, safety, performance and accessibility gates.
@@ -29,9 +29,9 @@ The release producer fills these from the immutable release evidence, then remov
 | `{{VEGETATION_RESULT_SENTENCE}}` | deterministic interpretation in the real vegetation result |
 | `{{BUILT_RESULT_SENTENCE}}` | deterministic interpretation in the real built-up result |
 | `{{QUALITY_LIMITATION}}` | most material visible quality warning |
-| `{{VALIDATION_STATUS}}` | `NOT_RUN`, `EXPLORATORY_ONLY`, `FORMAL_FAILED` or `FORMAL_PASSED` |
+| `{{QUALITY_STATUS}}` | quality status and limitations from the immutable result pack |
 
-Do not manually improve or round a result outside the UI/reporting policy. If `{{VALIDATION_STATUS}}` is not `FORMAL_PASSED`, the presenter must say so.
+Do not manually improve or round a result outside the UI/reporting policy. Keep the quality status and limitations available in the methodology/provenance view.
 
 ## 3. Exact launch action and expected first screen
 
@@ -42,7 +42,7 @@ The following is the planned Day 3 release convention. `START-DEMO.cmd` does not
 3. Wait for the console line `Open http://127.0.0.1:4173/`.
 4. Open `http://127.0.0.1:4173/` in a clean browser window.
 5. Expected first screen: **District Overview / Select a region** with:
-   - a persistent **Precomputed demo data** badge;
+   - a persistent **Satellite-derived estimate** label;
    - dataset generation time `{{DATASET_GENERATED_AT}}`;
    - Nagpur as primary and Bengaluru Urban as backup;
    - no required 3D canvas, remote basemap or login.
@@ -51,7 +51,7 @@ If the launcher or first screen does not match, use the recovery table in sectio
 
 ## 4. Thirty-second pitch
 
-> Local decision-makers can access satellite imagery, but turning it into comparable, trustworthy local evidence is hard. SPARC packages same-season before-and-after observations into district-level water, vegetation and built-up proxy indicators, with the dates, quality, provenance and limitations beside every result. The prototype focuses on Nagpur, keeps a Bengaluru Urban backup, and runs fully offline from precomputed open-data products. It does not claim official SDG reporting or causation; it gives people a transparent starting point for field investigation and planning.
+> SPARC processes Earth-observation imagery using documented geospatial methods to generate district-level satellite-derived environmental estimates. It packages same-season before-and-after observations with dates, data source, processing method, provenance and limitations beside every result. The hackathon path focuses on Nagpur, keeps a Bengaluru Urban backup, and runs fully offline from precomputed open-data products. It does not claim official SDG reporting or causation; it gives people a transparent starting point for inspection and planning.
 
 ## 5. Two-minute pitch
 
@@ -69,15 +69,15 @@ This sequence targets **6 minutes 15 seconds**. Screen titles are acceptance nam
 
 | Time | Screen and exact action | Presenter words | Required visible evidence |
 |---:|---|---|---|
-| 0:00–0:30 | **District Overview / Select a region.** Point to the precomputed badge and disconnected-network icon/status. Select **Nagpur**. | “This is SPARC running from a local HTTP bundle with the network disconnected. The data mode and generation time stay visible so a precomputed result cannot be mistaken for a live query.” | `Precomputed demo data`, generation time, release/dataset version, Nagpur/Bengaluru choices |
+| 0:00–0:30 | **District Overview / Select a region.** Point to the estimate label and disconnected-network icon/status. Select **Nagpur**. | “This is SPARC running from a local HTTP bundle with the network disconnected. The analysis period, data source and processing date stay visible beside the estimate.” | `Satellite-derived estimate`, generation time, release/dataset version, Nagpur/Bengaluru choices |
 | 0:30–1:10 | **Nagpur Environmental Summary.** Confirm **2019-10-15–2019-12-15** and **2024-10-15–2024-12-15**. | “We compare the same post-monsoon windows rather than arbitrary dates. The dashboard summarizes three satellite-derived proxies; these are not official SDG indicators and do not establish cause.” | both inclusive windows, season labels, water/vegetation/built-up cards, quality levels |
 | 1:10–2:05 | Open **Surface Water Detail**. Toggle **2019**, **2024**, then **Change**. If WebGL is disabled, use the static before/after controls. | “The water method is Sentinel-2 MNDWI on a 20 metre analysis grid with one frozen decision rule for both periods. {{WATER_RESULT_SENTENCE}} This describes mapped open surface water—not volume, groundwater, water quality or every wetland.” | baseline/comparison/change, area/unit, gain/loss, common-valid coverage, fixed threshold/method version, text/table alternative |
 | 2:05–2:50 | Open **Vegetation Detail**. Focus the metric/table and sensitivity disclosure. | “NDVI is calculated for each valid observation before the seasonal median. {{VEGETATION_RESULT_SENTENCE}} Crops, rainfall, irrigation, harvest, soil and residual cloud can change this signal, so we do not label it forest loss.” | median NDVI or labelled green-cover proxy, coverage, scene counts, threshold sensitivity, caveat |
-| 2:50–3:35 | Open **Built-up Detail**. Toggle change overlay/table and point to quality warning. | “The built-up result is a conservative spectral proxy using NDBI and IBI diagnostics with water and vegetation exclusions. {{BUILT_RESULT_SENTENCE}} Bare soil, construction and reflective roofs can be confused, which is why the warning and validation status are part of the result.” | gain/loss/net, resolution, quality status, bare-soil/confusion warning, text/table alternative |
+| 2:50–3:35 | Open **Built-up Detail**. Show the unavailable state and methodology. | “The Nagpur land-cover estimate is unavailable because the two documented methods reverse direction. SPARC does not choose the more convenient result. Bare soil, construction and reflective roofs can be confused, so the output stays withheld.” | unavailable state, method versions, resolution, quality status, bare-soil/confusion limitation |
 | 3:35–4:15 | Open **Subdistrict comparison**. Select `{{VALIDATED_CHILD_NAME}}`; if token is `DISTRICT_ONLY`, remain on Nagpur and use the district-only words below. | Normal: “The same contract and method support a drill-down to a child region that passed boundary and data QA; the UI does not recalculate science in the browser.” District-only: “No child region passed the release gate, so this candidate deliberately remains district-only rather than presenting provisional geometry as validated.” | validated child name and parent link, or explicit child-data-unavailable state; never assume Hingna |
-| 4:15–5:15 | Open **Quality & Provenance** drawer/panel. Expand source observations and method. | “Here is the evidence behind the screen: source product and item IDs, acquisition dates, processing baseline where known, method version, analysis grid, generation time and citations. The validation status is {{VALIDATION_STATUS}}. {{QUALITY_LIMITATION}} A quality label is a transparent policy category, not a probability of correctness.” | dataset/provider, mission/product, item IDs/acquisition dates, method/parameters hash, CRS, coverage, validation status, citation/license |
+| 4:15–5:15 | Open **Quality & Provenance** drawer/panel. Expand source observations and method. | “Here is the evidence behind the screen: source product and item IDs, acquisition dates, processing baseline where known, method version, thresholds, analysis grid, processing date and citations. The data-quality status is {{QUALITY_STATUS}}. {{QUALITY_LIMITATION}}” | dataset/provider, mission/product, item IDs/acquisition dates, method/parameters hash, thresholds, CRS, coverage, quality status, citation/license |
 | 5:15–5:45 | Return to **Nagpur Environmental Summary** and activate the **table/text view** beside the map. | “The result remains understandable without color, hover or WebGL. That is also our failure-safe path: metrics, table, interpretation and provenance survive a map-layer problem.” | table/text equivalent, focus indicator, visible caveat and data mode |
-| 5:45–6:15 | Open **District selector**, highlight **Bengaluru Urban backup**, but do not spend time on its numbers unless asked. End on summary. | “The backup is a separate versioned pack checked with the same schema and integrity rules. SPARC’s next step is field/reference validation and customer workflow testing—not claiming national scale from one prototype.” | separately selectable backup, version/integrity status; close with limitations and next step |
+| 5:45–6:15 | Open **District selector**, highlight **Bengaluru Urban backup**, but do not spend time on its numbers unless asked. End on summary. | “The backup is a separate versioned pack checked with the same schema and integrity rules. SPARC’s next step is workflow testing and presentation rehearsal—not claiming national scale from one district pair.” | separately selectable backup, version/integrity status; close with limitations and next step |
 
 ### Optional 15-second P1 mention
 
@@ -94,7 +94,7 @@ One recovery branch must be rehearsed inside the timed run. Internet loss is alr
 | Failure | What the audience sees | Exact presenter action | Exact presenter words |
 |---|---|---|---|
 | Internet/catalog unavailable | no change to local journey | point to offline/data-mode status and continue | “The critical journey is precomputed, so provider availability cannot interrupt this demonstration.” |
-| FastAPI unavailable/timeout/`503` | visible switch/selection to demo mode, generation time remains | choose **Use precomputed demo data** if not already selected | “The client and API use the same schemas. This is a disclosed fallback to a versioned result, not a silent claim that the request stayed live.” |
+| FastAPI unavailable/timeout/`503` | visible switch/selection to offline analysis, generation time remains | choose **Use offline analysis package** if not already selected | “The client and API use the same schemas. This is a disclosed fallback to a versioned precomputed result, not a silent claim that the request stayed live.” |
 | Validation `422`, auth `401/403` or incompatible schema | explicit error; no auto-fallback | correct request or use the matching release copy | “We do not substitute unrelated data for an invalid or unauthorized request.” |
 | WebGL/context loss | static before/after image, legend, table and metrics | select **Static view** and continue water/detail narration | “The map renderer failed, but the analytical result and accessible evidence remain.” |
 | One layer 404 | layer warning; metrics/table persist | dismiss/acknowledge warning and use table | “One visualization asset is unavailable; we are not hiding that, and no number is recomputed in the browser.” |
@@ -123,7 +123,7 @@ For one presenter, keep the same screen order and remove handoff sentences; do n
 - [ ] Run from a cold browser with the network disabled.
 - [ ] Run once keyboard-only and once with WebGL disabled.
 - [ ] Verify Nagpur primary and Bengaluru recovery on both presentation devices.
-- [ ] Confirm no synthetic mock values appear in the claimed real journey.
+- [ ] Confirm every displayed estimate has its source, processing method, period and limitations available in the methodology view.
 - [ ] Confirm no line says official SDG, causal proof, real-time, forest loss, air temperature or guaranteed accuracy.
 - [ ] Keep [presentation and Q&A](presentation-and-qa.md) open offline on the backup device.
 

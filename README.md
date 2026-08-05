@@ -8,19 +8,18 @@ SPARC outputs are **satellite-derived SDG proxy indicators**, not official UN SD
 
 ## Repository status
 
-Implementation has started from the frozen planning package. The first server slice is a read-only FastAPI service over clearly marked immutable mock payloads; it performs no raster processing, database access, provider calls, or live job creation. `orbital-website/` is a separately owned Three.js UI reference supplied by the user and is not yet the analytical dashboard or API client. The evidence-based current stage, remaining gates, and missing dashboard work are tracked in the [delivery status](docs/project-status.md).
+Implementation has started from the frozen planning package. The FastAPI service supports a safe default offline fixture path and an explicit `SPARC_DATA_MODE=precomputed` path that maps the reviewed Earth Engine packs into the frozen contract; neither path performs request-time raster processing, database access, provider calls, or live job creation. `orbital-website/` is a separately owned Three.js UI reference supplied by the user and is not yet the analytical dashboard or API client. The evidence-based current stage, remaining gates, and missing dashboard work are tracked in the [delivery status](docs/project-status.md).
 
 The selected pilot is **Nagpur district** with **Bengaluru Urban** as a smaller backup. P0 covers surface-water, vegetation/green-cover, and built-up-area proxies. Land-surface temperature and surface urban heat island analysis are P1.
 
 ## High-level architecture
 
 ```text
-Browser/client (planned analytical dashboard; Orbital is the visual reference)
+Browser/client (analytical dashboard; Orbital is the visual reference)
   ├─ DemoTransport → local manifest + JSON/GeoJSON/image assets
   └─ ApiTransport  → FastAPI /api/v1 contract
-                          ├─ implemented immutable mock-result repository
-                          └─ future offline geoprocessing pipeline
-                               → Google Earth Engine / CDSE fallback
+                          ├─ default bounded fixture repository
+                          └─ precomputed Earth Engine pack adapter
 ```
 
 The judged path is precomputed-first and runs over local HTTP without internet. Live or semi-live processing is an enhancement and must preserve the same response schemas. The optional user-provided 3D showcase is never required for analytics.
@@ -30,8 +29,8 @@ The judged path is precomputed-first and runs over local HTTP without internet. 
 ```text
 HTTP client requests a known region, indicator, layer, or comparison
 → FastAPI/Pydantic validates syntax, IDs, dates, enums, sizes, and period rules
-→ the repository resolves values through fixed in-memory catalogues, never paths
-→ a committed immutable mock payload is returned
+→ the repository resolves values through fixed catalogues, never caller-controlled paths
+→ a bounded fixture or reviewed precomputed pack response is returned
 → failures use sanitized application/problem+json responses
 ```
 

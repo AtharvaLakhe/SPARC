@@ -1,22 +1,25 @@
-/* Offline transport over the committed synthetic fixtures.
+/* Offline transport over the generated precomputed contract examples.
  *
- * This is the path the demo actually runs on: no server, no network, no
+ * This is the offline path: no server, no network, no
  * request-time processing. The fixtures are imported from their committed
  * location through the `@fixtures` alias, so there is no second copy to drift.
  *
  * It deliberately runs the *same* validation and the *same* period gate as the
- * API. A demo transport that accepts requests the server would reject is worse
+ * API. An offline transport that accepts requests the server would reject is worse
  * than useless — it hides exactly the failure you need rehearsed. */
 
-import districtSummary from '@fixtures/district-summary.mock.json';
-import waterComparison from '@fixtures/water-comparison.mock.json';
-import vegetationComparison from '@fixtures/vegetation-comparison.mock.json';
-import builtUpComparison from '@fixtures/built-up-comparison.mock.json';
-import lstComparison from '@fixtures/lst-comparison.mock.json';
+import nagpurSummary from '@fixtures/precomputed/district-nagpur-summary.json';
+import bengaluruSummary from '@fixtures/precomputed/district-bengaluru-urban-summary.json';
+import nagpurWater from '@fixtures/precomputed/district-nagpur-surface-water.json';
+import nagpurVegetation from '@fixtures/precomputed/district-nagpur-vegetation.json';
+import nagpurBuiltUp from '@fixtures/precomputed/district-nagpur-built-up.json';
+import bengaluruWater from '@fixtures/precomputed/district-bengaluru-urban-surface-water.json';
+import bengaluruVegetation from '@fixtures/precomputed/district-bengaluru-urban-vegetation.json';
+import bengaluruBuiltUp from '@fixtures/precomputed/district-bengaluru-urban-built-up.json';
 import partialData from '@fixtures/partial-data.mock.json';
 
 import {
-  cityForRegionId, comparisonForCity, demoRegions, summaryForCity,
+  cityForRegionId, comparisonForCity, summaryForCity,
 } from '../demo/cities';
 import type {
   ComparisonSelection,
@@ -28,13 +31,24 @@ import { assertDistrictSummary, assertIndicatorComparison, ContractViolation } f
 import { DataError } from './errors';
 import type { Transport } from './transport';
 
-/* Mirrors apps/api/app/repository.py COMPARISON_FILES. Keyed by indicator id,
-   never by anything a caller supplies — a request value must not select a file. */
-const COMPARISONS: Record<string, unknown> = {
-  'surface-water': waterComparison,
-  vegetation: vegetationComparison,
-  'built-up': builtUpComparison,
-  lst: lstComparison,
+const SUMMARIES: Record<string, unknown> = {
+  'district:nagpur': nagpurSummary,
+  'district:bengaluru-urban': bengaluruSummary,
+};
+
+/* Keyed by immutable region and indicator IDs, never by a caller-controlled
+   path. The examples are generated from the reviewed Earth Engine packs. */
+const COMPARISONS: Record<string, Record<string, unknown>> = {
+  'district:nagpur': {
+    'surface-water': nagpurWater,
+    vegetation: nagpurVegetation,
+    'built-up': nagpurBuiltUp,
+  },
+  'district:bengaluru-urban': {
+    'surface-water': bengaluruWater,
+    vegetation: bengaluruVegetation,
+    'built-up': bengaluruBuiltUp,
+  },
 };
 
 /* Reachable through a query flag so the partial/unavailable state can be
@@ -55,43 +69,44 @@ function periodsMatch(selection: ComparisonSelection, summary: DistrictSummaryRe
 }
 
 export class DemoTransport implements Transport {
-  readonly label = 'Offline demo pack';
+  readonly label = 'Local analysis package';
   readonly offlineCapable = true;
 
-  private readonly summary: DistrictSummaryResponse;
+  private readonly summaries: Record<string, DistrictSummaryResponse>;
   private readonly usePartial: boolean;
 
   constructor(opts: { usePartial?: boolean } = {}) {
     // Validate the fixtures at construction. If a committed example stops
     // satisfying the schema, that is a contract break and it should surface
     // immediately at boot, not on whichever screen happens to open it.
-    this.summary = assertDistrictSummary(districtSummary);
+    this.summaries = Object.fromEntries(
+      Object.entries(SUMMARIES).map(([regionId, payload]) => [regionId, assertDistrictSummary(payload)]),
+    );
     this.usePartial = opts.usePartial ?? false;
   }
 
   async listRegions(): Promise<RegionRef[]> {
-    // The committed Nagpur fixture leads, followed by generated fixtures.
-    // Every entry in this transport is synthetic and must stay mock-labelled.
-    return [this.summary.data.region, ...demoRegions()];
+    return Object.values(this.summaries).map((summary) => summary.data.region);
   }
 
   async getRegionSummary(selection: ComparisonSelection): Promise<DistrictSummaryResponse> {
+    const summary = this.summaries[selection.regionId];
     const city = cityForRegionId(selection.regionId);
-    if (!city && selection.regionId !== this.summary.data.region.id) {
-      throw new DataError('not-found', 'No demo pack exists for the requested region.');
+    const fallbackCity = city?.processingPack.status === 'NOT_AVAILABLE' ? city : null;
+    if (!summary && !fallbackCity) {
+      throw new DataError('not-found', 'No precomputed output exists for the requested region.');
     }
-    if (!periodsMatch(selection, this.summary)) {
+    if (summary && !periodsMatch(selection, summary)) {
       throw new DataError(
         'invalid-input',
-        'The demo pack only contains the frozen post-monsoon 2019 to 2024 comparison.',
+        'The offline analysis package only contains the frozen comparison for the selected district.',
       );
     }
-    // Generated districts are validated exactly like the committed fixtures.
-    // If the generator ever drifts from the schema this throws here rather than
-    // rendering something the contract does not allow.
-    if (city) {
+    // Keep generated fixtures available only for internal test callers; they
+    // are not returned by listRegions and cannot enter the primary picker.
+    if (fallbackCity) {
       try {
-        return assertDistrictSummary(summaryForCity(city));
+        return assertDistrictSummary(summaryForCity(fallbackCity));
       } catch (err) {
         if (err instanceof ContractViolation) {
           throw new DataError('contract', err.message, { detail: err.errors });
@@ -99,7 +114,7 @@ export class DemoTransport implements Transport {
         throw err;
       }
     }
-    return this.summary;
+    return summary as DistrictSummaryResponse;
   }
 
   async getIndicatorComparison(
@@ -111,14 +126,15 @@ export class DemoTransport implements Transport {
     await this.getRegionSummary(selection);
 
     const city = cityForRegionId(selection.regionId);
-    const source = city
-      ? comparisonForCity(city, indicatorId)
+    const fallbackCity = city?.processingPack.status === 'NOT_AVAILABLE' ? city : null;
+    const source = fallbackCity
+      ? comparisonForCity(fallbackCity, indicatorId)
       : this.usePartial && PARTIAL_OVERRIDE[indicatorId]
         ? PARTIAL_OVERRIDE[indicatorId]
-        : COMPARISONS[indicatorId];
+        : COMPARISONS[selection.regionId]?.[indicatorId];
 
     if (!source) {
-      throw new DataError('not-found', `No demo result is packaged for "${indicatorId}".`);
+      throw new DataError('not-found', `No precomputed result is packaged for "${indicatorId}".`);
     }
 
     try {

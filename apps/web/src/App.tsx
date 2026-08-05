@@ -19,13 +19,17 @@ import { DetailScreen } from './features/DetailView';
 import { LimitationsPanel, ModeBanner } from './features/Disclosure';
 import { ErrorView, LoadingView } from './features/StateViews';
 import { SummaryScreen } from './features/SummaryView';
+import { FallbackCityView } from './features/FallbackCityView';
 import { intensityFor, shapeForRegion } from './globe/overlay';
 import { styleFor } from './indicators';
 import { LocationConsole, PeriodConsole } from './shell/Consoles';
+import { ReportConcern } from './reporting/ReportConcern';
 import {
   mapDetail, mapSummary,
+  userFacingLabel,
   type DetailView as DetailVM, type SummaryView as SummaryVM,
 } from './viewmodel/mapper';
+import { cityForRegionId, isValidatedCity, type CityCatalogEntry } from './catalog/cities';
 
 type Stage = 'locate' | 'period' | 'dashboard';
 type Route = { name: 'summary' } | { name: 'indicator'; indicatorId: string };
@@ -34,7 +38,7 @@ type Async<T> =
   | { status: 'idle' } | { status: 'loading' }
   | { status: 'ready'; value: T } | { status: 'error'; error: DataError };
 
-const DEFAULT_REGION = 'mock:district:nagpur';
+const DEFAULT_REGION = 'district:nagpur';
 
 /* The globe lives at /, this client at /app/. Leaving the dashboard means
    going back up a level, not to a route in here. */
@@ -79,9 +83,14 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
   const [summary, setSummary] = useState<Async<SummaryVM>>({ status: 'idle' });
   const [detail, setDetail] = useState<Async<DetailVM>>({ status: 'idle' });
   const [reloadToken, setReloadToken] = useState(0);
+  // CODEX PROTOTYPE HANDOFF: Claude should replace this local shell with the
+  // reviewed reporting transport once the browser contract is consumed.
+  const [reportOpen, setReportOpen] = useState(false);
   const mainRef = useRef<HTMLElement | null>(null);
 
   const repository = useMemo(() => new Repository(createTransport(dataMode)), [dataMode]);
+  const catalogCity: CityCatalogEntry | null = cityForRegionId(regionId);
+  const cityHasValidatedPack = isValidatedCity(catalogCity);
 
   const selection: ComparisonSelection = useMemo(() => ({
     regionId,
@@ -108,24 +117,27 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
 
   // Only fetch once the user has actually reached the dashboard.
   useEffect(() => {
-    if (stage !== 'dashboard') return;
+    if (stage !== 'dashboard' || (catalogCity && !cityHasValidatedPack)) {
+      if (catalogCity && !cityHasValidatedPack) setSummary({ status: 'idle' });
+      return;
+    }
     const ac = new AbortController();
     setSummary({ status: 'loading' });
     repository.getRegionSummary(selection, ac.signal)
       .then((r) => setSummary({ status: 'ready', value: mapSummary(r, repository.label) }))
       .catch((e: unknown) => { if (!ac.signal.aborted) setSummary({ status: 'error', error: toDataError(e) }); });
     return () => ac.abort();
-  }, [repository, selection, stage, reloadToken]);
+  }, [repository, selection, stage, reloadToken, catalogCity, cityHasValidatedPack]);
 
   useEffect(() => {
-    if (stage !== 'dashboard' || route.name !== 'indicator') { setDetail({ status: 'idle' }); return; }
+    if (stage !== 'dashboard' || route.name !== 'indicator' || (catalogCity && !cityHasValidatedPack)) { setDetail({ status: 'idle' }); return; }
     const ac = new AbortController();
     setDetail({ status: 'loading' });
     repository.getIndicatorComparison(selection, route.indicatorId, ac.signal)
       .then((r) => setDetail({ status: 'ready', value: mapDetail(r, repository.label) }))
       .catch((e: unknown) => { if (!ac.signal.aborted) setDetail({ status: 'error', error: toDataError(e) }); });
     return () => ac.abort();
-  }, [repository, selection, stage, route, reloadToken]);
+  }, [repository, selection, stage, route, reloadToken, catalogCity, cityHasValidatedPack]);
 
   useEffect(() => { if (stage === 'dashboard') mainRef.current?.focus(); }, [stage, route.name]);
 
@@ -190,7 +202,7 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
      location step while the console — which owns the explanation — never
      learned a target had been rejected. Targeting Mumbai therefore re-asked
      "where?" with no reason given. */
-  const regionName = regions.find((r) => r.id === regionId)?.name ?? 'this district';
+  const regionName = userFacingLabel(catalogCity?.name ?? regions.find((r) => r.id === regionId)?.name ?? 'this district');
 
   /* ── stages before the dashboard ───────────────────────────────────────── */
   if (stage === 'locate' || stage === 'period') {
@@ -205,23 +217,33 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
             regions={regions}
             onResolved={(id) => {
               setRegionId(id);
-              /* Straight to the numbers. There is exactly one processed
-                 comparison window, so asking which one to use is a question
-                 with a single possible answer — pure friction between the user
-                 and the thing they asked for. "Change period" in the header
-                 reopens it for when there is more than one. */
+              setSummary({ status: 'idle' });
+              setDetail({ status: 'idle' });
+              const pickedCity = cityForRegionId(id);
+              if (pickedCity && !isValidatedCity(pickedCity)) {
+                const next = { stage: 'dashboard' as Stage, route: { name: 'summary' as const } };
+                if (panel) setPanelNav(next); else setNav(next);
+                return;
+              }
+              /* Each accepted district has a frozen comparison window. Keep
+                 the period step explicit so a district cannot accidentally be
+                 queried with another district's dates. */
               const next = FROZEN_PERIODS.length > 1
                 ? { stage: 'period' as Stage, route: { name: 'summary' as const } }
                 : { stage: 'dashboard' as Stage, route: { name: 'summary' as const } };
               if (panel) setPanelNav(next); else setNav(next);
             }}
             handoff={panel ? panel.target : handoffFromHash(location.hash)}
-            showDemoCities={dataMode === 'demo'}
+            /* Only stable packaged regions belong in the primary picker. The
+               generated quick-target cards remain an internal fixture aid
+               until accepted precomputed outputs are connected. */
+            showDemoCities={false}
             onCancel={() => { location.href = ORBIT_URL; }}
           />
         ) : (
           <PeriodConsole
             regionName={regionName}
+            periods={regionId.toLowerCase().includes('bengaluru') ? [FROZEN_PERIODS[1]] : [FROZEN_PERIODS[0]]}
             onChosen={(p) => {
               setPeriod(p);
               if (panel) setPanelNav({ stage: 'dashboard', route: { name: 'summary' } });
@@ -238,6 +260,7 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
   const badge = summary.status === 'ready' ? summary.value.badge
     : detail.status === 'ready' ? detail.value.badge : null;
   const warnings = summary.status === 'ready' ? summary.value.warnings : [];
+  const fallbackCity = catalogCity && !cityHasValidatedPack ? catalogCity : null;
 
   return (
     <div className="app">
@@ -246,17 +269,23 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
       <header className="topbar">
         <div className="brand">
           <span className="brand__name">SPARC</span>
-          <span className="brand__sub">{regionName} · {period.label}</span>
+          <span className="brand__sub">{regionName} · {fallbackCity ? 'Report/export scope' : period.label}</span>
         </div>
         <div className="topbar__actions">
           {badge ? <ModeBanner badge={badge} warnings={warnings} /> : null}
+          <button
+            type="button" className="btn"
+            onClick={() => setReportOpen(true)}
+          >
+            Report concern
+          </button>
           <button
             type="button" className="btn"
             onClick={() => (panel
               ? setPanelNav({ stage: 'locate', route: { name: 'summary' } })
               : go('#/locate'))}
           >
-            Change period
+            {fallbackCity ? 'Change location' : 'Change period'}
           </button>
           <button
             type="button" className="btn btn--ghost" data-autofocus
@@ -268,7 +297,9 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
       </header>
 
       <main id="main" ref={mainRef} tabIndex={-1} className="main">
-        {route.name === 'summary' ? (
+        {fallbackCity ? (
+          <FallbackCityView city={fallbackCity} onReport={() => setReportOpen(true)} />
+        ) : route.name === 'summary' ? (
           summary.status === 'loading' || summary.status === 'idle' ? (
             <LoadingView what="the district summary" />
           ) : summary.status === 'error' ? (
@@ -307,6 +338,16 @@ export default function App({ panel }: { panel?: PanelMode } = {}) {
       <footer className="foot">
         <p>Contract {config.contractVersion} · No official SDG claim, no causal claim.</p>
       </footer>
+
+      <ReportConcern
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        regionName={regionName}
+        regionId={regionId}
+        analysisSnapshot={summary.status === 'ready' ? summary.value : undefined}
+        coordinates={regions.find((region) => region.id === regionId)?.centroid}
+        catalogEntry={catalogCity ?? undefined}
+      />
     </div>
   );
 }

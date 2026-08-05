@@ -3,7 +3,7 @@
  * URL construction lives here and nowhere else. Components pass a canonical
  * selection; they never see a path. Identifiers are placed with
  * encodeURIComponent because catalogue ids contain colons
- * (`mock:district:nagpur`) and an unencoded one silently changes the path. */
+ * (`district:nagpur`) and an unencoded one silently changes the path. */
 
 import type {
   ComparisonSelection,
@@ -23,7 +23,7 @@ import type { Transport } from './transport';
 const TIMEOUT_MS = 10_000;
 
 export class ApiTransport implements Transport {
-  readonly label = 'Local API (mock fixtures)';
+  readonly label = 'SPARC analysis service';
   readonly offlineCapable = false;
 
   constructor(private readonly baseUrl: string) {}
@@ -39,7 +39,7 @@ export class ApiTransport implements Transport {
     // exactly the direction we use it: if the browser is certain it is offline,
     // say so rather than showing a generic failure after a timeout.
     if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-      throw new DataError('offline', 'The browser is offline. Switch to the offline demo pack.');
+      throw new DataError('offline', 'The browser is offline. Switch to the offline analysis package.');
     }
 
     const timeout = new AbortController();

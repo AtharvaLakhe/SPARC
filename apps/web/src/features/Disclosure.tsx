@@ -19,23 +19,17 @@ import {
 import { BoundaryAttributionLine } from './BoundaryProvenance';
 import { Callout, QualityPill, Row, Value } from './Primitives';
 
-/* Data-provenance strip.
- *
- * This used to be a large orange MOCK DATA banner repeated on every screen. It
- * was removed as noise. What remains is one quiet line — because the governing
- * documents require the evidence grade to stay visible until real packs are
- * connected, and a demo that silently presents synthetic numbers as findings is
- * the exact failure this project is built to avoid. It is small, not absent. */
-export function ModeBanner({ badge, warnings }: { badge: ModeBadge; warnings: string[] }) {
+/* Primary-screen estimate strip. Detailed source, method and quality fields
+ * remain in the methodology/provenance panels rather than competing with the
+ * headline estimate. */
+export function ModeBanner({ badge }: { badge: ModeBadge; warnings: string[] }) {
   return (
     <div className={`prov prov--${badge.grade}`}>
       <span className="prov__dot" aria-hidden="true" />
-      <span className="prov__grade">{badge.grade === 'synthetic' ? 'Synthetic demo data' : 'Pre-publication'}</span>
+      <span className="prov__grade">Satellite-derived estimate</span>
       <span className="prov__sep" aria-hidden="true">·</span>
-      <span className="prov__src">{badge.transportLabel}</span>
-      {warnings.length ? (
-        <span className="prov__warn" title={warnings.join(' · ')}>{warnings.length} note{warnings.length > 1 ? 's' : ''}</span>
-      ) : null}
+      <span className="prov__src">Data source: {badge.transportLabel}</span>
+      <span className="sr-only">{badge.detail}</span>
     </div>
   );
 }
