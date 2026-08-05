@@ -114,6 +114,46 @@ export function QualityPanel({ quality }: { quality: QualityView }) {
   );
 }
 
+/* A long evidence list, kept complete but bounded.
+ *
+ * A real Sentinel-2 composite names every contributing granule — for a summer
+ * window over a district straddling two tiles this runs to hundreds of ids, and
+ * rendering them raw pushes citation, licence and catalogue link so far down
+ * the page that the provenance block stops functioning as provenance.
+ *
+ * Dropping them is not an option: which scenes went in *is* the provenance. So
+ * the count leads (that is the number a reader actually wants), a few are shown
+ * for shape, and the remainder sit behind a disclosure that scrolls in its own
+ * box rather than growing the page. */
+function ScrollList({ items, noun, mono = false }: {
+  items: string[]; noun: string; mono?: boolean;
+}) {
+  const PREVIEW = 4;
+  const rest = items.length - PREVIEW;
+  const Item = ({ v }: { v: string }) => (
+    <li>{mono ? <code className="wrap">{v}</code> : v}</li>
+  );
+
+  return (
+    <div className="scenes">
+      <p className="scenes__count">
+        {items.length.toLocaleString()} {noun}{items.length === 1 ? '' : 's'}
+      </p>
+      <ul className="list list--tight scenes__preview">
+        {items.slice(0, PREVIEW).map((v) => <Item key={v} v={v} />)}
+      </ul>
+      {rest > 0 ? (
+        <details className="scenes__more">
+          <summary>Show the remaining {rest.toLocaleString()}</summary>
+          <ul className="list list--tight scenes__all">
+            {items.slice(PREVIEW).map((v) => <Item key={v} v={v} />)}
+          </ul>
+        </details>
+      ) : null}
+    </div>
+  );
+}
+
 export function ProvenancePanel({ provenance }: { provenance: Provenance }) {
   const id = useId();
   return (
@@ -149,15 +189,11 @@ export function ProvenancePanel({ provenance }: { provenance: Provenance }) {
               <Row label="Processing baseline">{source.processingBaseline}</Row>
             ) : null}
             <Row label="Scene items">
-              <ul className="list list--tight">
-                {source.itemIds.map((item) => <li key={item}><code>{item}</code></li>)}
-              </ul>
+              <ScrollList items={source.itemIds} noun="scene" mono />
             </Row>
             {source.acquiredAt.length ? (
               <Row label="Acquired">
-                <ul className="list list--tight">
-                  {source.acquiredAt.map((at) => <li key={at}>{at}</li>)}
-                </ul>
+                <ScrollList items={source.acquiredAt} noun="acquisition" />
               </Row>
             ) : null}
             {source.assetKeys.length ? (
