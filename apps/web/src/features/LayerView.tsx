@@ -103,7 +103,7 @@ function formatLatitude(value: number): string {
 }
 
 function projectBoundary(
-  rings: [number, number][][],
+  polygons: [number, number][][][],
   bounds: [number, number, number, number],
 ) {
   const [west, south, east, north] = bounds;
@@ -122,7 +122,7 @@ function projectBoundary(
     x: xOffset + (longitude - west) * scale,
     y: yOffset + (north - latitude) * scale,
   });
-  const path = rings.map((ring) => ring.map((coordinate, index) => {
+  const path = polygons.flatMap((polygon) => polygon).map((ring) => ring.map((coordinate, index) => {
     const projected = point(coordinate);
     return `${index === 0 ? 'M' : 'L'}${projected.x.toFixed(2)} ${projected.y.toFixed(2)}`;
   }).join(' ') + ' Z').join(' ');
@@ -139,7 +139,7 @@ function SpatialField({ detail, accent, id }: { detail: DetailVM; accent?: strin
   const clipId = `${headingId.replaceAll(':', '')}-boundary-clip`;
   const [mode, setMode] = useState<SpatialMode>('signal');
   const shape = shapeForRegion(detail.region.id, detail.region.bbox);
-  const projected = shape ? projectBoundary(shape.rings, detail.region.bbox) : null;
+  const projected = shape ? projectBoundary(shape.polygons, detail.region.bbox) : null;
   const centroid = projected?.point(detail.region.centroid) ?? { x: SPATIAL_WIDTH / 2, y: SPATIAL_HEIGHT / 2 };
   const source = detail.provenance.sources[0];
   const resolution = detail.provenance.effectiveResolutionMeters === null
@@ -193,11 +193,8 @@ function SpatialField({ detail, accent, id }: { detail: DetailVM; accent?: strin
                 <stop offset="0.5" stopColor="var(--spatial-accent)" stopOpacity="0.5" />
                 <stop offset="1" stopColor="var(--spatial-accent)" stopOpacity="0" />
               </linearGradient>
-              {projected ? <clipPath id={clipId}><path d={projected.path} /></clipPath> : null}
+              {projected ? <clipPath id={clipId}><path d={projected.path} clipRule="evenodd" /></clipPath> : null}
             </defs>
-
-            <path className="spatial-field__frame" d="M18 84V18H84 M676 18H742V84 M742 336V402H676 M84 402H18V336" />
-            <path className="spatial-field__datum" d="M54 210H706 M380 42V378" />
 
             {projected ? (
               <>

@@ -19,6 +19,7 @@
 import nagpurGeo from '@validated/nagpur.geojson?raw';
 import bengaluruGeo from '@validated/bengaluru-urban.geojson?raw';
 import mumbaiCityGeo from '@validated/mumbai-city.geojson?raw';
+import mumbaiCombinedGeo from '@global-boundaries/mumbai.geojson?raw';
 import { cityForRegionId } from '../catalog/cities';
 
 /** [lon, lat] */
@@ -27,6 +28,8 @@ export type LonLat = [number, number];
 export interface DistrictShape {
   /** Outer ring first, then holes. */
   rings: LonLat[][];
+  /** Every polygon in the validated feature, including detached district parts. */
+  polygons: LonLat[][][];
   /** True when the outline is a bounding box, not a surveyed boundary. */
   approximate: boolean;
   label: string;
@@ -48,17 +51,23 @@ const REAL: Record<string, GeoFeature | null> = {
   nagpur: parse(nagpurGeo),
   'bengaluru-urban': parse(bengaluruGeo),
   'mumbai-city': parse(mumbaiCityGeo),
+  mumbai: parse(mumbaiCombinedGeo),
 };
 
+function polygonsFromFeature(f: GeoFeature): LonLat[][][] {
+  if (f.geometry.type === 'Polygon') return [f.geometry.coordinates as LonLat[][]];
+  if (f.geometry.type === 'MultiPolygon') return f.geometry.coordinates as LonLat[][][];
+  return [];
+}
+
 function ringsFromFeature(f: GeoFeature): LonLat[][] {
-  if (f.geometry.type === 'Polygon') return f.geometry.coordinates as LonLat[][];
-  if (f.geometry.type === 'MultiPolygon') {
+  const polys = polygonsFromFeature(f);
+  if (polys.length > 1) {
     // Largest part only. The globe patch is an orientation cue, not a cadastral
     // rendering, and stitching every island in adds vertices for no legibility.
-    const polys = f.geometry.coordinates as LonLat[][][];
     return polys.reduce((best, p) => ((p[0]?.length ?? 0) > (best[0]?.length ?? 0) ? p : best), polys[0] ?? []);
   }
-  return [];
+  return polys[0] ?? [];
 }
 
 function boxRings(bbox: [number, number, number, number]): LonLat[][] {
@@ -81,11 +90,15 @@ export function shapeForRegion(
     const sparcId = feature.properties.sparcRegionId as string | undefined;
     if (regionId.includes(key) || (sparcId && sparcId === regionId)) {
       const rings = ringsFromFeature(feature);
+      const polygons = polygonsFromFeature(feature);
       if (rings.length) {
         return {
           rings,
+          polygons,
           approximate: false,
-          label: (feature.properties.sparcDisplayName as string) ?? key,
+          label: (feature.properties.sparcDisplayName as string)
+            ?? (feature.properties.sparcScope as string)
+            ?? key,
         };
       }
     }
@@ -94,14 +107,19 @@ export function shapeForRegion(
   // Catalog city envelope — bounding box only and explicitly approximate.
   const city = cityForRegionId(regionId);
   if (city) {
+    const rings = boxRings(city.bbox);
     return {
-      rings: boxRings(city.bbox),
+      rings,
+      polygons: [rings],
       approximate: true,
       label: city.name,
     };
   }
 
-  if (bbox) return { rings: boxRings(bbox), approximate: true, label: regionId };
+  if (bbox) {
+    const rings = boxRings(bbox);
+    return { rings, polygons: [rings], approximate: true, label: regionId };
+  }
   return null;
 }
 

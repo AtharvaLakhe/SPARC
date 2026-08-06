@@ -273,7 +273,7 @@
   box-shadow: none;
 }
 
-.sparc-panel .panel--report .btn--primary {
+.panel--report .btn--primary {
   min-height: auto;
   padding: 0.45rem 0 0.3rem;
   border: 0;
@@ -283,9 +283,11 @@
   color: var(--warn);
 }
 
-.sparc-panel .panel--report .btn--primary:hover {
+.panel--report .btn--primary:hover {
+  background: color-mix(in srgb, var(--warn) 10%, transparent);
   border-bottom-color: var(--warn);
-  color: color-mix(in srgb, var(--warn) 78%, var(--ink));
+  color: color-mix(in srgb, var(--warn) 88%, white);
+  box-shadow: none;
 }
 
 @media (max-width: 30rem) {

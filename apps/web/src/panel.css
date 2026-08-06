@@ -384,7 +384,12 @@
   color: #171008;
   white-space: nowrap;
 }
-.sparc-panel .panel--report .btn--primary:hover { background: #ffd07f; border-color: #ffd07f; }
+.sparc-panel .panel--report .btn--primary:hover {
+  background: color-mix(in srgb, var(--warn) 10%, transparent);
+  border-color: color-mix(in srgb, var(--warn) 68%, transparent);
+  color: color-mix(in srgb, var(--warn) 88%, white);
+  box-shadow: none;
+}
 
 .sparc-panel .panel--limits {
   margin-top: 0.7rem;

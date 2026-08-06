@@ -718,7 +718,7 @@
 .spatial-field__modes button:focus-visible { outline: 2px solid var(--spatial-accent); outline-offset: 1px; }
 .spatial-field__stage {
   position: relative;
-  min-height: 29rem;
+  min-height: 24rem;
   margin-top: -0.35rem;
   overflow: hidden;
   border: 1px solid rgba(129, 166, 201, 0.14);
@@ -731,12 +731,11 @@
 .spatial-field__graphic {
   position: absolute;
   inset: 50% auto auto 50%;
-  width: min(54rem, 116%);
-  max-width: none;
+  width: auto;
+  height: calc(100% - 2.5rem);
+  max-width: 70%;
   transform: translate(-50%, -50%);
 }
-.spatial-field__frame { fill: none; stroke: color-mix(in srgb, var(--spatial-accent) 42%, transparent); stroke-width: 1; }
-.spatial-field__datum { fill: none; stroke: rgba(129, 166, 201, 0.09); stroke-width: 0.8; stroke-dasharray: 2 8; }
 .spatial-field__boundary-glow { fill: none; stroke: color-mix(in srgb, var(--spatial-accent) 32%, transparent); stroke-width: 11; filter: blur(8px); opacity: 0.35; }
 .spatial-field__boundary { stroke: var(--spatial-accent); stroke-width: 1.7; vector-effect: non-scaling-stroke; filter: drop-shadow(0 0 7px color-mix(in srgb, var(--spatial-accent) 36%, transparent)); transition: opacity 220ms ease, fill-opacity 220ms ease; }
 .spatial-field__stage--extent .spatial-field__boundary { fill-opacity: 0.1; }
@@ -971,8 +970,8 @@
   .scene-swarm__points { grid-template-columns: repeat(18, minmax(0, 1fr)); }
   .quality-ledger { grid-template-columns: 1fr; }
   .quality-cluster__header { min-height: 0; }
-  .spatial-field__stage { min-height: 26rem; }
-  .spatial-field__graphic { width: 145%; }
+  .spatial-field__stage { min-height: 24rem; }
+  .spatial-field__graphic { width: auto; height: 64%; max-width: 88%; }
   .spatial-field__telemetry span:nth-child(2),
   .spatial-field__telemetry span:nth-child(3) { display: none; }
 }
@@ -1014,7 +1013,7 @@
   .spatial-field__modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; }
   .spatial-field__modes button { justify-content: center; padding-inline: 0.3rem; }
   .spatial-field__stage { min-height: 30rem; margin-top: 0.4rem; overflow: visible; }
-  .spatial-field__graphic { top: 40%; width: 178%; }
+  .spatial-field__graphic { top: 31%; width: auto; height: 48%; max-width: 94%; }
   .spatial-field__overlay { inset: auto 0 2.2rem; display: grid; grid-template-columns: 1fr; gap: 0.45rem; padding: 0.6rem; }
   .spatial-field__callout,
   .spatial-field__callout--primary,
@@ -1040,8 +1039,8 @@
   .scene-swarm__points { grid-template-columns: repeat(18, minmax(0, 1fr)); }
   .quality-ledger { grid-template-columns: 1fr; }
   .quality-cluster__header { min-height: 0; }
-  .spatial-field__stage { min-height: 26rem; }
-  .spatial-field__graphic { width: 145%; }
+  .spatial-field__stage { min-height: 24rem; }
+  .spatial-field__graphic { width: auto; height: 64%; max-width: 88%; }
   .spatial-field__telemetry span:nth-child(2),
   .spatial-field__telemetry span:nth-child(3) { display: none; }
 }
@@ -1083,7 +1082,7 @@
   .spatial-field__modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; }
   .spatial-field__modes button { justify-content: center; padding-inline: 0.3rem; }
   .spatial-field__stage { min-height: 30rem; margin-top: 0.4rem; overflow: visible; }
-  .spatial-field__graphic { top: 40%; width: 178%; }
+  .spatial-field__graphic { top: 31%; width: auto; height: 48%; max-width: 94%; }
   .spatial-field__overlay { inset: auto 0 2.2rem; display: grid; grid-template-columns: 1fr; gap: 0.45rem; padding: 0.6rem; }
   .spatial-field__callout,
   .spatial-field__callout--primary,

@@ -40,6 +40,9 @@ export default defineConfig({
       '@validated': path.resolve(
         repoRoot, 'data', 'validated', 'boundaries', 'geoBoundaries-IND-ADM2-76128533',
       ),
+      '@global-boundaries': path.resolve(
+        repoRoot, 'data', 'validated', 'boundaries', 'global',
+      ),
       '@boundaries': path.resolve(
         repoRoot, 'data', 'metadata', 'boundaries', 'geoBoundaries-IND-ADM2-76128533',
       ),
